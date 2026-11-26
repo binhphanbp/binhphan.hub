@@ -1,0 +1,356 @@
+[
+  {
+    "id": "R1-01",
+    "ch": 1,
+    "type": "tf",
+    "tf": false,
+    "q": "Investment banks fund themselves primarily with retail deposits.",
+    "a": "False. Retail deposit-taking defines commercial banking. Investment banks fund themselves in wholesale markets and earn fees, spreads and management charges rather than a deposit-funded lending spread.",
+    "qVi": "Ngân hàng đầu tư huy động vốn chủ yếu bằng tiền gửi bán lẻ.",
+    "aVi": "Sai. Nhận tiền gửi bán lẻ là đặc trưng của ngân hàng thương mại. Ngân hàng đầu tư huy động vốn trên thị trường bán buôn và kiếm phí, chênh lệch giá cùng phí quản lý, chứ không sống bằng chênh lệch lãi vay – huy động như ngân hàng thương mại."
+  },
+  {
+    "id": "R1-02",
+    "ch": 1,
+    "type": "tf",
+    "tf": true,
+    "q": "The Glass-Steagall Act of 1933 separated commercial and investment banking in the United States.",
+    "a": "True. It was repealed by the Gramm-Leach-Bliley Act in 1999, which permitted the modern universal bank.",
+    "qVi": "Đạo luật Glass-Steagall năm 1933 tách bạch ngân hàng thương mại và ngân hàng đầu tư tại Hoa Kỳ.",
+    "aVi": "Đúng. Đạo luật này bị bãi bỏ bởi Đạo luật Gramm-Leach-Bliley năm 1999, mở đường cho mô hình ngân hàng đa năng hiện đại."
+  },
+  {
+    "id": "R1-03",
+    "ch": 1,
+    "type": "tf",
+    "tf": false,
+    "q": "Risk management and compliance are front-office functions.",
+    "a": "False. They are middle-office functions. The front office generates revenue and faces clients (banking, markets, research); the back office settles and records transactions.",
+    "qVi": "Quản trị rủi ro và tuân thủ là các chức năng của khối trước (front office).",
+    "aVi": "Sai. Đó là các chức năng của khối giữa (middle office). Khối trước tạo doanh thu và tiếp xúc khách hàng (tư vấn, thị trường, nghiên cứu); khối sau (back office) thanh toán và ghi sổ giao dịch."
+  },
+  {
+    "id": "R1-04",
+    "ch": 1,
+    "type": "tf",
+    "tf": true,
+    "q": "Investment banking fee income is more cyclical than commercial banking interest income.",
+    "a": "True. Fees are earned per transaction, so revenue collapses when issuance and M&A volumes fall — while the cost base (people) stays largely fixed.",
+    "qVi": "Thu nhập từ phí của ngân hàng đầu tư có tính chu kỳ cao hơn thu nhập lãi của ngân hàng thương mại.",
+    "aVi": "Đúng. Phí được thu theo từng thương vụ, nên doanh thu sụt mạnh khi khối lượng phát hành và M&A giảm — trong khi chi phí nền (nhân sự) gần như cố định."
+  },
+  {
+    "id": "R1-05",
+    "ch": 1,
+    "type": "short",
+    "q": "State the WACC formula and explain why the cost of debt is multiplied by (1 − t).",
+    "a": "WACC = (E/V)·r_e + (D/V)·r_d·(1 − t). Interest is tax-deductible, so each dollar of interest reduces taxable income and saves t in tax. The effective cost to the firm is therefore r_d(1 − t) — the tax shield. Dividends are not deductible, so no equivalent adjustment applies to the cost of equity.",
+    "qVi": "Viết công thức WACC và giải thích vì sao chi phí nợ được nhân với (1 − t).",
+    "aVi": "WACC = (E/V)·r_e + (D/V)·r_d·(1 − t). Lãi vay được khấu trừ thuế, nên mỗi đồng lãi vay làm giảm thu nhập chịu thuế và tiết kiệm t tiền thuế. Do đó chi phí thực đối với doanh nghiệp là r_d(1 − t) — lá chắn thuế. Cổ tức không được khấu trừ, nên chi phí vốn chủ không có điều chỉnh tương đương."
+  },
+  {
+    "id": "R1-06",
+    "ch": 1,
+    "type": "short",
+    "q": "Why do banks care about league-table position even on deals with thin economics?",
+    "a": "League tables rank banks by deal volume and value. Ranking signals capability and market access to prospective clients, so a high position helps win the next mandate. Banks therefore sometimes accept poor economics on a visible deal to protect the ranking that generates future fees.",
+    "qVi": "Vì sao ngân hàng vẫn quan tâm đến vị trí trên bảng xếp hạng (league table) ngay cả với những thương vụ ít lợi nhuận?",
+    "aVi": "Bảng xếp hạng xếp các ngân hàng theo khối lượng và giá trị thương vụ. Thứ hạng phát tín hiệu về năng lực và khả năng tiếp cận thị trường tới khách hàng tiềm năng, nên vị trí cao giúp giành hợp đồng tiếp theo. Vì vậy ngân hàng đôi khi chấp nhận lợi nhuận kém trên một thương vụ nổi bật để giữ thứ hạng — thứ tạo ra phí trong tương lai."
+  },
+  {
+    "id": "R2-01",
+    "ch": 2,
+    "type": "tf",
+    "tf": true,
+    "q": "In a firm-commitment underwriting the bank bears the risk of not being able to resell the issue.",
+    "a": "True. The bank buys the whole issue at an agreed price. Under a best-efforts arrangement that placement risk stays with the issuer.",
+    "qVi": "Trong bảo lãnh phát hành theo cam kết chắc chắn (firm commitment), ngân hàng gánh rủi ro không bán lại được đợt phát hành.",
+    "aVi": "Đúng. Ngân hàng mua trọn đợt phát hành ở mức giá đã thoả thuận. Với thoả thuận nỗ lực tối đa (best efforts), rủi ro phân phối vẫn thuộc về tổ chức phát hành."
+  },
+  {
+    "id": "R2-02",
+    "ch": 2,
+    "type": "tf",
+    "tf": false,
+    "q": "The greenshoe option allows underwriters to sell up to 50% additional shares.",
+    "a": "False. The over-allotment option is capped at 15% of the base deal size.",
+    "qVi": "Quyền chọn greenshoe cho phép nhà bảo lãnh bán thêm tối đa 50% số cổ phần.",
+    "aVi": "Sai. Quyền chọn vượt mức (over-allotment) bị giới hạn ở 15% quy mô cơ bản của thương vụ."
+  },
+  {
+    "id": "R2-03",
+    "ch": 2,
+    "type": "tf",
+    "tf": true,
+    "q": "Debt underwriting typically carries a much lower gross spread than equity underwriting.",
+    "a": "True. Bond spreads are often below 1% (and far less for investment-grade issuers), versus 3–7% for a typical IPO, because credit issuance is frequent, standardized and lower-risk to place.",
+    "qVi": "Bảo lãnh phát hành nợ thường có phí (gross spread) thấp hơn nhiều so với bảo lãnh phát hành cổ phần.",
+    "aVi": "Đúng. Phí phát hành trái phiếu thường dư 1% (và thấp hơn nhiều đối với tổ chức phát hành hạng đầu tư), so với 3–7% của một đợt IPO điển hình, vì phát hành nợ diễn ra thường xuyên, chuẩn hóa và ít rủi ro khi phân phối."
+  },
+  {
+    "id": "R2-04",
+    "ch": 2,
+    "type": "tf",
+    "tf": false,
+    "q": "IPO underpricing benefits the issuing company.",
+    "a": "False. Underpricing means the company sells shares below the price the market will pay — 'money left on the table'. The beneficiaries are the allocated investors, and indirectly the underwriter, whose placement risk falls and whose distribution clients are rewarded.",
+    "qVi": "Việc định giá thấp trong IPO (underpricing) đem lại lợi ích cho công ty phát hành.",
+    "aVi": "Sai. Định giá thấp nghĩa là công ty bán cổ phần dưới mức giá mà thị trường sẵn sàng trả — 'tiền bỏ lại trên bàn'. Người hưởng lợi là nhà đầu tư được phân bổ, và gián tiếp là nhà bảo lãnh vì rủi ro phân phối giảm và khách hàng phân phối của họ được tưởng thưởng."
+  },
+  {
+    "id": "R2-05",
+    "ch": 2,
+    "type": "short",
+    "q": "A company sells 10m shares at $20 with a 6% gross spread. What are gross and net proceeds?",
+    "a": "Gross proceeds = 10m × $20 = $200m. Underwriting fee = 6% × $200m = $12m. Net proceeds to the issuer = $188m.",
+    "qVi": "Một công ty bán 10 triệu cổ phần giá 20 USD với phí bảo lãnh 6%. Số tiền thu gộp và thu ròng là bao nhiêu?",
+    "aVi": "Số tiền thu gộp = 10 triệu × 20 USD = 200 triệu USD. Phí bảo lãnh = 6% × 200 triệu = 12 triệu USD. Số tiền thu ròng của tổ chức phát hành = 188 triệu USD."
+  },
+  {
+    "id": "R2-06",
+    "ch": 2,
+    "type": "short",
+    "q": "Explain the roles of the hurdle rate and carried interest in a private-equity fund.",
+    "a": "Carried interest is the GP's share of profits, typically 20%. The hurdle (preferred return, often 8%) is the minimum return LPs must receive before the GP earns any carry. Together they ensure the manager is rewarded for genuine outperformance rather than merely for deploying capital; a high-water mark or clawback prevents being paid twice on the same gains.",
+    "qVi": "Giải thích vai trò của ngưỡng sinh lời (hurdle rate) và lãi thưởng (carried interest) trong một quỹ đầu tư tư nhân (private equity).",
+    "aVi": "Lãi thưởng là phần lợi nhuận chia cho thành viên quản lý (GP), thường là 20%. Ngưỡng sinh lời (mức sinh lời ưu tiên, thường 8%) là mức tối thiểu mà nhà đầu tư (LP) phải nhận được trước khi GP được hưởng lãi thưởng. Cùng nhau, chúng bảo đảm nhà quản lý được thưởng cho hiệu quả vượt trội thực sự chứ không chỉ vì đã giải ngân vốn; điều khoản mốc cao nhất (high-water mark) hoặc thu hồi (clawback) ngăn việc được trả hai lần trên cùng một khoản lãi."
+  },
+  {
+    "id": "R3-01",
+    "ch": 3,
+    "type": "tf",
+    "tf": true,
+    "q": "In an asset purchase the buyer generally assumes only the liabilities it expressly agrees to take on.",
+    "a": "True. This is why buyers usually prefer asset deals while sellers prefer share deals, which give a cleaner and often more tax-efficient exit.",
+    "qVi": "Trong giao dịch mua tài sản, bên mua nói chung chỉ gánh những nghĩa vụ nợ mà mình đồng ý tiếp nhận một cách rõ ràng.",
+    "aVi": "Đúng. Đó là lý do bên mua thường thích mua tài sản, còn bên bán thích bán cổ phần vì cho một lối thoái vốn sạch sẽ và thường hiệu quả hơn về thuế."
+  },
+  {
+    "id": "R3-02",
+    "ch": 3,
+    "type": "tf",
+    "tf": false,
+    "q": "Revenue synergies are generally regarded as more reliable than cost synergies.",
+    "a": "False. Cost synergies are largely within management's control (removing duplicate functions, procurement). Revenue synergies depend on customer behaviour and are routinely discounted by the market.",
+    "qVi": "Cộng hưởng doanh thu (revenue synergies) thường được xem là đáng tin cậy hơn cộng hưởng chi phí (cost synergies).",
+    "aVi": "Sai. Cộng hưởng chi phí phần lớn nằm trong tầm kiểm soát của ban điều hành (loại bỏ chức năng trùng lặp, mua sắm tập trung). Cộng hưởng doanh thu phụ thuộc hành vi khách hàng và thường bị thị trường chiết khấu."
+  },
+  {
+    "id": "R3-03",
+    "ch": 3,
+    "type": "tf",
+    "tf": true,
+    "q": "In an all-stock deal, the transaction is accretive when the acquirer's P/E exceeds the P/E it pays for the target.",
+    "a": "True. The acquirer issues relatively expensive shares to buy relatively cheaper earnings, raising EPS. If it pays a higher P/E than its own, the deal dilutes.",
+    "qVi": "Trong thương vụ thanh toán hoàn toàn bằng cổ phiếu, giao dịch làm tăng lãi (accretive) khi P/E của bên mua lớn hơn P/E mà họ trả cho công ty mục tiêu.",
+    "aVi": "Đúng. Bên mua phát hành cổ phiếu tương đối đắt để mua lợi nhuận tương đối rẻ, làm tăng EPS. Nếu trả P/E cao hơn P/E của chính mình thì giao dịch làm pha loãng."
+  },
+  {
+    "id": "R3-04",
+    "ch": 3,
+    "type": "tf",
+    "tf": false,
+    "q": "Empirical evidence shows that acquirer shareholders typically capture most of the value created in M&A.",
+    "a": "False. Target shareholders capture most of the announced value through the premium; acquirers on average earn approximately zero or slightly negative abnormal returns.",
+    "qVi": "Bằng chứng thực nghiệm cho thấy cổ đông bên mua thường thâu tóm phần lớn giá trị tạo ra trong M&A.",
+    "aVi": "Sai. Cổ đông công ty mục tiêu thâu tóm phần lớn giá trị được công bố thông qua mức thặng dư; bên mua trung bình chỉ đạt lợi suất bất thường xấp xỉ bằng 0 hoặc âm nhẹ."
+  },
+  {
+    "id": "R3-05",
+    "ch": 3,
+    "type": "short",
+    "q": "A target trades at $40 unaffected with 50m shares. At a 25% premium, what is the purchase equity value?",
+    "a": "Offer price = $40 × 1.25 = $50. Purchase equity value = $50 × 50m = $2,500m.",
+    "qVi": "Một công ty mục tiêu giao dịch ở 40 USD (chưa bị ảnh hưởng) với 50 triệu cổ phần. Với mức thặng dư 25%, giá trị vốn chủ mua lại là bao nhiêu?",
+    "aVi": "Giá chào mua = 40 USD × 1,25 = 50 USD. Giá trị vốn chủ mua lại = 50 USD × 50 triệu = 2.500 triệu USD."
+  },
+  {
+    "id": "R3-06",
+    "ch": 3,
+    "type": "short",
+    "q": "What characteristics make a company a good LBO candidate, and why?",
+    "a": "Stable, predictable cash flows (to service fixed interest), low capital-expenditure needs (cash is free for debt paydown), tangible or saleable assets (collateral and exit optionality), a defensible market position, and scope for operational improvement. Volatile, capex-heavy or pre-revenue businesses cannot support high fixed debt service.",
+    "qVi": "Những đặc điểm nào khiến một công ty là ứng viên LBO tốt, và vì sao?",
+    "aVi": "Dòng tiền ổn định và dự đoán được (để trả lãi cố định), nhu cầu đầu tư tài sản cố định thấp (tiền được dành để trả nợ), tài sản hữu hình hoặc dễ bán (làm tài sản bảo đảm và tạo lựa chọn thoái vốn), vị thế thị trường vững chắc, và dư địa cải thiện vận hành. Các doanh nghiệp biến động mạnh, ngốn vốn đầu tư hoặc chưa có doanh thu không thể gánh nổi mức trả nợ cố định cao."
+  },
+  {
+    "id": "R3-07",
+    "ch": 3,
+    "type": "short",
+    "q": "Why is 'staple financing' a conflict of interest?",
+    "a": "The sell-side bank advises the seller — whose interest is the highest price — while simultaneously offering debt financing to the buyer, from which it earns a separate fee and whose terms affect what the buyer can pay. Banks manage this with disclosure and separate teams, but the tension is structural.",
+    "qVi": "Vì sao 'tài trợ đính kèm' (staple financing) là một xung đột lợi ích?",
+    "aVi": "Ngân hàng bên bán tư vấn cho người bán — bên có lợi ích là giá cao nhất — trong khi đồng thời chào gói tài trợ nợ cho người mua, thu một khoản phí riêng và với điều khoản ảnh hưởng đến số tiền người mua có thể trả. Ngân hàng xử lý việc này bằng công bố thông tin và tách nhóm, nhưng căng thẳng lợi ích là mang tính cấu trúc."
+  },
+  {
+    "id": "R4-01",
+    "ch": 4,
+    "type": "tf",
+    "tf": true,
+    "q": "Management fees are charged on AUM regardless of whether the fund performs well.",
+    "a": "True. That is precisely why they are valued: recurring, predictable revenue that stabilises group earnings against cyclical advisory and trading income.",
+    "qVi": "Phí quản lý được thu trên tài sản quản lý (AUM) bất kể quỹ hoạt động tốt hay không.",
+    "aVi": "Đúng. Đó chính là lý do phí này được coi trọng: doanh thu định kỳ, dự đoán được, giúp ổn định lợi nhuận của tập đoàn trước thu nhập tư vấn và giao dịch mang tính chu kỳ."
+  },
+  {
+    "id": "R4-02",
+    "ch": 4,
+    "type": "tf",
+    "tf": false,
+    "q": "ETFs can only be bought or sold once per day at the closing NAV.",
+    "a": "False. ETFs trade intraday on an exchange at market prices, kept close to NAV by authorised-participant arbitrage. Open-end mutual funds transact once daily at NAV.",
+    "qVi": "Quỹ ETF chỉ có thể mua hoặc bán một lần mỗi ngày theo NAV đóng cửa.",
+    "aVi": "Sai. ETF giao dịch trong phiên trên sở giao dịch theo giá thị trường, được giữ sát NAV nhờ hoạt động kinh doanh chênh lệch giá của thành viên lập quỹ được ủy quyền. Quỹ mở truyền thống chỉ giao dịch một lần mỗi ngày theo NAV."
+  },
+  {
+    "id": "R4-03",
+    "ch": 4,
+    "type": "tf",
+    "tf": true,
+    "q": "A discretionary mandate allows the manager to trade without obtaining approval for each transaction.",
+    "a": "True — within the objectives and constraints agreed in the mandate or IPS. An advisory mandate leaves each decision to the client.",
+    "qVi": "Mệnh lệnh ủy thác toàn quyền (discretionary) cho phép nhà quản lý giao dịch mà không cần xin duyệt từng giao dịch.",
+    "aVi": "Đúng — trong phạm vi mục tiêu và ràng buộc đã thống nhất trong mệnh lệnh hoặc IPS. Mệnh lệnh tư vấn (advisory) để mỗi quyết định lại cho khách hàng."
+  },
+  {
+    "id": "R4-04",
+    "ch": 4,
+    "type": "short",
+    "q": "A fund charges 2% and 20% carry over an 8% hurdle. Gross return is 15%. What does the investor net?",
+    "a": "Excess over hurdle = 7%. Carry = 20% × 7% = 1.4%. Net return = 15% − 2% − 1.4% = 11.6%.",
+    "qVi": "Một quỹ tính phí 2% và lãi thưởng 20% trên ngưỡng 8%. Lợi suất gộp là 15%. Nhà đầu tư nhận ròng bao nhiêu?",
+    "aVi": "Phần vượt ngưỡng = 7%. Lãi thưởng = 20% × 7% = 1,4%. Lợi suất ròng = 15% − 2% − 1,4% = 11,6%."
+  },
+  {
+    "id": "R4-05",
+    "ch": 4,
+    "type": "short",
+    "q": "Distinguish the Sharpe ratio from the information ratio.",
+    "a": "Sharpe = (R_P − R_f)/σ_P measures excess return over the risk-free rate per unit of total risk — appropriate when the portfolio is the investor's whole wealth. Information ratio = (R_P − R_B)/tracking error measures active return against a benchmark per unit of active risk — it isolates the manager's skill relative to the mandate.",
+    "qVi": "Phân biệt tỷ số Sharpe với tỷ số thông tin (information ratio).",
+    "aVi": "Sharpe = (R_P − R_f)/σ_P đo lợi suất vượt trội trên lãi suất phi rủi ro trên mỗi đơn vị rủi ro tổng — phù hợp khi danh mục là toàn bộ tài sản của nhà đầu tư. Tỷ số thông tin = (R_P − R_B)/sai số theo dõi đo lợi suất chủ động so với chỉ số tham chiếu trên mỗi đơn vị rủi ro chủ động — nó tách riêng kỹ năng của nhà quản lý so với mệnh lệnh đầu tư."
+  },
+  {
+    "id": "R4-06",
+    "ch": 4,
+    "type": "short",
+    "q": "List the five characteristics of a good benchmark.",
+    "a": "Unambiguous (constituents and weights known), investable (it could actually be held passively), measurable (returns computable at reasonable frequency), appropriate (consistent with the manager's style), and specified in advance (agreed before the evaluation period, not chosen afterwards).",
+    "qVi": "Liệt kê năm đặc điểm của một chỉ số tham chiếu tốt.",
+    "aVi": "Rõ ràng (biết được thành phần và tỷ trọng), có thể đầu tư (thực sự có thể nắm giữ thụ động), đo lường được (tính được lợi suất với tần suất hợp lý), phù hợp (nhất quán với phong cách của nhà quản lý), và xác định trước (thống nhất trước kỳ đánh giá chứ không chọn sau)."
+  },
+  {
+    "id": "R5-01",
+    "ch": 5,
+    "type": "tf",
+    "tf": true,
+    "q": "EV/EBITDA is capital-structure neutral, whereas P/E is not.",
+    "a": "True. EV/EBITDA values the whole business before financing costs, so companies with different leverage remain comparable. P/E is computed after interest, so leverage distorts it.",
+    "qVi": "EV/EBITDA trung lập với cấu trúc vốn, còn P/E thì không.",
+    "aVi": "Đúng. EV/EBITDA định giá toàn bộ doanh nghiệp trước chi phí tài trợ, nên các công ty có mức đòn bẩy khác nhau vẫn so sánh được. P/E được tính sau lãi vay, nên đòn bẩy làm méo nó."
+  },
+  {
+    "id": "R5-02",
+    "ch": 5,
+    "type": "tf",
+    "tf": false,
+    "q": "Analysts normally apply the mean peer multiple to limit the influence of outliers.",
+    "a": "False. The median is used. Multiples are bounded below by zero but unbounded above, so distributions are right-skewed and one outlier can badly distort the mean.",
+    "qVi": "Chuyên viên phân tích thường áp dụng bội số trung bình của nhóm so sánh để hạn chế ảnh hưởng của giá trị ngoại lai.",
+    "aVi": "Sai. Người ta dùng trung vị. Bội số bị chặn dưới bởi 0 nhưng không có chặn trên, nên phân phối lệch phải và một giá trị ngoại lai có thể làm méo nghiêm trọng số trung bình."
+  },
+  {
+    "id": "R5-03",
+    "ch": 5,
+    "type": "tf",
+    "tf": true,
+    "q": "An equity carve-out raises cash while allowing the parent to retain control of the subsidiary.",
+    "a": "True. A minority stake is sold via IPO, generating cash and a public market price. A spin-off, by contrast, distributes shares to existing holders and raises no cash.",
+    "qVi": "Chào bán một phần vốn chủ (equity carve-out) huy động được tiền mặt trong khi vẫn cho phép công ty mẹ giữ quyền kiểm soát công ty con.",
+    "aVi": "Đúng. Một tỷ lệ thiểu số được bán qua IPO, tạo ra tiền mặt và một mức giá thị trường công khai. Ngược lại, chia tách (spin-off) phân phối cổ phần cho cổ đông hiện hữu và không huy động tiền mặt."
+  },
+  {
+    "id": "R5-04",
+    "ch": 5,
+    "type": "short",
+    "q": "EBITDA is $120m, the peer multiple 9.0×, net debt $200m and there are 50m shares. What is value per share?",
+    "a": "EV = 9.0 × $120m = $1,080m. Equity value = 1,080 − 200 = $880m. Value per share = $880m / 50m = $17.60.",
+    "qVi": "EBITDA là 120 triệu USD, bội số nhóm so sánh 9,0×, nợ ròng 200 triệu USD và có 50 triệu cổ phần. Giá trị mỗi cổ phần là bao nhiêu?",
+    "aVi": "EV = 9,0 × 120 triệu = 1.080 triệu USD. Giá trị vốn chủ = 1.080 − 200 = 880 triệu USD. Giá trị mỗi cổ phần = 880 triệu / 50 triệu = 17,60 USD."
+  },
+  {
+    "id": "R5-05",
+    "ch": 5,
+    "type": "short",
+    "q": "Explain the conglomerate discount and the standard remedies.",
+    "a": "Diversified groups often trade below the sum of their parts because investors cannot see through cross-subsidies, management attention is spread thin, and investors can diversify more cheaply themselves. Remedies are spin-offs, carve-outs and divestitures, justified analytically by a sum-of-the-parts valuation showing the gap.",
+    "qVi": "Giải thích chiết khấu tập đoàn (conglomerate discount) và các cách khắc phục thông thường.",
+    "aVi": "Các tập đoàn đa ngành thường giao dịch dưới tổng giá trị các bộ phận vì nhà đầu tư không nhìn xuyên được các khoản trợ cấp chéo, sự chú ý của ban điều hành bị dàn mỏng, và bản thân nhà đầu tư có thể tự đa dạng hóa rẻ hơn. Cách khắc phục là chia tách, chào bán một phần và thoái vốn, được luận chứng bằng định giá tổng các bộ phận (sum-of-the-parts) cho thấy khoảng chênh."
+  },
+  {
+    "id": "R5-06",
+    "ch": 5,
+    "type": "short",
+    "q": "Why must a Vietnamese company convert to a joint-stock company before a public offering?",
+    "a": "Only a joint-stock company (công ty cổ phần) may issue transferable shares to the public and list them. Conversion also creates the governance organs — general meeting of shareholders, board, supervisory board — that regulators and outside investors require.",
+    "qVi": "Vì sao một công ty Việt Nam phải chuyển đổi thành công ty cổ phần trước khi chào bán ra công chúng?",
+    "aVi": "Chỉ công ty cổ phần mới được phát hành cổ phần chuyển nhượng được cho công chúng và niêm yết. Việc chuyển đổi cũng tạo ra các cơ quan quản trị — đại hội đồng cổ đông, hội đồng quản trị, ban kiểm soát — mà cơ quan quản lý và nhà đầu tư bên ngoài yêu cầu."
+  },
+  {
+    "id": "R6-01",
+    "ch": 6,
+    "type": "tf",
+    "tf": false,
+    "q": "An agency broker takes principal risk on the trades it executes for clients.",
+    "a": "False. An agency broker executes in the market for a commission and never takes the other side, so it bears no market risk — only operational and compliance risk.",
+    "qVi": "Nhà môi giới đại lý (agency broker) gánh rủi ro tự doanh trên các lệnh thực hiện cho khách hàng.",
+    "aVi": "Sai. Nhà môi giới đại lý thực hiện lệnh trên thị trường để hưởng hoa hồng và không bao giờ đứng ở chiều đối ứng, nên không gánh rủi ro thị trường — chỉ có rủi ro vận hành và tuân thủ."
+  },
+  {
+    "id": "R6-02",
+    "ch": 6,
+    "type": "tf",
+    "tf": true,
+    "q": "A market maker's bid-ask spread compensates it for inventory and adverse-selection risk.",
+    "a": "True, along with order-processing costs. Spreads widen when volatility rises, depth is thin, or informed trading is suspected — which is why the spread is a direct measure of liquidity.",
+    "qVi": "Chênh lệch giá đặt mua – chào bán của nhà tạo lập thị trường bù đắp cho rủi ro tồn kho và rủi ro lựa chọn bất lợi.",
+    "aVi": "Đúng, cùng với chi phí xử lý lệnh. Chênh lệch giá nới rộng khi biến động tăng, độ sâu thị trường mỏng, hoặc nghi ngờ có giao dịch từ bên nắm nhiều thông tin — vì vậy chênh lệch giá là thước đo trực tiếp của tính thanh khoản."
+  },
+  {
+    "id": "R6-03",
+    "ch": 6,
+    "type": "tf",
+    "tf": true,
+    "q": "The maximum theoretical loss on a short sale is unlimited.",
+    "a": "True. A share's price can rise without bound, whereas a long position can only fall to zero. This asymmetry, plus recall and squeeze risk, makes short selling far riskier than a long position of the same size.",
+    "qVi": "Khoản lỗ tối đa về mặt lý thuyết của một giao dịch bán khống là không giới hạn.",
+    "aVi": "Đúng. Giá một cổ phiếu có thể tăng vô hạn, trong khi vị thế mua chỉ có thể giảm về 0. Sự bất đối xứng này, cộng với rủi ro thu hồi và siết mua, khiến bán khống rủi ro hơn nhiều so với vị thế mua cùng quy mô."
+  },
+  {
+    "id": "R6-04",
+    "ch": 6,
+    "type": "short",
+    "q": "Stock is bought at $50 with 50% initial and 25% maintenance margin. What is the margin-call price?",
+    "a": "Call price = P × (1 − initial)/(1 − maintenance) = 50 × 0.50/0.75 = $33.33. At that price the client's equity has fallen to 25% of market value and further funds must be deposited.",
+    "qVi": "Cổ phiếu được mua ở giá 50 USD với tỷ lệ ký quỹ ban đầu 50% và tỷ lệ duy trì 25%. Giá gọi ký quỹ bổ sung là bao nhiêu?",
+    "aVi": "Giá gọi ký quỹ = P × (1 − ký quỹ ban đầu)/(1 − ký quỹ duy trì) = 50 × 0,50/0,75 = 33,33 USD. Ở mức giá đó, vốn chủ của khách hàng đã giảm còn 25% giá trị thị trường và phải nộp thêm tiền."
+  },
+  {
+    "id": "R6-05",
+    "ch": 6,
+    "type": "short",
+    "q": "How does the Volcker Rule distinguish market making from proprietary trading?",
+    "a": "By intent and evidence of client facilitation. Market making means holding inventory reasonably expected to meet near-term client demand; proprietary trading means taking positions to profit from price movements. The rule permits the former (plus underwriting and hedging) and bars the latter — the practical difficulty is documenting which is which.",
+    "qVi": "Quy tắc Volcker phân biệt tạo lập thị trường với tự doanh (proprietary trading) như thế nào?",
+    "aVi": "Bằng ý định và bằng chứng phục vụ khách hàng. Tạo lập thị trường nghĩa là nắm giữ tồn kho hợp lý dự kiến để đáp ứng nhu cầu khách hàng trong ngắn hạn; tự doanh nghĩa là mở vị thế để kiếm lời từ biến động giá. Quy tắc cho phép loại thứ nhất (cùng với bảo lãnh phát hành và phòng ngừa rủi ro) và cấm loại thứ hai — khó khăn thực tế là chứng minh đâu là đâu."
+  },
+  {
+    "id": "R6-06",
+    "ch": 6,
+    "type": "short",
+    "q": "A dealer accumulates a large unwanted long inventory. What does it do to its quotes and why?",
+    "a": "It lowers both bid and ask. A lower bid discourages further selling to the dealer; a lower ask makes buying from it more attractive. The dealer skews quotes to manage inventory back toward neutral, not to forecast direction.",
+    "qVi": "Một nhà tự doanh tích lũy một lượng tồn kho mua lớn ngoài ý muốn. Họ làm gì với các mức yết giá và vì sao?",
+    "aVi": "Họ hạ cả giá đặt mua lẫn giá chào bán. Giá đặt mua thấp hơn làm nản việc tiếp tục bán cho nhà tự doanh; giá chào bán thấp hơn làm việc mua từ họ hấp dẫn hơn. Nhà tự doanh lệch các mức yết để đưa tồn kho về trạng thái cân bằng, chứ không phải để dự đoán hướng đi."
+  }
+]

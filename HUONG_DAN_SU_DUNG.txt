@@ -1,0 +1,38 @@
+================================================================================
+BỘ KHÔNG GIAN HỌC TẬP & NGÂN HÀNG ĐỀ OFFLINE — BAF736: NGHIỆP VỤ NGÂN HÀNG ĐẦU TƯ
+Trường Đại học Ngân hàng TP.HCM (HUB) · Khoa Tài chính · TS. Ngô Sỹ Nam
+================================================================================
+
+Mở trực tiếp bằng trình duyệt (Chrome, Edge, Safari, Brave) — hoạt động 100% OFFLINE,
+không cần mạng nội bộ trường (HUB Staff) và không cần kết nối Internet.
+
+1. [KHUYÊN DÙNG CHÍNH] 00_WEB_HOC_PHAN_OFFLINE.html
+   - Ứng dụng học tập trọn gói đóng gói trong 1 tệp duy nhất (dễ gửi qua Zalo / AirDrop / Drive).
+   - Đầy đủ 100% học liệu & tính năng nâng cao:
+     + 6 Chương (27 mục bài giảng + Đào sâu giáo trình + Sơ đồ phóng to + Tình huống + Nguồn APA 7th).
+     + Bôi đen bất kỳ đoạn chữ nào trong bài giảng để Tô sáng (Highlight), Tra đề liên quan, Đọc phát âm hoặc Sao chép.
+     + Ngân hàng 1.024 câu Trắc nghiệm: Tự kiểm tra ẩn đáp án, gạch loại trừ đáp án nhiễu (Chuột phải hoặc nút ×), lưu câu khó & tự động gom giỏ câu làm sai.
+     + Phòng Thi thử 40 câu / 60 phút chuẩn cấu trúc đề thi cuối kỳ HUB + Tự tạo đề theo chương/cấp độ.
+     + Ngân hàng 204 bài Tự luận, Tính toán & Tình huống kèm Lời giải mẫu và Biểu điểm (Rubric) + Rút đề Giữa kỳ mẫu.
+     + 56 Thẻ lật 3D Flashcards (hỗ trợ kéo vuốt ngang & xáo trộn), 37 câu Đúng/Sai & Sổ tay công thức 6 chương.
+     + 8 Hồ sơ thương vụ lớn (IPO, M&A, LBO, Tái cấu trúc) + 10 Mô hình định giá tương tác (DCF, LBO, WACC, Trái phiếu...) + 3 Tình huống ra quyết định.
+   - Phím tắt tiện lợi:
+     + Ctrl + K (hoặc phím /): Tìm kiếm nhanh toàn bộ bài giảng, câu hỏi và thuật ngữ.
+     + Phím Z: Bật / Tắt chế độ đọc tập trung Zen Mode.
+     + Khi làm đề: A, B, C, D (chọn đáp án) · ← / → (chuyển câu) · F (gắn cờ xem lại) · S (lưu câu hỏi).
+     + Khi học Flashcards: Space (lật thẻ 3D) · ← / → (qua thẻ) · Enter (đánh dấu đã thuộc).
+   - Giao diện cá nhân hoá trên thanh công cụ góc phải:
+     + Chuyển ngôn ngữ VI · Song ngữ VI-EN · EN | Đổi cỡ chữ đọc (Aa SM/MD/LG/XL).
+     + Nút chấm màu: Đổi 4 tông màu (Hồng Đào Sakura · Đặc trưng HUB · Tím Oải Hương · Xanh Sapphire) & Chế độ Sáng / Tối.
+
+2. Các tệp tra cứu nhanh & in ấn PDF (Ctrl + P):
+   - 01_Ngan_Hang_1024_Cau_Trac_Nghiem.html : Toàn bộ 1.024 câu trắc nghiệm trên 1 trang để tìm nhanh / xuất PDF.
+   - 02_Ngan_Hang_204_Cau_Tu_Luan_Va_Bai_Tap.html : Toàn bộ 204 câu tự luận & bài tập kèm lời giải và biểu điểm.
+   - 03_So_Tay_Cong_Thuc_QA_Flashcards.html : Tờ tóm tắt công thức 6 chương, 37 câu hỏi ngắn & 56 thuật ngữ.
+   - 04_Tron_Bo_Bai_Giang_6_Chuong_Va_8_Case_Study.html : Toàn văn giáo trình 6 chương & 8 Case Study nối liền để in sách.
+
+3. Thư mục du-lieu-json/ :
+   - Chứa dữ liệu JSON chuẩn và 2 tệp .tsv để nhập (Import) trực tiếp vào phần mềm Anki hoặc Quizlet.
+
+4. Thư mục web-folder/ :
+   - Bản tách rời mã nguồn (index.html, css/, js/, vendor/) đồng bộ 100% với 00_WEB_HOC_PHAN_OFFLINE.html.

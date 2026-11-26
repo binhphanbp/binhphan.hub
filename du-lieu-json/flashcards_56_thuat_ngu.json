@@ -1,0 +1,394 @@
+[
+  {
+    "ch": 1,
+    "front": "Investment bank",
+    "back": "A financial intermediary that raises capital, advises on strategic transactions and trades/manages assets — without taking retail deposits.",
+    "frontVi": "Ngân hàng đầu tư",
+    "backVi": "Định chế tài chính huy động vốn, tư vấn giao dịch chiến lược và giao dịch/quản lý tài sản — nhưng không nhận tiền gửi của công chúng."
+  },
+  {
+    "ch": 1,
+    "front": "Sell-side vs. buy-side",
+    "back": "Sell-side (banks) creates and distributes securities and advice; buy-side (funds) consumes them.",
+    "frontVi": "Bên bán và bên mua",
+    "backVi": "Bên bán (ngân hàng đầu tư) tạo ra và phân phối chứng khoán, tư vấn; bên mua (các quỹ) sử dụng chúng."
+  },
+  {
+    "ch": 1,
+    "front": "Glass-Steagall (1933)",
+    "back": "US law separating commercial and investment banking; repealed by Gramm-Leach-Bliley in 1999.",
+    "frontVi": "Đạo luật Glass-Steagall (1933)",
+    "backVi": "Đạo luật Hoa Kỳ tách bạch ngân hàng thương mại với ngân hàng đầu tư; bị bãi bỏ bởi Gramm-Leach-Bliley năm 1999."
+  },
+  {
+    "ch": 1,
+    "front": "Front / middle / back office",
+    "back": "Revenue-generating desks · risk & compliance · operations, settlement and technology.",
+    "frontVi": "Khối kinh doanh / quản trị rủi ro / điều hành",
+    "backVi": "Bộ phận tạo doanh thu · quản trị rủi ro và tuân thủ · vận hành, thanh toán và công nghệ."
+  },
+  {
+    "ch": 1,
+    "front": "WACC",
+    "back": "(E/V)·r_e + (D/V)·r_d·(1 − t) — the blended hurdle rate for valuing a firm.",
+    "frontVi": "WACC — Chi phí sử dụng vốn bình quân",
+    "backVi": "(E/V)·r_e + (D/V)·r_d·(1 − t); mức sinh lời yêu cầu dùng để định giá doanh nghiệp."
+  },
+  {
+    "ch": 1,
+    "front": "Enterprise value (EV)",
+    "back": "Equity value + net debt + minority interest + preferred — the operating business independent of financing.",
+    "frontVi": "Giá trị doanh nghiệp (EV)",
+    "backVi": "Giá trị vốn chủ + nợ ròng + lợi ích cổ đông thiểu số + cổ phiếu ưu đãi — giá trị hoạt động kinh doanh, độc lập với cơ cấu tài trợ."
+  },
+  {
+    "ch": 1,
+    "front": "Bulge bracket vs. boutique",
+    "back": "Large full-service banks with balance sheets vs. advice-focused firms taking little principal risk.",
+    "frontVi": "Ngân hàng lớn và công ty tư vấn chuyên biệt",
+    "backVi": "Ngân hàng toàn diện quy mô lớn có bảng cân đối mạnh, so với công ty chỉ tập trung tư vấn, hầu như không chịu rủi ro vốn."
+  },
+  {
+    "ch": 1,
+    "front": "Chinese wall",
+    "back": "Information barrier separating private-side advisory staff from public-side trading and research.",
+    "frontVi": "Vách ngăn thông tin",
+    "backVi": "Rào chắn thông tin tách bên nội bộ (tư vấn) khỏi bên đại chúng (nghiên cứu và giao dịch)."
+  },
+  {
+    "ch": 2,
+    "front": "Underwriting",
+    "back": "Committing to buy or place a new issue and resell it, transferring placement risk for the gross spread.",
+    "frontVi": "Bảo lãnh phát hành",
+    "backVi": "Cam kết mua hoặc phân phối đợt phát hành mới rồi bán lại, chuyển rủi ro phân phối để đổi lấy phí bảo lãnh."
+  },
+  {
+    "ch": 2,
+    "front": "Firm commitment vs. best efforts",
+    "back": "Bank buys the whole issue and bears resale risk vs. merely agreeing to try to sell it.",
+    "frontVi": "Cam kết chắc chắn và Nỗ lực tối đa",
+    "backVi": "Ngân hàng mua trọn đợt phát hành và chịu rủi ro bán lại, so với chỉ cam kết cố gắng bán."
+  },
+  {
+    "ch": 2,
+    "front": "Gross spread",
+    "back": "The underwriting discount — underwriters' fee as a percentage of the offer price (3–7% for a typical IPO).",
+    "frontVi": "Phí bảo lãnh phát hành",
+    "backVi": "Phần chiết khấu bảo lãnh: phí của tổ hợp bảo lãnh tính theo tỷ lệ phần trăm giá chào bán (thường 3–7% với một đợt IPO)."
+  },
+  {
+    "ch": 2,
+    "front": "Greenshoe (over-allotment)",
+    "back": "Option to sell up to 15% extra shares to stabilize the aftermarket price.",
+    "frontVi": "Quyền chọn mua vượt mức (greenshoe)",
+    "backVi": "Quyền bán thêm tối đa 15% số cổ phiếu để bình ổn giá trên thị trường sau niêm yết."
+  },
+  {
+    "ch": 2,
+    "front": "Bookbuilding",
+    "back": "Collecting investor price-and-size demand indications during the roadshow to set price and allocation.",
+    "frontVi": "Dựng sổ lệnh",
+    "backVi": "Thu thập nhu cầu về giá và khối lượng từ nhà đầu tư trong quá trình chào bán để xác định giá và phân bổ cuối cùng."
+  },
+  {
+    "ch": 2,
+    "front": "IPO underpricing",
+    "back": "Pricing below expected trading value; 'money left on the table' benefits allocated investors, not the issuer.",
+    "frontVi": "Định giá thấp trong IPO",
+    "backVi": "Định giá dưới mức thị trường sẵn sàng trả; phần \"tiền để lại trên bàn\" thuộc về nhà đầu tư được phân bổ, không thuộc tổ chức phát hành."
+  },
+  {
+    "ch": 2,
+    "front": "Private equity",
+    "back": "Funds acquiring control of mature companies, often with leverage (LBO); typically '2 and 20'.",
+    "frontVi": "Đầu tư vốn tư nhân",
+    "backVi": "Quỹ mua quyền kiểm soát doanh nghiệp trưởng thành, thường dùng đòn bẩy (LBO); cơ chế phí điển hình \"2 và 20\"."
+  },
+  {
+    "ch": 2,
+    "front": "Venture capital",
+    "back": "Staged minority financing of early-stage, high-growth companies; a few winners drive returns.",
+    "frontVi": "Đầu tư vốn mạo hiểm",
+    "backVi": "Tài trợ theo từng vòng, nắm cổ phần thiểu số ở doanh nghiệp giai đoạn đầu tăng trưởng cao; lợi nhuận dựa vào một số ít thương vụ thành công vượt trội."
+  },
+  {
+    "ch": 2,
+    "front": "Post-money valuation",
+    "back": "Pre-money + new investment. Investor stake = investment / post-money.",
+    "frontVi": "Định giá sau đầu tư",
+    "backVi": "Định giá trước đầu tư + vốn góp mới. Tỷ lệ sở hữu của nhà đầu tư = vốn góp / định giá sau đầu tư."
+  },
+  {
+    "ch": 2,
+    "front": "Hurdle rate / carried interest",
+    "back": "Minimum LP return before the GP shares profits · the GP's ~20% profit share.",
+    "frontVi": "Ngưỡng sinh lời / Phí thưởng hiệu quả",
+    "backVi": "Mức lợi nhuận tối thiểu nhà đầu tư phải nhận trước khi quỹ được chia lãi · phần chia lãi khoảng 20% của quỹ."
+  },
+  {
+    "ch": 3,
+    "front": "Merger vs. acquisition",
+    "back": "A merger fuses two firms into one; an acquisition is a purchase of control of a target.",
+    "frontVi": "Sáp nhập và Mua lại",
+    "backVi": "Sáp nhập gộp hai doanh nghiệp thành một; mua lại là việc mua quyền kiểm soát doanh nghiệp mục tiêu."
+  },
+  {
+    "ch": 3,
+    "front": "Control premium",
+    "back": "The excess over the target's unaffected share price paid to obtain control (commonly 20–40%).",
+    "frontVi": "Phần bù kiểm soát",
+    "backVi": "Phần chênh lệch trả thêm so với giá cổ phiếu chưa bị tác động để giành quyền kiểm soát (thường 20–40%)."
+  },
+  {
+    "ch": 3,
+    "front": "Synergies",
+    "back": "Cost synergies (reliable, within management control) vs. revenue synergies (heavily discounted by markets).",
+    "frontVi": "Giá trị cộng hưởng",
+    "backVi": "Cộng hưởng chi phí (đáng tin cậy, trong tầm kiểm soát của ban điều hành) và cộng hưởng doanh thu (thị trường thường chiết khấu mạnh)."
+  },
+  {
+    "ch": 3,
+    "front": "Accretion / dilution",
+    "back": "Whether the deal raises or lowers the acquirer's pro forma EPS versus standalone.",
+    "frontVi": "Tăng/giảm EPS",
+    "backVi": "Thương vụ làm tăng (accretive) hay giảm (dilutive) EPS hợp nhất của bên mua so với khi độc lập."
+  },
+  {
+    "ch": 3,
+    "front": "Poison pill",
+    "back": "Defense diluting a hostile bidder that crosses an ownership threshold, forcing negotiation with the board.",
+    "frontVi": "Thuốc độc (poison pill)",
+    "backVi": "Chiến thuật pha loãng cổ phần của bên thôn tính khi vượt ngưỡng sở hữu, buộc phải thương lượng với hội đồng quản trị."
+  },
+  {
+    "ch": 3,
+    "front": "White knight",
+    "back": "A friendlier alternative acquirer invited by a target facing a hostile bid.",
+    "frontVi": "Hiệp sĩ áo trắng",
+    "backVi": "Bên mua thân thiện hơn được doanh nghiệp mục tiêu mời tham gia để cạnh tranh với bên thôn tính thù nghịch."
+  },
+  {
+    "ch": 3,
+    "front": "CIM / teaser",
+    "back": "Confidential Information Memorandum (detailed, post-NDA) · one-page anonymous marketing document.",
+    "frontVi": "Bản chào tóm tắt / Bản giới thiệu chi tiết",
+    "backVi": "Bản giới thiệu chi tiết bảo mật (sau khi ký NDA) · tài liệu một trang ẩn danh dùng để thăm dò quan tâm."
+  },
+  {
+    "ch": 3,
+    "front": "Share vs. asset deal",
+    "back": "Share: liabilities transfer with the company. Asset: buyer takes only what it expressly assumes.",
+    "frontVi": "Mua cổ phần và Mua tài sản",
+    "backVi": "Mua cổ phần: nghĩa vụ nợ chuyển theo doanh nghiệp. Mua tài sản: bên mua chỉ nhận những nghĩa vụ đã thoả thuận rõ."
+  },
+  {
+    "ch": 3,
+    "front": "LBO",
+    "back": "Acquisition funded mostly by debt serviced by the target's cash flows; returns from paydown, growth and multiple expansion.",
+    "frontVi": "LBO — Mua lại bằng vốn vay",
+    "backVi": "Thương vụ tài trợ chủ yếu bằng nợ, được hoàn trả từ dòng tiền của chính doanh nghiệp mục tiêu."
+  },
+  {
+    "ch": 3,
+    "front": "Staple financing",
+    "back": "Financing pre-arranged by the sell-side bank and offered to bidders — fast, but a conflict of interest.",
+    "frontVi": "Gói tài trợ kèm theo",
+    "backVi": "Gói tài trợ do ngân hàng bên bán chuẩn bị sẵn và chào cho các bên mua — nhanh gọn nhưng phát sinh xung đột lợi ích."
+  },
+  {
+    "ch": 4,
+    "front": "AUM",
+    "back": "Assets under management — the base on which management fees are charged.",
+    "frontVi": "AUM — Tài sản quản lý",
+    "backVi": "Tổng vốn khách hàng mà công ty quản lý; là cơ sở để tính phí quản lý."
+  },
+  {
+    "ch": 4,
+    "front": "Management fee vs. performance fee",
+    "back": "Recurring % of AUM regardless of performance vs. a share of profits above a hurdle.",
+    "frontVi": "Phí quản lý và Phí thưởng hiệu quả",
+    "backVi": "Phí định kỳ theo tỷ lệ AUM bất kể kết quả, so với phần chia lợi nhuận vượt ngưỡng sinh lời."
+  },
+  {
+    "ch": 4,
+    "front": "High-water mark",
+    "back": "The prior NAV peak; no carry may be charged until it is exceeded, preventing double-charging after losses.",
+    "frontVi": "Mốc giá trị cao nhất",
+    "backVi": "Đỉnh NAV trước đó; không được thu phí thưởng cho tới khi vượt mốc này, tránh thu phí hai lần sau khi thua lỗ."
+  },
+  {
+    "ch": 4,
+    "front": "NAV per unit",
+    "back": "(Total assets − total liabilities) / units outstanding.",
+    "frontVi": "NAV mỗi đơn vị quỹ",
+    "backVi": "(Tổng tài sản − tổng nợ phải trả) / số đơn vị quỹ đang lưu hành."
+  },
+  {
+    "ch": 4,
+    "front": "Mutual fund vs. ETF",
+    "back": "Both pooled; ETFs trade intraday on an exchange and usually charge lower fees.",
+    "frontVi": "Quỹ mở và Quỹ ETF",
+    "backVi": "Đều là quỹ đại chúng; ETF giao dịch trong phiên trên sở giao dịch và thường có mức phí thấp hơn."
+  },
+  {
+    "ch": 4,
+    "front": "Discretionary mandate",
+    "back": "Authority to trade within agreed objectives and constraints without approving each trade.",
+    "frontVi": "Uỷ thác toàn quyền",
+    "backVi": "Quyền giao dịch trong phạm vi mục tiêu và ràng buộc đã thoả thuận mà không cần phê duyệt từng lệnh."
+  },
+  {
+    "ch": 4,
+    "front": "Investment policy statement (IPS)",
+    "back": "Written mandate setting objectives, risk tolerance, constraints and the benchmark.",
+    "frontVi": "Tuyên bố chính sách đầu tư (IPS)",
+    "backVi": "Văn bản xác lập mục tiêu, khả năng chấp nhận rủi ro, các ràng buộc và chỉ số tham chiếu."
+  },
+  {
+    "ch": 4,
+    "front": "Sharpe vs. information ratio",
+    "back": "Excess return per unit of total risk vs. active return per unit of tracking error.",
+    "frontVi": "Sharpe và Tỷ số thông tin",
+    "backVi": "Lợi nhuận vượt trội trên mỗi đơn vị rủi ro tổng, so với lợi nhuận chủ động trên mỗi đơn vị sai số theo dõi."
+  },
+  {
+    "ch": 5,
+    "front": "Comparable companies analysis",
+    "back": "Valuing a firm by applying peer trading multiples to its own metrics.",
+    "frontVi": "Phân tích công ty so sánh",
+    "backVi": "Định giá doanh nghiệp bằng cách áp bội số giao dịch của các công ty niêm yết tương đương lên chỉ tiêu của doanh nghiệp."
+  },
+  {
+    "ch": 5,
+    "front": "EV/EBITDA",
+    "back": "Capital-structure-neutral multiple — comparable across firms with different leverage.",
+    "frontVi": "EV/EBITDA",
+    "backVi": "Bội số trung lập với cơ cấu vốn — so sánh được giữa các doanh nghiệp có mức đòn bẩy khác nhau."
+  },
+  {
+    "ch": 5,
+    "front": "Equity value bridge",
+    "back": "Equity = EV − net debt − minority interest − preferred; divide by diluted shares for value per share.",
+    "frontVi": "Cầu nối sang giá trị vốn chủ",
+    "backVi": "Giá trị vốn chủ = EV − nợ ròng − lợi ích cổ đông thiểu số − cổ phiếu ưu đãi; chia cho số cổ phiếu pha loãng."
+  },
+  {
+    "ch": 5,
+    "front": "Why the median multiple?",
+    "back": "Multiples are right-skewed and peer sets small, so the median resists outlier distortion.",
+    "frontVi": "Vì sao dùng bội số trung vị?",
+    "backVi": "Phân phối bội số lệch phải và nhóm so sánh nhỏ, nên trung vị chống được ảnh hưởng của giá trị ngoại lai."
+  },
+  {
+    "ch": 5,
+    "front": "Listing advisory",
+    "back": "Preparing audited accounts, governance, disclosure capability, valuation and the equity story for an IPO.",
+    "frontVi": "Tư vấn niêm yết",
+    "backVi": "Chuẩn bị báo cáo tài chính kiểm toán, quản trị công ty, năng lực công bố thông tin, định giá và câu chuyện đầu tư."
+  },
+  {
+    "ch": 5,
+    "front": "Equitization (cổ phần hóa)",
+    "back": "Converting a state-owned enterprise into a joint-stock company and selling part of the state stake.",
+    "frontVi": "Cổ phần hoá",
+    "backVi": "Chuyển doanh nghiệp nhà nước thành công ty cổ phần và bán một phần vốn nhà nước."
+  },
+  {
+    "ch": 5,
+    "front": "Spin-off vs. carve-out",
+    "back": "Distribute subsidiary shares to existing holders (no cash) vs. IPO a minority stake (raises cash, keeps control).",
+    "frontVi": "Chia tách và Chào bán một phần",
+    "backVi": "Chia cổ phần công ty con cho cổ đông hiện hữu (không thu tiền) so với IPO một phần thiểu số (thu tiền, vẫn giữ kiểm soát)."
+  },
+  {
+    "ch": 5,
+    "front": "Conglomerate discount",
+    "back": "Diversified groups trading below the sum of their parts; remedied by spin-offs and carve-outs (SOTP analysis).",
+    "frontVi": "Chiết khấu tập đoàn",
+    "backVi": "Tập đoàn đa ngành giao dịch dưới tổng giá trị các bộ phận; khắc phục bằng chia tách hoặc chào bán công ty con (phân tích SOTP)."
+  },
+  {
+    "ch": 5,
+    "front": "Leverage & coverage ratios",
+    "back": "Net debt / EBITDA (IG under ~3×) · EBIT / interest (comfortable above ~5×).",
+    "frontVi": "Hệ số đòn bẩy & khả năng trả lãi",
+    "backVi": "Nợ ròng / EBITDA (hạng đầu tư dưới ~3×) · EBIT / Chi phí lãi vay (thoải mái trên ~5×)."
+  },
+  {
+    "ch": 5,
+    "front": "Governance discount",
+    "back": "Lower multiples applied to firms with concentrated control, opaque related-party deals and weak boards.",
+    "frontVi": "Chiết khấu quản trị",
+    "backVi": "Mức định giá thấp hơn áp cho doanh nghiệp có sở hữu tập trung, giao dịch với bên liên quan thiếu minh bạch và hội đồng quản trị yếu."
+  },
+  {
+    "ch": 6,
+    "front": "Agency brokerage",
+    "back": "Executing client orders as agent for a commission, taking no principal risk.",
+    "frontVi": "Môi giới đại lý",
+    "backVi": "Thực hiện lệnh của khách hàng với tư cách đại lý để hưởng phí, không chịu rủi ro tự doanh."
+  },
+  {
+    "ch": 6,
+    "front": "Market making",
+    "back": "Quoting two-sided prices as principal; earns the spread, bears inventory and adverse-selection risk.",
+    "frontVi": "Tạo lập thị trường",
+    "backVi": "Yết giá hai chiều với tư cách nhà đầu tư chính; hưởng chênh lệch giá nhưng chịu rủi ro tồn kho và rủi ro đối tác có thông tin."
+  },
+  {
+    "ch": 6,
+    "front": "Bid-ask spread",
+    "back": "Ask − bid: the dealer's margin and a direct measure of market liquidity.",
+    "frontVi": "Chênh lệch giá mua – bán",
+    "backVi": "Chênh lệch giữa giá chào mua và giá chào bán: biên lợi nhuận của nhà tạo lập và là thước đo trực tiếp của thanh khoản."
+  },
+  {
+    "ch": 6,
+    "front": "Adverse selection",
+    "back": "Informed traders systematically trade against the dealer just before prices move.",
+    "frontVi": "Lựa chọn đối nghịch",
+    "backVi": "Nhà đầu tư có thông tin thường giao dịch ngược chiều với nhà tạo lập ngay trước khi giá biến động."
+  },
+  {
+    "ch": 6,
+    "front": "Proprietary trading",
+    "back": "Trading the firm's own capital to profit from price moves — restricted by the Volcker Rule.",
+    "frontVi": "Nghiệp vụ tự doanh",
+    "backVi": "Giao dịch bằng vốn của chính công ty để tìm lợi nhuận từ biến động giá — bị hạn chế bởi Quy tắc Volcker."
+  },
+  {
+    "ch": 6,
+    "front": "Value at Risk (VaR)",
+    "back": "Loss not exceeded with a given confidence over a given horizon; silent about tail severity.",
+    "frontVi": "Giá trị chịu rủi ro (VaR)",
+    "backVi": "Mức lỗ không bị vượt quá với một độ tin cậy trong một khoảng thời gian; không nói gì về mức độ nghiêm trọng ở phần đuôi."
+  },
+  {
+    "ch": 6,
+    "front": "Initial vs. maintenance margin",
+    "back": "Equity required to open a levered position vs. the minimum before a margin call.",
+    "frontVi": "Ký quỹ ban đầu và Ký quỹ duy trì",
+    "backVi": "Vốn chủ cần có để mở vị thế sử dụng đòn bẩy, so với mức tối thiểu phải duy trì trước khi bị gọi ký quỹ."
+  },
+  {
+    "ch": 6,
+    "front": "Margin call price",
+    "back": "P × (1 − initial) / (1 − maintenance).",
+    "frontVi": "Giá gọi ký quỹ",
+    "backVi": "Giá mua × (1 − ký quỹ ban đầu) / (1 − ký quỹ duy trì)."
+  },
+  {
+    "ch": 6,
+    "front": "Securities lending",
+    "back": "Lending shares against collateral and a fee — the mechanism that enables short selling.",
+    "frontVi": "Cho vay chứng khoán",
+    "backVi": "Cho vay cổ phiếu có tài sản bảo đảm và thu phí — cơ chế giúp thực hiện bán khống."
+  },
+  {
+    "ch": 6,
+    "front": "Short squeeze",
+    "back": "Rising prices force crowded short sellers to cover simultaneously, driving prices higher still.",
+    "frontVi": "Ép mua bù (short squeeze)",
+    "backVi": "Giá tăng buộc hàng loạt nhà đầu tư bán khống phải mua lại cùng lúc, đẩy giá lên cao hơn nữa."
+  }
+]
