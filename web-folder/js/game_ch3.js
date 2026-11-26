@@ -36,8 +36,8 @@ const SO_BEN = 6;          // số bên tham gia, kể cả người chơi
 const SO_PHIEN = 10;
 
 const DOI_THU = [
-  { ten: { en: "Meridian Capital",  vi: "Meridian Capital" },  ic: "️" },
-  { ten: { en: "Trường Sơn Group",  vi: "Tập đoàn Trường Sơn" }, ic: "️" },
+  { ten: { en: "Meridian Capital",  vi: "Meridian Capital" },  ic: "" },
+  { ten: { en: "Trường Sơn Group",  vi: "Tập đoàn Trường Sơn" }, ic: "" },
   { ten: { en: "Hoa Sen Holdings",  vi: "Hoa Sen Holdings" },  ic: "" },
   { ten: { en: "Pacific Rim Fund",  vi: "Quỹ Pacific Rim" },   ic: "" },
   { ten: { en: "An Bình Invest",    vi: "An Bình Invest" },    ic: "" },

@@ -55,7 +55,7 @@ const VU = [
   { ten: { en: "VietTech Software", vi: "Phần mềm VietTech" }, ic: "", coPhieu: 15,
     that: 96, doiHoi: 105, thap: 70, cao: 120,
     ghi: { en: "Fast growth, no profits yet, valuation range is wide.", vi: "Tăng trưởng nhanh, chưa có lãi, khoảng định giá rất rộng." } },
-  { ten: { en: "An Phú Cement", vi: "Xi măng An Phú" }, ic: "️", coPhieu: 50,
+  { ten: { en: "An Phú Cement", vi: "Xi măng An Phú" }, ic: "", coPhieu: 50,
     that: 24, doiHoi: 34, thap: 20, cao: 32,
     ghi: { en: "Cyclical, the sector just peaked. Management is optimistic.", vi: "Ngành có chu kỳ, vừa qua đỉnh. Ban lãnh đạo thì rất lạc quan." } },
   { ten: { en: "Hà Nội Retail", vi: "Bán lẻ Hà Nội" }, ic: "", coPhieu: 28,

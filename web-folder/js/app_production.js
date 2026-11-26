@@ -580,6 +580,13 @@
 
   const L = (obj, f) => (window.L ? window.L(obj, f) : (obj && (obj[f + "Vi"] || obj[f])) || "");
   const Lp = (obj, f) => (window.Lp ? window.Lp(obj, f) : (obj && (obj[f + "Vi"] || obj[f])) || "");
+  const h1Bi = (obj, f, prefix) => {
+    const pre = prefix ? esc(prefix) : "";
+    if (isBi() && obj && obj[f + "Vi"] && obj[f] && obj[f + "Vi"] !== obj[f]) {
+      return `${pre}${esc(obj[f + "Vi"])}<span class="h1-sub-en" lang="en">${esc(obj[f])}</span>`;
+    }
+    return `${pre}${esc(Lp(obj, f))}`;
+  };
   const Lg = (obj, f, lg) => {
     if (!obj) return "";
     const v = obj[f + "Vi"];
@@ -770,10 +777,11 @@
     okBtn.className = "btn " + (opts.danger ? "btn-danger" : "btn-primary");
     $("#confirmCancelBtn").textContent = opts.cancelLabel || ui("Quay lại", "Cancel");
     ov.classList.remove("hidden");
-    const close = () => ov.classList.add("hidden");
+    pushOverlayHistory();
+    const close = () => { ov.classList.add("hidden"); scheduleOverlayHistoryRelease(); };
     $("#confirmCancelBtn").onclick = close;
     ov.onclick = (e) => { if (e.target === ov) close(); };
-    okBtn.onclick = () => { close(); if (opts.onConfirm) opts.onConfirm(); };
+    okBtn.onclick = () => { ov.classList.add("hidden"); if (opts.onConfirm) opts.onConfirm(); scheduleOverlayHistoryRelease(); };
   }
 
   let lbZoom = 1;
@@ -798,11 +806,13 @@
     $("#lightboxBody").innerHTML = svgHtml || "";
     applyLightboxZoom();
     ov.classList.remove("hidden");
-    $("#lightboxClose").onclick = () => ov.classList.add("hidden");
+    pushOverlayHistory();
+    const closeLb = () => { ov.classList.add("hidden"); scheduleOverlayHistoryRelease(); };
+    $("#lightboxClose").onclick = closeLb;
     if ($("#lbZoomIn")) $("#lbZoomIn").onclick = () => { SFX.tap(); lbZoom = Math.min(2.75, +(lbZoom + 0.35).toFixed(2)); applyLightboxZoom(); };
     if ($("#lbZoomOut")) $("#lbZoomOut").onclick = () => { SFX.tap(); lbZoom = Math.max(0.75, +(lbZoom - 0.35).toFixed(2)); applyLightboxZoom(); };
     if ($("#lbZoomReset")) $("#lbZoomReset").onclick = () => { SFX.tap(); lbZoom = 1; applyLightboxZoom(); };
-    ov.onclick = (e) => { if (e.target === ov) ov.classList.add("hidden"); };
+    ov.onclick = (e) => { if (e.target === ov) closeLb(); };
   }
 
   function wrapTablesForScroll(root) {
@@ -867,23 +877,45 @@
     }
   }
 
+  let activeVt = null;
   function runCircularViewTransition(ev, mutateFn) {
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!document.startViewTransition || reduce || !ev) {
+    if (!document.startViewTransition || reduce || !ev || !ev.currentTarget) {
+      mutateFn();
+      return;
+    }
+    if (activeVt) {
+      try { activeVt.skipTransition(); } catch (e) {}
+      activeVt = null;
       mutateFn();
       return;
     }
     const rect = ev.currentTarget.getBoundingClientRect();
+    if (!rect.width && !rect.height) {
+      mutateFn();
+      return;
+    }
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
     const maxR = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
-    const vt = document.startViewTransition(mutateFn);
-    vt.ready.then(() => {
-      document.documentElement.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxR}px at ${x}px ${y}px)`] },
-        { duration: 440, easing: "cubic-bezier(0.22, 1, 0.36, 1)", pseudoElement: "::view-transition-new(root)" }
-      );
-    }).catch(() => {});
+    try {
+      const vt = document.startViewTransition(mutateFn);
+      activeVt = vt;
+      if (vt.finished && vt.finished.finally) {
+        vt.finished.finally(() => { if (activeVt === vt) activeVt = null; });
+      } else {
+        setTimeout(() => { if (activeVt === vt) activeVt = null; }, 500);
+      }
+      vt.ready.then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxR}px at ${x}px ${y}px)`] },
+          { duration: 440, easing: "cubic-bezier(0.22, 1, 0.36, 1)", pseudoElement: "::view-transition-new(root)" }
+        );
+      }).catch(() => {});
+    } catch (e) {
+      activeVt = null;
+      mutateFn();
+    }
   }
 
   function toggleZenMode() {
@@ -1016,17 +1048,180 @@
     if (bar) bar.classList.add("hidden");
   }
 
+  /* ---------------- Persistent Active Quiz & Native Browser History ---------------- */
+  function syncExamBodyClass() {
+    document.body.classList.toggle("in-active-exam", !!(state.view === "examRun" && state.quiz && !state.quiz.done));
+  }
+
+  function saveActiveQuiz() {
+    syncExamBodyClass();
+    const qz = state.quiz;
+    if (!qz || !Array.isArray(qz.qs) || !qz.qs.length) {
+      try { localStorage.removeItem("ibc_active_quiz"); } catch (e) {}
+      return;
+    }
+    store.set("active_quiz", {
+      qids: qz.qs.map((q) => q.id),
+      answers: qz.answers,
+      flagged: qz.flagged || {},
+      elimExam: state.elimExam || {},
+      cur: qz.cur || 0,
+      singleMode: qz.singleMode !== false,
+      mode: qz.mode || "practice",
+      feedback: qz.feedback || "instant",
+      scope: qz.scope || "Practice",
+      scopeCh: qz.scopeCh || 0,
+      startTime: qz.startTime || Date.now(),
+      timeLimit: qz.timeLimit || 0,
+      done: !!qz.done,
+      score: qz.score || 0,
+      byCh: qz.byCh || {},
+      reviewFilter: qz.reviewFilter || "all"
+    });
+  }
+
+  function restoreActiveQuiz() {
+    const saved = store.get("active_quiz", null);
+    if (!saved || !Array.isArray(saved.qids) || !saved.qids.length) return false;
+    const qs = saved.qids.map((id) => MCQ_MAP.get(id)).filter(Boolean);
+    if (qs.length !== saved.qids.length) return false;
+    state.elimExam = saved.elimExam && typeof saved.elimExam === "object" ? saved.elimExam : {};
+    state.quiz = {
+      qs,
+      answers: Array.isArray(saved.answers) && saved.answers.length === qs.length ? saved.answers : new Array(qs.length).fill(null),
+      flagged: saved.flagged && typeof saved.flagged === "object" ? saved.flagged : {},
+      cur: Math.max(0, Math.min(qs.length - 1, +saved.cur || 0)),
+      singleMode: saved.singleMode !== false,
+      mode: saved.mode || "practice",
+      feedback: saved.feedback || "instant",
+      scope: saved.scope || "Practice",
+      scopeCh: +saved.scopeCh || 0,
+      startTime: +saved.startTime || Date.now(),
+      timeLimit: +saved.timeLimit || 0,
+      done: !!saved.done,
+      justFinished: false,
+      score: +saved.score || 0,
+      byCh: saved.byCh || {},
+      reviewFilter: saved.reviewFilter || "all"
+    };
+    return true;
+  }
+
+  let overlayHistoryActive = false;
+  let overlayReleaseTimer = null;
+  let suppressNextPop = false;
+
+  function snapshotNavState() {
+    return {
+      ibc: true,
+      view: state.view,
+      ch: state.ch,
+      sec: state.sec,
+      caseId: state.caseId,
+      labGroup: state.labGroup,
+      labKey: state.labKey,
+      revTab: state.revTab
+    };
+  }
+
+  function buildNavUrl() {
+    if (!/^https?:$/i.test(window.location.protocol)) return undefined;
+    const base = window.location.pathname || "/";
+    if (state.view === "home") return base;
+    const p = new URLSearchParams();
+    p.set("view", state.view);
+    if (state.view === "chapter") {
+      p.set("ch", String(state.ch || 1));
+      if (state.sec) p.set("sec", String(state.sec));
+    } else if (state.view === "caseRead" && state.caseId) {
+      p.set("case", String(state.caseId));
+    }
+    return base + "?" + p.toString();
+  }
+
+  function hasOpenOverlay() {
+    return (
+      document.body.classList.contains("mob-rail-open") ||
+      document.body.classList.contains("mob-exam-sheet-open") ||
+      (!!$("#cmdOverlay") && !$("#cmdOverlay").classList.contains("hidden")) ||
+      (!!$("#lightboxOverlay") && !$("#lightboxOverlay").classList.contains("hidden")) ||
+      (!!$("#confirmOverlay") && !$("#confirmOverlay").classList.contains("hidden"))
+    );
+  }
+
+  function closeAllTransientOverlays() {
+    closeCustomSelect();
+    hideFloatTip(true);
+    document.body.classList.remove("mob-rail-open", "mob-exam-sheet-open");
+    if ($("#cmdOverlay")) $("#cmdOverlay").classList.add("hidden");
+    if ($("#lightboxOverlay")) $("#lightboxOverlay").classList.add("hidden");
+    if ($("#confirmOverlay")) $("#confirmOverlay").classList.add("hidden");
+  }
+
+  function pushOverlayHistory() {
+    clearTimeout(overlayReleaseTimer);
+    if (overlayHistoryActive) return;
+    try {
+      history.pushState({ ...snapshotNavState(), ibcOverlay: true }, "");
+      overlayHistoryActive = true;
+    } catch (e) {}
+  }
+
+  function scheduleOverlayHistoryRelease() {
+    clearTimeout(overlayReleaseTimer);
+    if (!overlayHistoryActive) return;
+    overlayReleaseTimer = setTimeout(() => {
+      if (!overlayHistoryActive || hasOpenOverlay()) return;
+      overlayHistoryActive = false;
+      suppressNextPop = true;
+      try { history.back(); } catch (e) { suppressNextPop = false; }
+    }, 0);
+  }
+
+  function syncHistoryState(replace) {
+    clearTimeout(overlayReleaseTimer);
+    const snap = snapshotNavState();
+    const url = buildNavUrl();
+    try {
+      if (replace || overlayHistoryActive) {
+        overlayHistoryActive = false;
+        if (url !== undefined) history.replaceState(snap, "", url);
+        else history.replaceState(snap, "");
+      } else {
+        if (url !== undefined) history.pushState(snap, "", url);
+        else history.pushState(snap, "");
+      }
+    } catch (e) {}
+  }
+
   /* ---------------- Navigation & Persistent Precision Gliding Rail ---------------- */
-  function nav(view, extra) {
+  function nav(view, extra, navOpts) {
     SFX.tap();
     hideFloatTip(true);
     closeCustomSelect();
     const popup = $("#selPopover");
     if (popup) popup.classList.remove("show");
+    const prevSnap = snapshotNavState();
     Object.assign(state, { view }, extra || {});
     if (view === "chapter") state.expandedCh = state.ch;
     document.body.classList.remove("mob-rail-open", "mob-exam-sheet-open");
     stopTTS();
+    syncExamBodyClass();
+
+    const nextSnap = snapshotNavState();
+    const sameRoute =
+      prevSnap.view === nextSnap.view &&
+      prevSnap.ch === nextSnap.ch &&
+      prevSnap.sec === nextSnap.sec &&
+      prevSnap.caseId === nextSnap.caseId &&
+      prevSnap.labGroup === nextSnap.labGroup &&
+      prevSnap.labKey === nextSnap.labKey &&
+      prevSnap.revTab === nextSnap.revTab;
+
+    if (!(navOpts && navOpts.fromPop)) {
+      syncHistoryState(sameRoute || !!(navOpts && navOpts.replace));
+    }
+
     render(true);
     window.scrollTo({ top: 0, behavior: "instant" });
   }
@@ -1377,7 +1572,7 @@
       <div class="page-header stagger" style="--i:0">
         <div>
           <div class="kicker">BAF736 · ${esc(Lp(META, "faculty"))} · ${META.credits} ${ui("Tín chỉ", "Credits")} · TS. Ngô Sỹ Nam</div>
-          <h1 class="h1">${L(META, "name")}</h1>
+          <h1 class="h1">${h1Bi(META, "name")}</h1>
           <p class="lead">${L(META, "description")}</p>
         </div>
       </div>
@@ -1824,7 +2019,7 @@
             <span>·</span>
             <span style="display:inline-flex;align-items:center;gap:4px">${I.clock} ~${readMins} ${ui("phút đọc", "min read")}</span>
           </div>
-          <h1 class="h1 stagger" style="--i:1;margin-bottom:14px">${esc(sec.id)} — ${L(sec, "title")}</h1>
+          <h1 class="h1 stagger" style="--i:1;margin-bottom:14px">${h1Bi(sec, "title", sec.id + " — ")}</h1>
 
           <div class="mob-chapter-bar" id="mobChapterBar">
             <div class="mob-sec-strip" id="mobSecStrip">
@@ -2002,8 +2197,11 @@
           span.innerHTML = `${I.zoom} ${ui("Phóng to", "Expand")}`;
           tEl.appendChild(span);
           const openLb = () => openDiagramLightbox(tEl.firstChild ? tEl.firstChild.textContent : "", bEl.innerHTML);
-          bEl.onclick = openLb;
-          span.onclick = openLb;
+          card.style.cursor = "zoom-in";
+          card.onclick = (ev) => {
+            if (ev.target && ev.target.closest && ev.target.closest("a, button")) return;
+            openLb();
+          };
         }
       });
       lb.querySelectorAll("[data-open-case]").forEach((b) => (b.onclick = () => nav("caseRead", { caseId: b.dataset.openCase })));
@@ -2019,17 +2217,15 @@
         SFX.tap();
         tabBar.querySelectorAll(".uline-tab").forEach((x) => x.classList.toggle("active", x === b));
         updateTabInk(tabBar);
-        if (b.scrollIntoView) b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+        if (b.scrollIntoView) b.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
         mountLectureTab(b.dataset.ctab, true);
       };
     });
 
     main.querySelectorAll("[data-rsec], [data-mob-rsec]").forEach((b) => (b.onclick = () => {
-      SFX.tap();
-      state.sec = +(b.dataset.rsec != null ? b.dataset.rsec : b.dataset.mobRsec);
-      stopTTS();
-      render(true);
-      window.scrollTo({ top: 0 });
+      const nextSec = +(b.dataset.rsec != null ? b.dataset.rsec : b.dataset.mobRsec);
+      if (nextSec === state.sec) return;
+      nav("chapter", { ch: ch.id, sec: nextSec });
     }));
     const actMobSec = main.querySelector(".mob-sec-pill.active");
     if (actMobSec && actMobSec.scrollIntoView) {
@@ -2104,6 +2300,7 @@
     }
     SFX.tap();
     clearInterval(examTimer);
+    state.elimExam = {};
     state.quiz = {
       qs,
       answers: new Array(qs.length).fill(null),
@@ -2120,6 +2317,7 @@
       justFinished: false,
       reviewFilter: "all"
     };
+    saveActiveQuiz();
     nav("examRun");
   }
 
@@ -2273,7 +2471,7 @@
     syncSlidingControls(main);
 
     if ($("#btnResumeExam")) $("#btnResumeExam").onclick = () => nav("examRun");
-    if ($("#btnAbortExam")) $("#btnAbortExam").onclick = () => { clearInterval(examTimer); state.quiz = null; renderRail(); render(false); };
+    if ($("#btnAbortExam")) $("#btnAbortExam").onclick = () => { clearInterval(examTimer); state.quiz = null; state.elimExam = {}; saveActiveQuiz(); renderRail(); render(false); };
     $("#btnStart40").onclick = startMockExam40;
     $("#btnStart35").onclick = startFocus35Quiz;
     $("#btnStartWeak").onclick = startMistakeDrill;
@@ -2345,6 +2543,7 @@
       byCh
     });
     store.set("attempts", attempts);
+    saveActiveQuiz();
     renderRail();
     render(true);
     window.scrollTo({ top: 0 });
@@ -2477,6 +2676,7 @@
         const k = eb.dataset.exElim;
         state.elimExam[k] = !state.elimExam[k];
         eb.closest(".opt-row").classList.toggle("is-eliminated", !!state.elimExam[k]);
+        saveActiveQuiz();
       };
     });
 
@@ -2490,6 +2690,7 @@
         const k = qi + "|" + oi;
         state.elimExam[k] = !state.elimExam[k];
         el.classList.toggle("is-eliminated", !!state.elimExam[k]);
+        saveActiveQuiz();
       };
       el.onclick = () => {
         if (qz.done) return;
@@ -2526,6 +2727,7 @@
           });
         }
         updateExamPaletteDOM(qz, qi);
+        saveActiveQuiz();
         renderRail();
       };
     });
@@ -2536,6 +2738,7 @@
       b.className = "btn btn-sm " + (qz.flagged[idx] ? "btn-danger" : "btn-ghost");
       b.innerHTML = `${qz.flagged[idx] ? I.flagFill : I.flag} ${ui("Xem lại", "Flag")}`;
       updateExamPaletteDOM(qz, idx);
+      saveActiveQuiz();
     }));
     cardEl.querySelectorAll("[data-star]").forEach((b) => (b.onclick = () => {
       const on = toggleStarMcq(b.dataset.star);
@@ -2681,11 +2884,26 @@
       </div>
     `;
 
+    const scrollQuestionIntoView = () => {
+      if (window.scrollY > 96) window.scrollTo({ top: 0, behavior: "smooth" });
+    };
     const bindExamLeft = () => {
       const col = $("#examQuestionsCol");
       col.querySelectorAll(".q-item").forEach((c) => wireExamCard(c, qz));
-      if ($("#btnPrevQ")) $("#btnPrevQ").onclick = () => { if (qz.cur > 0) { SFX.tap(); qz.cur--; col.innerHTML = renderExamLeftHtml(); bindExamLeft(); updateExamPaletteDOM(qz); } };
-      if ($("#btnNextQ")) $("#btnNextQ").onclick = () => { if (qz.cur < qz.qs.length - 1) { SFX.tap(); qz.cur++; col.innerHTML = renderExamLeftHtml(); bindExamLeft(); updateExamPaletteDOM(qz); } };
+      if ($("#btnPrevQ")) $("#btnPrevQ").onclick = () => {
+        if (qz.cur > 0) {
+          SFX.tap(); qz.cur--; saveActiveQuiz();
+          col.innerHTML = renderExamLeftHtml(); bindExamLeft(); updateExamPaletteDOM(qz);
+          scrollQuestionIntoView();
+        }
+      };
+      if ($("#btnNextQ")) $("#btnNextQ").onclick = () => {
+        if (qz.cur < qz.qs.length - 1) {
+          SFX.tap(); qz.cur++; saveActiveQuiz();
+          col.innerHTML = renderExamLeftHtml(); bindExamLeft(); updateExamPaletteDOM(qz);
+          scrollQuestionIntoView();
+        }
+      };
       if ($("#btnInlineSubmit")) $("#btnInlineSubmit").onclick = requestSubmitQuiz;
     };
 
@@ -2735,8 +2953,10 @@
     main.querySelectorAll("[data-jump]").forEach((b) => (b.onclick = () => {
       SFX.tap();
       document.body.classList.remove("mob-exam-sheet-open");
+      scheduleOverlayHistoryRelease();
       const idx = +b.dataset.jump;
       qz.cur = idx;
+      saveActiveQuiz();
       if (!qz.done && qz.singleMode) {
         $("#examQuestionsCol").innerHTML = renderExamLeftHtml();
         bindExamLeft();
@@ -2750,12 +2970,16 @@
 
     if ($("#btnMobMatrixTog")) $("#btnMobMatrixTog").onclick = () => {
       SFX.tap();
-      document.body.classList.toggle("mob-exam-sheet-open");
+      const nextOpen = !document.body.classList.contains("mob-exam-sheet-open");
+      document.body.classList.toggle("mob-exam-sheet-open", nextOpen);
+      if (nextOpen) pushOverlayHistory();
+      else scheduleOverlayHistoryRelease();
       setTimeout(() => updateSegThumb($("#examViewSeg")), 30);
     };
     if ($("#btnCloseExamSheet")) $("#btnCloseExamSheet").onclick = () => {
       SFX.tap();
       document.body.classList.remove("mob-exam-sheet-open");
+      scheduleOverlayHistoryRelease();
     };
     if ($("#btnMobSubmit")) $("#btnMobSubmit").onclick = requestSubmitQuiz;
 
@@ -2764,6 +2988,7 @@
       vSeg.querySelectorAll("[data-em]").forEach((b) => (b.onclick = () => {
         SFX.tap();
         qz.singleMode = b.dataset.em === "single";
+        saveActiveQuiz();
         vSeg.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
         updateSegThumb(vSeg);
         $("#examQuestionsCol").innerHTML = renderExamLeftHtml();
@@ -2775,6 +3000,7 @@
     main.querySelectorAll("[data-rvf]").forEach((b) => (b.onclick = () => {
       SFX.tap();
       qz.reviewFilter = b.dataset.rvf;
+      saveActiveQuiz();
       const revSeg = $("#examRevSeg");
       if (revSeg) {
         revSeg.querySelectorAll("[data-rvf]").forEach((x) => x.classList.toggle("active", x === b));
@@ -2786,9 +3012,10 @@
 
     if ($("#btnSubmitQuiz")) $("#btnSubmitQuiz").onclick = requestSubmitQuiz;
     if ($("#btnPauseQuiz")) $("#btnPauseQuiz").onclick = () => nav("exam");
-    if ($("#btnExamAgain")) $("#btnExamAgain").onclick = () => { state.quiz = null; nav("exam"); };
-    if ($("#btnMobNewExam")) $("#btnMobNewExam").onclick = () => { state.quiz = null; nav("exam"); };
-    if ($("#btnRailNew")) $("#btnRailNew").onclick = () => { state.quiz = null; nav("exam"); };
+    const resetToNewExam = () => { clearInterval(examTimer); state.quiz = null; state.elimExam = {}; saveActiveQuiz(); nav("exam"); };
+    if ($("#btnExamAgain")) $("#btnExamAgain").onclick = resetToNewExam;
+    if ($("#btnMobNewExam")) $("#btnMobNewExam").onclick = resetToNewExam;
+    if ($("#btnRailNew")) $("#btnRailNew").onclick = resetToNewExam;
     if ($("#btnExamStats")) $("#btnExamStats").onclick = () => nav("stats");
   }
 
@@ -3676,7 +3903,7 @@
       state.revTab = b.dataset.rv;
       revBar.querySelectorAll(".uline-tab").forEach((x) => x.classList.toggle("active", x === b));
       updateTabInk(revBar);
-      if (b.scrollIntoView) b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+      if (b.scrollIntoView) b.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
       renderRevBody();
     }));
   }
@@ -3861,8 +4088,8 @@
 
       <div class="uline-tabs" id="labTabBar">
         <button class="uline-tab ${state.labGroup === "ch" ? "active" : ""}" data-lg="ch">${ui("Mô phỏng 6 chương", "Chapter Models")} (6)</button>
-        <button class="uline-tab ${state.labGroup === "tool" ? "active" : ""}" data-lg="tool">${ui("Công cụ định giá (DCF · LBO · Bond)", "Valuation Calculators")} (4)</button>
-        <button class="uline-tab ${state.labGroup === "game" ? "active" : ""}" data-lg="game">${ui("Mô phỏng thương vụ tương tác", "Interactive Deal Scenarios")} (${games.length})</button>
+        <button class="uline-tab ${state.labGroup === "tool" ? "active" : ""}" data-lg="tool">${ui("Công cụ định giá", "Valuation Tools")} (4)</button>
+        <button class="uline-tab ${state.labGroup === "game" ? "active" : ""}" data-lg="game">${ui("Tình huống thương vụ", "Deal Scenarios")} (${games.length})</button>
       </div>
 
       <div id="labBodyZone"></div>
@@ -3888,7 +4115,7 @@
       }
 
       zone.innerHTML = `
-        <div class="seg" id="labSubSeg" style="flex-wrap:wrap;margin-bottom:16px">
+        <div class="seg" id="labSubSeg" data-count="${items.length}" style="flex-wrap:wrap;margin-bottom:16px">
           ${items.map((it) => `<button type="button" class="${state.labKey === it.k ? "active" : ""}" data-lk="${esc(it.k)}">${esc(it.label)}</button>`).join("")}
         </div>
         <div id="labActiveCard"></div>
@@ -3974,7 +4201,7 @@
         state.labKey = b.dataset.lk;
         subSeg.querySelectorAll("[data-lk]").forEach((x) => x.classList.toggle("active", x === b));
         updateSegThumb(subSeg);
-        if (b.scrollIntoView) b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+        if (b.scrollIntoView) b.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
         paintActiveLab(true);
       }));
     };
@@ -3990,7 +4217,7 @@
       state.labKey = state.labGroup === "ch" ? "1" : (state.labGroup === "tool" ? "dcf" : "0");
       labBar.querySelectorAll(".uline-tab").forEach((x) => x.classList.toggle("active", x === b));
       updateTabInk(labBar);
-      if (b.scrollIntoView) b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+      if (b.scrollIntoView) b.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
       renderLabBody();
     }));
   }
@@ -4079,13 +4306,17 @@
   function openCmd() {
     SFX.tap();
     $("#cmdOverlay").classList.remove("hidden");
+    pushOverlayHistory();
     const inp = $("#cmdInput");
     inp.value = "";
     state.cmdActiveIdx = 0;
     renderCmdList("");
     setTimeout(() => inp.focus(), 20);
   }
-  function closeCmd() { $("#cmdOverlay").classList.add("hidden"); }
+  function closeCmd() {
+    $("#cmdOverlay").classList.add("hidden");
+    scheduleOverlayHistoryRelease();
+  }
 
   function updateCmdHighlight() {
     const box = $("#cmdResults");
@@ -4340,12 +4571,83 @@
     if ($("#mtIcoExam")) $("#mtIcoExam").innerHTML = I.target;
     if ($("#mtIcoMore")) $("#mtIcoMore").innerHTML = I.layers;
 
-    // Support PWA Home Screen Shortcut deep-links (?view=exam, ?view=bank, ?view=revision, ?view=labs, etc.)
+    // Rehydrate active quiz session across tab reloads / mobile background eviction
+    restoreActiveQuiz();
+
+    // Support PWA Home Screen Shortcut & Deep-Link URLs (?view=exam, ?view=chapter&ch=3&sec=2, ?view=caseRead&case=...)
     try {
-      const qView = new URLSearchParams(window.location.search).get("view");
-      const validViews = new Set(["home", "syllabus", "chapter", "exam", "bank", "essays", "revision", "cases", "labs", "stats"]);
-      if (qView && validViews.has(qView)) state.view = qView;
+      const sp = new URLSearchParams(window.location.search);
+      const qView = sp.get("view");
+      const validViews = new Set(["home", "syllabus", "chapter", "exam", "examRun", "bank", "essays", "revision", "cases", "caseRead", "labs", "stats"]);
+      if (qView && validViews.has(qView)) {
+        if (qView === "examRun" && !state.quiz) {
+          state.view = "exam";
+        } else if (qView === "caseRead") {
+          const cid = sp.get("case");
+          if (cid && CASES.some((c) => c.id === cid)) {
+            state.view = "caseRead";
+            state.caseId = cid;
+          } else {
+            state.view = "cases";
+          }
+        } else {
+          state.view = qView;
+          if (qView === "chapter") {
+            const qCh = +sp.get("ch");
+            const chObj = CHAPTERS.find((c) => c.id === qCh);
+            if (chObj) {
+              state.ch = qCh;
+              state.expandedCh = qCh;
+              const qSec = +sp.get("sec");
+              if (!isNaN(qSec) && qSec >= 0 && qSec < chObj.sections.length) state.sec = qSec;
+            }
+          }
+        }
+      }
     } catch (e) {}
+
+    syncExamBodyClass();
+    syncHistoryState(true);
+
+    // Hardware Back Button (Android) & Swipe-Back (iOS / Desktop) History Handler
+    window.addEventListener("popstate", (ev) => {
+      if (suppressNextPop) {
+        suppressNextPop = false;
+        return;
+      }
+      clearTimeout(overlayReleaseTimer);
+      if (hasOpenOverlay() || overlayHistoryActive) {
+        overlayHistoryActive = false;
+        closeAllTransientOverlays();
+        if (ev.state && ev.state.ibc && ev.state.view === state.view && ev.state.ch === state.ch && ev.state.sec === state.sec && ev.state.caseId === state.caseId) {
+          return;
+        }
+      }
+      closeAllTransientOverlays();
+      const s = ev.state;
+      if (s && s.ibc) {
+        let nextView = s.view || "home";
+        if (nextView === "examRun" && !state.quiz) nextView = "exam";
+        nav(nextView, {
+          ch: s.ch || state.ch,
+          sec: s.sec != null ? s.sec : state.sec,
+          caseId: s.caseId || null,
+          labGroup: s.labGroup || state.labGroup,
+          labKey: s.labKey || state.labKey,
+          revTab: s.revTab || state.revTab
+        }, { fromPop: true });
+      } else {
+        nav("home", {}, { fromPop: true });
+      }
+    });
+
+    // Offline / Online Connectivity Status Toasts
+    window.addEventListener("offline", () => {
+      showToast(ui("Đang ở chế độ Ngoại tuyến — toàn bộ học liệu vẫn hoạt động 100%", "Offline mode — all course materials remain available"));
+    });
+    window.addEventListener("online", () => {
+      showToast(ui("Đã kết nối lại mạng Internet", "Back online"));
+    });
 
     applyThemeAndScale();
 
@@ -4639,13 +4941,18 @@
     });
 
     const setMobRail = (open) => {
+      const wasOpen = document.body.classList.contains("mob-rail-open");
+      if (wasOpen === open) return;
       document.body.classList.toggle("mob-rail-open", open);
       if (open) {
         document.body.classList.remove("mob-exam-sheet-open");
+        pushOverlayHistory();
         setTimeout(() => {
           updateSegThumb($("#langSegMob"));
           syncRailActivePosition("instant");
         }, 25);
+      } else {
+        scheduleOverlayHistoryRelease();
       }
     };
 
@@ -4671,7 +4978,10 @@
     };
     $("#railBackdrop").onclick = () => setMobRail(false);
     if ($("#examSheetBackdrop")) {
-      $("#examSheetBackdrop").onclick = () => document.body.classList.remove("mob-exam-sheet-open");
+      $("#examSheetBackdrop").onclick = () => {
+        document.body.classList.remove("mob-exam-sheet-open");
+        scheduleOverlayHistoryRelease();
+      };
     }
 
     // Touch swipe-left to close mobile navigation drawer naturally
@@ -4694,7 +5004,7 @@
       }, { passive: true });
     }
 
-    // Native Mobile Bottom Tabbar Navigation
+    // Native Mobile Bottom Tabbar Navigation (Tap active tab while scrolled -> smooth scroll to top!)
     if ($("#mobTabbar")) {
       $("#mobTabbar").addEventListener("click", (e) => {
         const t = e.target.closest("[data-mtab]");
@@ -4705,9 +5015,16 @@
           setMobRail(!document.body.classList.contains("mob-rail-open"));
           return;
         }
+        const targetView = k === "exam" ? (state.quiz && !state.quiz.done ? "examRun" : "exam") : k;
+        if (state.view === targetView && !document.body.classList.contains("mob-rail-open")) {
+          if (window.scrollY > 40) {
+            SFX.tap();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+          return;
+        }
         if (k === "exam") {
-          if (state.quiz && !state.quiz.done) nav("examRun");
-          else nav("exam");
+          nav(targetView);
           return;
         }
         if (k === "chapter") {
@@ -4810,30 +5127,53 @@
       showToast(ui("Đã cài đặt ứng dụng BAF736 HUB thành công", "App installed successfully"));
     });
     if (pwaInstallBtn) {
+      const openIosPwaGuide = () => {
+        setMobRail(false);
+        openConfirmModal({
+          title: ui("Cài đặt ứng dụng BAF736 trên iPhone / iPad", "Install BAF736 App on iOS"),
+          desc: ui(
+            "Nhấn nút Chia sẻ (biểu tượng ô vuông có mũi tên hướng lên ở thanh Safari) -> chọn 'Thêm vào Màn hình chính' (Add to Home Screen) để mở toàn màn hình và học ngoại tuyến 100%.",
+            "Tap the Share button in Safari, then choose 'Add to Home Screen' for full-screen standalone offline access."
+          ),
+          okLabel: ui("Đã hiểu", "Got it"),
+          cancelLabel: ui("Đóng", "Close")
+        });
+      };
       pwaInstallBtn.onclick = async () => {
         SFX.tap();
-        if (deferredPwaPrompt) {
-          deferredPwaPrompt.prompt();
-          try { await deferredPwaPrompt.userChoice; } catch (e) {}
+        if (deferredPwaPrompt && !isIosSafari) {
+          try {
+            await deferredPwaPrompt.prompt();
+            await deferredPwaPrompt.userChoice;
+            deferredPwaPrompt = null;
+            pwaInstallBtn.classList.add("hidden");
+          } catch (e) {}
+        } else if (isIosSafari) {
+          openIosPwaGuide();
+        } else if (deferredPwaPrompt) {
+          try {
+            await deferredPwaPrompt.prompt();
+            await deferredPwaPrompt.userChoice;
+          } catch (e) {}
           deferredPwaPrompt = null;
           pwaInstallBtn.classList.add("hidden");
-        } else if (isIosSafari) {
-          setMobRail(false);
-          openConfirmModal({
-            title: ui("Cài đặt ứng dụng BAF736 trên iPhone / iPad", "Install BAF736 App on iOS"),
-            desc: ui(
-              "Nhấn nút Chia sẻ (biểu tượng ô vuông có mũi tên hướng lên ở thanh Safari) -> chọn 'Thêm vào Màn hình chính' (Add to Home Screen) để mở toàn màn hình và học ngoại tuyến 100%.",
-              "Tap the Share button in Safari, then choose 'Add to Home Screen' for full-screen standalone offline access."
-            ),
-            okLabel: ui("Đã hiểu", "Got it"),
-            cancelLabel: ui("Đóng", "Close")
-          });
         }
       };
     }
     if ("serviceWorker" in navigator && /^https?:$/i.test(window.location.protocol)) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch(() => {});
+        navigator.serviceWorker.register("sw.js").then((reg) => {
+          if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+          reg.addEventListener("updatefound", () => {
+            const nw = reg.installing;
+            if (!nw) return;
+            nw.addEventListener("statechange", () => {
+              if (nw.state === "installed" && navigator.serviceWorker.controller) {
+                nw.postMessage({ type: "SKIP_WAITING" });
+              }
+            });
+          });
+        }).catch(() => {});
       });
     }
 
@@ -4877,10 +5217,8 @@
         e.preventDefault(); flashKeycap("ctrlk"); openCmd(); return;
       }
       if (e.key === "Escape") {
-        closeCmd();
-        closeCustomSelect();
-        $("#confirmOverlay").classList.add("hidden");
-        $("#lightboxOverlay").classList.add("hidden");
+        closeAllTransientOverlays();
+        scheduleOverlayHistoryRelease();
         if (pop) pop.classList.remove("show");
         return;
       }

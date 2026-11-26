@@ -22,7 +22,7 @@
       vi: "Trường Đại học Ngân hàng TP.HCM · Khoa Tài chính · 3 tín chỉ · TS. Ngô Sỹ Nam"
     },
     roleStudent: { en: "Student", vi: "Sinh viên" },
-    roleInstructor: { en: "‍Instructor", vi: "‍Giảng viên" },
+    roleInstructor: { en: "Instructor", vi: "Giảng viên" },
     langLabel: { en: "Language", vi: "Ngôn ngữ" },
 
     /* ---------------- sidebar ---------------- */
@@ -240,12 +240,12 @@
       en: "Group topic selection after each session, presentation and cross-questioning of other groups, with a consolidated essay submitted at the final session (CLO3).",
       vi: "Nhóm chọn chủ đề sau mỗi buổi, thuyết trình và phản biện các nhóm khác, nộp bài tiểu luận tổng hợp ở buổi cuối (CLO3)."
     },
-    attendanceHeading: { en: "️ Attendance — 10%", vi: "️ Chuyên cần — 10%" },
+    attendanceHeading: { en: "Attendance — 10%", vi: "Chuyên cần — 10%" },
     attendanceText: {
       en: "Roll call each session at a random time; full attendance earns 10 points.",
       vi: "Điểm danh ngẫu nhiên mỗi buổi; tham dự đầy đủ được 10 điểm."
     },
-    flashHeading: { en: "🃏 Flashcards — key terms", vi: "🃏 Thẻ ghi nhớ — thuật ngữ then chốt" },
+    flashHeading: { en: "Flashcards — key terms", vi: "Thẻ ghi nhớ — thuật ngữ then chốt" },
     shuffleDeck: { en: "Shuffle deck", vi: "Xáo thẻ" },
     cardOf: { en: "Card", vi: "Thẻ" },
     ofWord: { en: "of", vi: "trên" },
@@ -261,7 +261,7 @@
       en: "Every formula used in the labs, the question bank and the exams — grouped by chapter.",
       vi: "Toàn bộ công thức dùng trong phòng mô phỏng, ngân hàng câu hỏi và đề thi — sắp xếp theo chương."
     },
-    checklistHeading: { en: "✅ Exam checklist", vi: "✅ Danh mục kiểm tra trước kỳ thi" },
+    checklistHeading: { en: "Exam checklist", vi: "Danh mục kiểm tra trước kỳ thi" },
     check1: { en: "Read all 6 chapters to 100% (progress bars on the Dashboard).", vi: "Đọc hết 6 chương đạt 100% (xem thanh tiến độ ở Trang chủ)." },
     check2: { en: "Score ≥ 70% on a chapter quiz for every chapter, then ≥ 70% on two mock finals.", vi: "Đạt ≥ 70% ở bài trắc nghiệm từng chương, sau đó ≥ 70% ở hai lần thi thử." },
     check3: { en: "Work every calculation essay in the Essay Bank on paper — the mid-term is closed book.", vi: "Tự làm ra giấy mọi câu tự luận tính toán — bài giữa kỳ không được dùng tài liệu." },
@@ -362,7 +362,7 @@
     newQuestion: { en: "+ New question", vi: "+ Câu hỏi mới" },
     exportBank: { en: "⬇ Export bank (JSON)", vi: "⬇ Xuất ngân hàng (JSON)" },
     resetChanges: { en: "Reset all changes", vi: "Khôi phục toàn bộ" },
-    editBtn: { en: "✏️ Edit", vi: "✏️ Sửa" },
+    editBtn: { en: "Edit", vi: "Sửa" },
     deleteBtn: { en: "Delete", vi: "Xoá" },
     addedChip: { en: "Added", vi: "Đã thêm" },
     editedChip: { en: "Edited", vi: "Đã sửa" },
@@ -425,7 +425,7 @@
     failedAttempts: { en: "Failed attempts", vi: "Lần thử sai" },
     idleTimeout: { en: "Idle timeout", vi: "Thời gian chờ" },
     auditEntries: { en: "Audit entries", vi: "Bản ghi nhật ký" },
-    demoWarning: { en: "⚠ The demo password is still in use.", vi: "⚠ Vẫn đang dùng mật khẩu demo." },
+    demoWarning: { en: "The demo password is still in use.", vi: "Vẫn đang dùng mật khẩu demo." },
     demoWarningSub: {
       en: "Anyone who knows it can open this console on this device. Set your own password below.",
       vi: "Bất kỳ ai biết mật khẩu này đều có thể mở bảng điều khiển trên thiết bị này. Hãy đặt mật khẩu riêng bên dưới."
