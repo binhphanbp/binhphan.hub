@@ -1998,7 +1998,7 @@
         if (tEl && bEl && !tEl.querySelector(".fig-zoom-hint")) {
           const span = document.createElement("span");
           span.className = "muted small fig-zoom-hint";
-          span.style.cssText = "font-weight:500;font-size:0.74rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer";
+          span.style.cssText = "font-weight:500;font-size:0.74rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;flex-shrink:0";
           span.innerHTML = `${I.zoom} ${ui("Phóng to", "Expand")}`;
           tEl.appendChild(span);
           const openLb = () => openDiagramLightbox(tEl.firstChild ? tEl.firstChild.textContent : "", bEl.innerHTML);
@@ -2634,13 +2634,13 @@
     main.innerHTML = `
       ${summaryHtml}
       <div class="mob-exam-bar">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;flex-shrink:0">
           ${qz.timeLimit && !qz.done ? `<span class="mob-exam-clock" id="examClockMob">--:--</span>` : ""}
           ${qz.done
-            ? `<span class="mono small" style="font-weight:650">${ui("Đúng", "Score")} ${qz.score}/${qz.qs.length}</span>`
-            : `<span class="mono small" style="font-weight:650" id="examAnsCountMob">${answeredCount}/${qz.qs.length}</span>`}
+            ? `<span class="mono small" style="font-weight:650;white-space:nowrap">${ui("Đúng", "Score")} ${qz.score}/${qz.qs.length}</span>`
+            : `<span class="mono small" style="font-weight:650;white-space:nowrap" id="examAnsCountMob">${answeredCount}/${qz.qs.length}</span>`}
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
           <button type="button" class="btn btn-sm" id="btnMobMatrixTog">${I.grid} ${ui("Bảng câu", "Grid")}</button>
           ${!qz.done
             ? `<button type="button" class="btn btn-sm btn-primary" id="btnMobSubmit">${I.check} ${ui("Nộp bài", "Submit")}</button>`

@@ -3645,6 +3645,24 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
   #ttsLabel { max-width: 96px !important; }
 }
 
+/* Ultra-Small 320px–380px Split-Screen & iPhone SE Precision Fit */
+@media (max-width: 380px) {
+  .page { padding-left: 11px; padding-right: 11px; }
+  .mob-exam-bar { padding: 6px 8px; gap: 5px; }
+  .mob-exam-clock { font-size: 0.82rem; padding: 2px 6px; }
+  .mob-exam-bar .btn { padding: 0 8px; font-size: 0.73rem; min-height: 30px; height: 30px; }
+  .mob-tab-lbl { font-size: 0.62rem; }
+}
+
+/* Mobile Landscape Orientation (Short Viewport Height <= 460px): Slim Chrome */
+@media (max-height: 460px) and (max-width: 900px) {
+  :root { --topbar-h: 44px; --mob-nav-h: 44px; }
+  .mob-tab { flex-direction: row; gap: 5px; padding: 0 6px; }
+  .mob-tab.active::before { top: 0; width: 24px; height: 2px; }
+  .mob-exam-bar { padding: 5px 10px; margin-bottom: 8px; }
+  .rail-head { height: 44px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

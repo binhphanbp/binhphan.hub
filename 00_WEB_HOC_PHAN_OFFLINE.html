@@ -3659,6 +3659,24 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
   #ttsLabel { max-width: 96px !important; }
 }
 
+/* Ultra-Small 320px–380px Split-Screen & iPhone SE Precision Fit */
+@media (max-width: 380px) {
+  .page { padding-left: 11px; padding-right: 11px; }
+  .mob-exam-bar { padding: 6px 8px; gap: 5px; }
+  .mob-exam-clock { font-size: 0.82rem; padding: 2px 6px; }
+  .mob-exam-bar .btn { padding: 0 8px; font-size: 0.73rem; min-height: 30px; height: 30px; }
+  .mob-tab-lbl { font-size: 0.62rem; }
+}
+
+/* Mobile Landscape Orientation (Short Viewport Height <= 460px): Slim Chrome */
+@media (max-height: 460px) and (max-width: 900px) {
+  :root { --topbar-h: 44px; --mob-nav-h: 44px; }
+  .mob-tab { flex-direction: row; gap: 5px; padding: 0 6px; }
+  .mob-tab.active::before { top: 0; width: 24px; height: 2px; }
+  .mob-exam-bar { padding: 5px 10px; margin-bottom: 8px; }
+  .rail-head { height: 44px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
@@ -26297,7 +26315,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         if (tEl && bEl && !tEl.querySelector(".fig-zoom-hint")) {
           const span = document.createElement("span");
           span.className = "muted small fig-zoom-hint";
-          span.style.cssText = "font-weight:500;font-size:0.74rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer";
+          span.style.cssText = "font-weight:500;font-size:0.74rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;flex-shrink:0";
           span.innerHTML = `${I.zoom} ${ui("Phóng to", "Expand")}`;
           tEl.appendChild(span);
           const openLb = () => openDiagramLightbox(tEl.firstChild ? tEl.firstChild.textContent : "", bEl.innerHTML);
@@ -26933,13 +26951,13 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       ${summaryHtml}
       <div class="mob-exam-bar">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;flex-shrink:0">
           ${qz.timeLimit && !qz.done ? `<span class="mob-exam-clock" id="examClockMob">--:--</span>` : ""}
           ${qz.done
-            ? `<span class="mono small" style="font-weight:650">${ui("Đúng", "Score")} ${qz.score}/${qz.qs.length}</span>`
-            : `<span class="mono small" style="font-weight:650" id="examAnsCountMob">${answeredCount}/${qz.qs.length}</span>`}
+            ? `<span class="mono small" style="font-weight:650;white-space:nowrap">${ui("Đúng", "Score")} ${qz.score}/${qz.qs.length}</span>`
+            : `<span class="mono small" style="font-weight:650;white-space:nowrap" id="examAnsCountMob">${answeredCount}/${qz.qs.length}</span>`}
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
           <button type="button" class="btn btn-sm" id="btnMobMatrixTog">${I.grid} ${ui("Bảng câu", "Grid")}</button>
           ${!qz.done
             ? `<button type="button" class="btn btn-sm btn-primary" id="btnMobSubmit">${I.check} ${ui("Nộp bài", "Submit")}</button>`
