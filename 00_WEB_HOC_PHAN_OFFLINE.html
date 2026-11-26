@@ -1539,12 +1539,13 @@ mark.user-hl {
 .streak-pill.bump { animation: streakPulse 0.45s var(--ease-out); }
 @media (max-width: 640px) { .streak-pill .streak-lbl { display: none; } }
 
-/* Buttons & Jewel Tactile Controls */
+/* Buttons — Haute-UI Liquid Specular, Silk Shimmer & Magnetic Tactile Controls */
 .btn {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   height: 33px;
-  padding: 0 13px;
+  padding: 0 13.5px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--surface);
@@ -1558,44 +1559,213 @@ mark.user-hl {
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
-  box-shadow: var(--shadow-xs);
-  transition: transform 0.14s var(--ease-spring), background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), var(--shadow-xs);
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 0.22s var(--ease-out),
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.18s ease,
+    box-shadow 0.24s var(--ease-out);
 }
+[data-theme="dark"] .btn {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), var(--shadow-xs);
+}
+
+/* Layer 1 (z-index:-1): Cursor-Tracking Liquid Aurora Glow */
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    96px circle at var(--bx, 50%) var(--by, 50%),
+    color-mix(in srgb, var(--brand) 16%, transparent),
+    color-mix(in srgb, var(--brand-2) 6%, transparent) 54%,
+    transparent 78%
+  );
+  opacity: 0;
+  transition: opacity 0.24s ease;
+  pointer-events: none;
+}
+
+/* Layer 2 (z-index:-1): Diagonal Watch-Crystal Silk Glint Sweep */
+.btn::after {
+  content: "";
+  position: absolute;
+  top: -25%;
+  bottom: -25%;
+  left: -15%;
+  width: 56%;
+  z-index: -1;
+  background: linear-gradient(
+    112deg,
+    transparent 15%,
+    color-mix(in srgb, var(--brand) 12%, rgba(255, 255, 255, 0.72)) 50%,
+    transparent 85%
+  );
+  transform: translateX(-165%) skewX(-20deg);
+  opacity: 0;
+  pointer-events: none;
+}
+[data-theme="dark"] .btn::after {
+  background: linear-gradient(
+    112deg,
+    transparent 15%,
+    color-mix(in srgb, var(--brand) 22%, rgba(255, 255, 255, 0.18)) 50%,
+    transparent 85%
+  );
+}
+
 .btn:hover:not(:disabled) {
-  background: var(--bg-subtle);
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-0.5px);
+  background: color-mix(in srgb, var(--brand) 3.5%, var(--surface));
+  border-color: color-mix(in srgb, var(--brand) 48%, var(--border-strong));
+  color: var(--brand-ink);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 8px 20px -6px color-mix(in srgb, var(--brand) 24%, transparent),
+    0 2px 6px rgba(0, 0, 0, 0.05);
+  transform: translate3d(var(--mag-x, 0px), calc(var(--mag-y, 0px) - 1.5px), 0);
 }
-.btn:hover:not(:disabled) .arrow-nudge-r { transform: translateX(3px); }
-.btn:hover:not(:disabled) .arrow-nudge-l { transform: translateX(-3px); }
-.btn:hover:not(:disabled) .ico-spin { transform: rotate(-165deg); }
-.btn:hover:not(:disabled) .ico-pop { transform: scale(1.16); }
-.btn:active:not(:disabled) { transform: scale(0.955); }
+[data-theme="dark"] .btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--brand) 9%, var(--surface-elevated));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 9px 22px -5px rgba(0, 0, 0, 0.55),
+    0 0 14px -3px color-mix(in srgb, var(--brand) 34%, transparent);
+}
+.btn:hover:not(:disabled)::before {
+  opacity: 1;
+}
+.btn:hover:not(:disabled)::after {
+  opacity: 1;
+  transform: translateX(315%) skewX(-20deg);
+  transition: transform 0.66s var(--ease-out), opacity 0.18s ease;
+}
+
+/* Kinetic Icon Choreography on Hover */
+.btn:hover:not(:disabled) > svg.ico { transform: scale(1.09); color: var(--brand); }
+.btn:hover:not(:disabled) .arrow-nudge-r { transform: translateX(3.5px) scale(1.05); }
+.btn:hover:not(:disabled) .arrow-nudge-l { transform: translateX(-3.5px) scale(1.05); }
+.btn:hover:not(:disabled) .ico-spin { transform: rotate(-170deg) scale(1.06); }
+.btn:hover:not(:disabled) .ico-pop { transform: scale(1.18) rotate(-4deg); }
+#btnTheme:hover:not(:disabled) > svg.ico { transform: rotate(22deg) scale(1.14); }
+#btnZen:hover:not(:disabled) > svg.ico { transform: scale(1.15); }
+
+.btn:active:not(:disabled) {
+  transform: translate3d(0, 0.5px, 0) scale(0.962) !important;
+  transition-duration: 0.08s;
+}
 .btn:disabled { opacity: 0.42; cursor: not-allowed; box-shadow: none; }
 
+/* Primary Jewel CTA (.btn-primary) */
 .btn-primary {
   background: var(--brand-grad);
   border-color: var(--brand);
   color: #ffffff;
-  box-shadow: var(--shadow-cta);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    var(--shadow-cta);
+}
+.btn-primary::before {
+  background: radial-gradient(
+    110px circle at var(--bx, 50%) var(--by, 15%),
+    rgba(255, 255, 255, 0.34),
+    transparent 72%
+  );
+}
+.btn-primary::after,
+.btn-ok::after {
+  background: linear-gradient(
+    112deg,
+    transparent 18%,
+    rgba(255, 255, 255, 0.08) 36%,
+    rgba(255, 255, 255, 0.48) 50%,
+    rgba(255, 255, 255, 0.08) 64%,
+    transparent 82%
+  );
 }
 .btn-primary:hover:not(:disabled) {
   background: var(--brand-grad-hover);
   border-color: var(--brand-hover);
-  box-shadow: var(--shadow-cta-hover);
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    0 10px 24px -5px var(--brand-glow),
+    0 3px 8px rgba(0, 0, 0, 0.12);
 }
+.btn-primary:hover:not(:disabled) > svg.ico { color: #ffffff; }
+
+/* HUB Signature Exclusive Dual-Tone Navy -> Crimson Jewel Sheen on Primary CTA */
+[data-palette="hub"] .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(132deg, #274285 0%, #1f3368 54%, #9c1a29 100%);
+  border-color: #1f3368;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.44),
+    0 10px 24px -5px rgba(31, 51, 104, 0.34),
+    0 4px 12px -3px rgba(167, 27, 41, 0.24);
+}
+[data-theme="dark"][data-palette="hub"] .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(132deg, #365bb8 0%, #254085 55%, #b82538 100%);
+  border-color: #5b8cff;
+}
+
+/* Emerald Success CTA (.btn-ok) */
 .btn-ok {
   background: linear-gradient(180deg, #1bb08c 0%, #109272 100%);
   border-color: #109272;
   color: #ffffff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 2px 6px rgba(18, 150, 118, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 2px 7px rgba(18, 150, 118, 0.26);
 }
-.btn-ok:hover:not(:disabled) { filter: brightness(1.04); background: linear-gradient(180deg, #1bb08c 0%, #109272 100%); border-color: #0d7a5f; }
-.btn-ghost { background: transparent; border-color: transparent; color: var(--ink-3); box-shadow: none !important; }
-.btn-ghost:hover:not(:disabled) { background: var(--bg-muted); color: var(--ink); border-color: transparent; }
-.btn-danger { color: var(--err); border-color: var(--err-border); background: var(--err-soft); }
-.btn-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--err) 14%, var(--surface)); border-color: var(--err); }
+.btn-ok::before {
+  background: radial-gradient(105px circle at var(--bx, 50%) var(--by, 15%), rgba(255, 255, 255, 0.32), transparent 72%);
+}
+.btn-ok:hover:not(:disabled) {
+  background: linear-gradient(180deg, #1fc099 0%, #119c7a 100%);
+  border-color: #0d7a5f;
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    0 10px 22px -5px rgba(18, 150, 118, 0.38),
+    0 3px 7px rgba(0, 0, 0, 0.1);
+}
+.btn-ok:hover:not(:disabled) > svg.ico { color: #ffffff; }
+
+/* Ghost Glass Capsule (.btn-ghost) */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-3);
+  box-shadow: none !important;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--brand) 8.5%, var(--surface));
+  color: var(--brand-ink);
+  border-color: color-mix(in srgb, var(--brand) 24%, transparent);
+  box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--brand) 20%, transparent) !important;
+}
+
+/* Ruby Glass Danger Button (.btn-danger) */
+.btn-danger {
+  color: var(--err);
+  border-color: var(--err-border);
+  background: var(--err-soft);
+}
+.btn-danger::before {
+  background: radial-gradient(96px circle at var(--bx, 50%) var(--by, 50%), color-mix(in srgb, var(--err) 20%, transparent), transparent 75%);
+}
+.btn-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--err) 13%, var(--surface));
+  border-color: var(--err);
+  color: var(--err-ink);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 8px 20px -6px color-mix(in srgb, var(--err) 28%, transparent);
+}
+.btn-danger:hover:not(:disabled) > svg.ico { color: var(--err); }
 
 .btn-sm { height: 28px; padding: 0 9.5px; font-size: 0.78rem; border-radius: 6px; }
 .btn-lg { height: 39px; padding: 0 18px; font-size: 0.88rem; }
@@ -27535,8 +27705,38 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       rot.classList.add("tick");
     }, 3800);
 
-    // Cursor-tracking spotlight + specular border illumination across workspace
+    // Cursor-tracking spotlight + liquid specular & subtle magnetic micro-pull on buttons
+    let activeMagBtn = null;
     document.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      const btn = e.target.closest && e.target.closest(".btn");
+      if (btn && !btn.disabled) {
+        if (activeMagBtn && activeMagBtn !== btn) {
+          activeMagBtn.style.setProperty("--mag-x", "0px");
+          activeMagBtn.style.setProperty("--mag-y", "0px");
+        }
+        activeMagBtn = btn;
+        const rb = btn.getBoundingClientRect();
+        const bx = e.clientX - rb.left;
+        const by = e.clientY - rb.top;
+        btn.style.setProperty("--bx", bx.toFixed(1) + "px");
+        btn.style.setProperty("--by", by.toFixed(1) + "px");
+        if (rb.width <= 280) {
+          const maxPull = btn.classList.contains("btn-lg") ? 2.5 : (btn.classList.contains("btn-icon") ? 1.6 : 2.1);
+          const nx = Math.max(-1, Math.min(1, (bx - rb.width / 2) / Math.max(16, rb.width / 2)));
+          const ny = Math.max(-1, Math.min(1, (by - rb.height / 2) / Math.max(12, rb.height / 2)));
+          btn.style.setProperty("--mag-x", (nx * maxPull).toFixed(2) + "px");
+          btn.style.setProperty("--mag-y", (ny * maxPull * 0.72).toFixed(2) + "px");
+        } else {
+          btn.style.setProperty("--mag-x", "0px");
+          btn.style.setProperty("--mag-y", "0px");
+        }
+      } else if (activeMagBtn) {
+        activeMagBtn.style.setProperty("--mag-x", "0px");
+        activeMagBtn.style.setProperty("--mag-y", "0px");
+        activeMagBtn = null;
+      }
+
       const card = e.target.closest && e.target.closest(".spot-surface");
       if (!card) return;
       const r = card.getBoundingClientRect();

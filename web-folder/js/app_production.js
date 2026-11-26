@@ -4101,8 +4101,38 @@
       rot.classList.add("tick");
     }, 3800);
 
-    // Cursor-tracking spotlight + specular border illumination across workspace
+    // Cursor-tracking spotlight + liquid specular & subtle magnetic micro-pull on buttons
+    let activeMagBtn = null;
     document.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      const btn = e.target.closest && e.target.closest(".btn");
+      if (btn && !btn.disabled) {
+        if (activeMagBtn && activeMagBtn !== btn) {
+          activeMagBtn.style.setProperty("--mag-x", "0px");
+          activeMagBtn.style.setProperty("--mag-y", "0px");
+        }
+        activeMagBtn = btn;
+        const rb = btn.getBoundingClientRect();
+        const bx = e.clientX - rb.left;
+        const by = e.clientY - rb.top;
+        btn.style.setProperty("--bx", bx.toFixed(1) + "px");
+        btn.style.setProperty("--by", by.toFixed(1) + "px");
+        if (rb.width <= 280) {
+          const maxPull = btn.classList.contains("btn-lg") ? 2.5 : (btn.classList.contains("btn-icon") ? 1.6 : 2.1);
+          const nx = Math.max(-1, Math.min(1, (bx - rb.width / 2) / Math.max(16, rb.width / 2)));
+          const ny = Math.max(-1, Math.min(1, (by - rb.height / 2) / Math.max(12, rb.height / 2)));
+          btn.style.setProperty("--mag-x", (nx * maxPull).toFixed(2) + "px");
+          btn.style.setProperty("--mag-y", (ny * maxPull * 0.72).toFixed(2) + "px");
+        } else {
+          btn.style.setProperty("--mag-x", "0px");
+          btn.style.setProperty("--mag-y", "0px");
+        }
+      } else if (activeMagBtn) {
+        activeMagBtn.style.setProperty("--mag-x", "0px");
+        activeMagBtn.style.setProperty("--mag-y", "0px");
+        activeMagBtn = null;
+      }
+
       const card = e.target.closest && e.target.closest(".spot-surface");
       if (!card) return;
       const r = card.getBoundingClientRect();
