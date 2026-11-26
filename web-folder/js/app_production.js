@@ -4101,14 +4101,70 @@
       rot.classList.add("tick");
     }, 3800);
 
-    // Cursor-tracking spotlight on cards & zero-shift specular rim coordinates on buttons
+    // Direction-Aware Liquid Aurora Portal on Buttons (.btn, .pg-btn, .sec-mini, .m-cell) + Card Spotlight
+    const FLAIR_SEL = ".btn, .pg-btn, .sec-mini, .m-cell";
+    function getBtnFlair(btn) {
+      let f = btn.querySelector(":scope > .btn-flair");
+      if (!f) {
+        f = document.createElement("span");
+        f.className = "btn-flair";
+        f.setAttribute("aria-hidden", "true");
+        btn.insertBefore(f, btn.firstChild);
+      }
+      return f;
+    }
+
+    document.addEventListener("pointerover", (e) => {
+      if (e.pointerType === "touch") return;
+      const btn = e.target.closest && e.target.closest(FLAIR_SEL);
+      if (!btn || btn.disabled || (e.relatedTarget && btn.contains(e.relatedTarget))) return;
+      const r = btn.getBoundingClientRect();
+      const x = Math.max(0, Math.min(r.width, e.clientX - r.left));
+      const y = Math.max(0, Math.min(r.height, e.clientY - r.top));
+      const diameter = Math.ceil(Math.hypot(r.width, r.height) * 2 + 8);
+      const flair = getBtnFlair(btn);
+      flair.style.width = diameter + "px";
+      flair.style.height = diameter + "px";
+      const cooledDown = (performance.now() - (btn._outTs || 0)) > 360;
+      if (cooledDown && !btn.classList.contains("is-hovered")) {
+        flair.style.transition = "none";
+        flair.style.left = x.toFixed(1) + "px";
+        flair.style.top = y.toFixed(1) + "px";
+        void flair.offsetWidth;
+        flair.style.transition = "";
+      } else {
+        flair.style.left = x.toFixed(1) + "px";
+        flair.style.top = y.toFixed(1) + "px";
+      }
+      btn.classList.add("is-hovered");
+    }, { passive: true });
+
+    document.addEventListener("pointerout", (e) => {
+      if (e.pointerType === "touch") return;
+      const btn = e.target.closest && e.target.closest(FLAIR_SEL);
+      if (!btn || (e.relatedTarget && btn.contains(e.relatedTarget))) return;
+      const r = btn.getBoundingClientRect();
+      const x = Math.max(0, Math.min(r.width, e.clientX - r.left));
+      const y = Math.max(0, Math.min(r.height, e.clientY - r.top));
+      const flair = btn.querySelector(":scope > .btn-flair");
+      if (flair) {
+        flair.style.left = x.toFixed(1) + "px";
+        flair.style.top = y.toFixed(1) + "px";
+      }
+      btn._outTs = performance.now();
+      btn.classList.remove("is-hovered");
+    }, { passive: true });
+
     document.addEventListener("pointermove", (e) => {
       if (e.pointerType === "touch") return;
-      const btn = e.target.closest && e.target.closest(".btn");
-      if (btn && !btn.disabled) {
+      const btn = e.target.closest && e.target.closest(FLAIR_SEL);
+      if (btn && !btn.disabled && btn.classList.contains("is-hovered")) {
         const rb = btn.getBoundingClientRect();
-        btn.style.setProperty("--bx", (e.clientX - rb.left).toFixed(1) + "px");
-        btn.style.setProperty("--by", (e.clientY - rb.top).toFixed(1) + "px");
+        const x = Math.max(0, Math.min(rb.width, e.clientX - rb.left));
+        const y = Math.max(0, Math.min(rb.height, e.clientY - rb.top));
+        const flair = getBtnFlair(btn);
+        flair.style.left = x.toFixed(1) + "px";
+        flair.style.top = y.toFixed(1) + "px";
       }
       const card = e.target.closest && e.target.closest(".spot-surface");
       if (!card) return;

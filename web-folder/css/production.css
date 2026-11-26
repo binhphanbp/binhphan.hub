@@ -808,6 +808,14 @@ code {
 .ico-err { background: var(--err-soft); border-color: var(--err-border); color: var(--err); }
 
 /* ================= KEYFRAMES & MOTION CHOREOGRAPHY ================= */
+@property --btn-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes borderOrbit {
+  to { --btn-angle: 360deg; }
+}
 @keyframes staggerUp {
   from { opacity: 0; transform: translateY(9px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1074,10 +1082,10 @@ body.zen-mode .reader-grid { grid-template-columns: minmax(0, 760px); justify-co
   justify-content: space-between;
   gap: 6px;
   cursor: pointer;
-  box-shadow: var(--shadow-xs);
-  transition: border-color 0.16s, color 0.16s, transform 0.12s var(--ease-out), box-shadow 0.16s;
+  box-shadow: none;
+  transition: border-color 0.24s var(--ease-out), background-color 0.24s var(--ease-out), color 0.2s ease, transform 0.1s var(--ease-out);
 }
-.search-trigger:hover { border-color: var(--brand-border); color: var(--ink); box-shadow: var(--shadow-sm); }
+.search-trigger:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--ink); box-shadow: none; }
 .search-trigger:hover svg.ico { transform: scale(1.1) rotate(-6deg); color: var(--brand); }
 .search-trigger:hover .kbd { border-color: var(--brand-border); color: var(--brand-ink); background: var(--brand-soft); }
 .search-trigger:active { transform: scale(0.98); }
@@ -1530,7 +1538,7 @@ mark.user-hl {
 .streak-pill.bump { animation: streakPulse 0.45s var(--ease-out); }
 @media (max-width: 640px) { .streak-pill .streak-lbl { display: none; } }
 
-/* Buttons — Zero-Shift Architectural Glass, Slow Velvet Horizon Glow & 1px Specular Rim */
+/* Buttons — Zero-Shadow Direction-Aware Liquid Aurora Portal + Twin Conic Laser Rim */
 .btn {
   position: relative;
   isolation: isolate;
@@ -1539,7 +1547,7 @@ mark.user-hl {
   padding: 0 13.5px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--bg-subtle) 55%, #ffffff) 100%);
+  background: var(--surface);
   color: var(--ink);
   font-size: 0.83rem;
   font-weight: 560;
@@ -1550,277 +1558,270 @@ mark.user-hl {
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), var(--shadow-xs);
+  box-shadow: none !important;
   transform: translateZ(0);
+  --flair-bg: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--brand) 28%, #ffffff) 0%,
+    color-mix(in srgb, var(--brand) 16%, var(--brand-soft)) 48%,
+    color-mix(in srgb, var(--violet) 15%, var(--brand-soft)) 100%
+  );
+  --orbit-c1: var(--brand);
+  --orbit-c2: var(--violet);
   transition:
-    background-color 0.42s var(--ease-out),
-    border-color 0.42s var(--ease-out),
-    color 0.36s var(--ease-out),
-    box-shadow 0.46s var(--ease-out),
-    transform 0.12s var(--ease-out);
+    border-color 0.34s var(--ease-out),
+    color 0.28s var(--ease-out),
+    background-color 0.34s var(--ease-out),
+    transform 0.1s var(--ease-out);
 }
 [data-theme="dark"] .btn {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, #ffffff 6.5%, var(--surface-elevated)) 0%,
-    var(--surface-elevated) 100%
-  );
-  border-color: color-mix(in srgb, #ffffff 10%, var(--border));
+  background: var(--surface-elevated);
+  border-color: color-mix(in srgb, #ffffff 11%, var(--border));
   color: var(--ink);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.09),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.38),
-    0 2px 6px rgba(0, 0, 0, 0.28);
+  --flair-bg: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--brand) 48%, var(--surface-elevated)) 0%,
+    color-mix(in srgb, var(--brand) 28%, var(--surface-elevated)) 50%,
+    color-mix(in srgb, var(--violet) 24%, var(--surface-elevated)) 100%
+  );
+  --orbit-c1: color-mix(in srgb, #ffffff 68%, var(--brand));
+  --orbit-c2: var(--brand);
+}
+[data-palette="hub"] .btn {
+  --flair-bg: radial-gradient(
+    circle at center,
+    rgba(167, 27, 41, 0.17) 0%,
+    rgba(31, 51, 104, 0.12) 52%,
+    rgba(31, 51, 104, 0.08) 100%
+  );
+  --orbit-c1: #a71b29;
+  --orbit-c2: #1f3368;
+}
+[data-theme="dark"][data-palette="hub"] .btn {
+  --flair-bg: radial-gradient(
+    circle at center,
+    rgba(225, 29, 72, 0.38) 0%,
+    rgba(37, 64, 133, 0.44) 52%,
+    rgba(23, 37, 84, 0.36) 100%
+  );
+  --orbit-c1: #fb7185;
+  --orbit-c2: #60a5fa;
 }
 
-/* Layer 1 (z-index:-1): Slow-Rising Velvet Horizon Glow (0.48s — Zero Positional Shift!) */
-.btn::before {
-  content: "";
+/* Direction-Aware Liquid Aurora Sphere (Blooms at cursor entry, tracks cursor live, drains out exact exit!) */
+.btn-flair {
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: radial-gradient(
-    125% 105% at var(--bx, 50%) 112%,
-    color-mix(in srgb, var(--brand) 19%, transparent) 0%,
-    color-mix(in srgb, var(--brand-2) 8%, transparent) 50%,
-    transparent 84%
-  );
-  opacity: 0;
-  transform: translateY(28%) scale(0.95);
-  transition: opacity 0.46s var(--ease-out), transform 0.5s var(--ease-out);
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--flair-bg);
+  transform: translate(-50%, -50%) scale(0);
+  transition:
+    transform 0.48s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.16s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
+  z-index: -1;
+  will-change: transform;
 }
-[data-theme="dark"] .btn::before {
-  background: radial-gradient(
-    130% 115% at var(--bx, 50%) 115%,
-    color-mix(in srgb, var(--brand) 34%, transparent) 0%,
-    color-mix(in srgb, var(--brand-2) 15%, transparent) 52%,
-    transparent 86%
-  );
+.btn.is-hovered:not(:disabled) .btn-flair {
+  transform: translate(-50%, -50%) scale(1);
 }
 
-/* Layer 2 (z-index:2): 1px Precision Cursor-Tracked Specular Rim Illumination */
-.btn::after {
+/* Twin Symmetrical Conic Laser Border Comets (1.5px Precision, Zero Box-Shadow!) */
+.btn::after,
+.pg-btn::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 2;
   border-radius: inherit;
-  padding: 1px;
-  background: radial-gradient(
-    78px circle at var(--bx, 50%) var(--by, 50%),
-    var(--brand),
-    color-mix(in srgb, var(--brand-2) 55%, transparent) 56%,
-    transparent 100%
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--btn-angle),
+    transparent 0deg,
+    transparent 32deg,
+    color-mix(in srgb, var(--orbit-c2, var(--brand)) 55%, transparent) 64deg,
+    var(--orbit-c1, var(--brand)) 84deg,
+    color-mix(in srgb, #ffffff 82%, var(--orbit-c1, var(--brand))) 90deg,
+    transparent 95deg,
+    transparent 212deg,
+    color-mix(in srgb, var(--orbit-c2, var(--brand)) 55%, transparent) 244deg,
+    var(--orbit-c1, var(--brand)) 264deg,
+    color-mix(in srgb, #ffffff 82%, var(--orbit-c1, var(--brand))) 270deg,
+    transparent 275deg,
+    transparent 360deg
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
-  transition: opacity 0.44s var(--ease-out);
+  transition: opacity 0.28s ease;
   pointer-events: none;
 }
-[data-theme="dark"] .btn::after {
-  background: radial-gradient(
-    86px circle at var(--bx, 50%) var(--by, 50%),
-    color-mix(in srgb, #ffffff 58%, var(--brand)),
-    var(--brand) 48%,
-    transparent 100%
-  );
+.btn:hover:not(:disabled)::after,
+.pg-btn:hover:not(:disabled):not(.active)::after {
+  opacity: 1;
+  animation: borderOrbit 2.2s linear infinite;
 }
 
 .btn:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--brand) 38%, var(--border-strong));
+  border-color: color-mix(in srgb, var(--brand) 38%, var(--border));
   color: var(--brand-ink);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 6px 18px -6px color-mix(in srgb, var(--brand) 24%, transparent),
-    0 2px 5px rgba(0, 0, 0, 0.04);
+  box-shadow: none !important;
 }
 [data-theme="dark"] .btn:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--brand) 44%, var(--border-strong));
+  border-color: color-mix(in srgb, var(--brand) 42%, var(--border-strong));
   color: #ffffff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
-    0 0 22px -5px color-mix(in srgb, var(--brand) 40%, transparent),
-    0 4px 12px rgba(0, 0, 0, 0.45);
-}
-.btn:hover:not(:disabled)::before {
-  opacity: 1;
-  transform: translateY(0%) scale(1);
-}
-.btn:hover:not(:disabled)::after {
-  opacity: 1;
+  box-shadow: none !important;
 }
 
-/* Smooth, Restrained Icon Micro-Motion (Zero Button Shift) */
+/* Smooth Icon Micro-Motion (Zero Positional Shift) */
 .btn:hover:not(:disabled) > svg.ico { color: var(--brand); }
 [data-theme="dark"] .btn:hover:not(:disabled) > svg.ico { color: var(--brand-2); }
-.btn:hover:not(:disabled) .arrow-nudge-r { transform: translateX(2.5px); }
-.btn:hover:not(:disabled) .arrow-nudge-l { transform: translateX(-2.5px); }
-.btn:hover:not(:disabled) .ico-spin { transform: rotate(-135deg); }
+.btn:hover:not(:disabled) .arrow-nudge-r { transform: translateX(3px); }
+.btn:hover:not(:disabled) .arrow-nudge-l { transform: translateX(-3px); }
+.btn:hover:not(:disabled) .ico-spin { transform: rotate(-145deg); }
 .btn:hover:not(:disabled) .ico-pop { transform: scale(1.1); }
-#btnTheme:hover:not(:disabled) > svg.ico { transform: rotate(16deg) scale(1.08); }
+#btnTheme:hover:not(:disabled) > svg.ico { transform: rotate(18deg) scale(1.08); }
 #btnZen:hover:not(:disabled) > svg.ico { transform: scale(1.08); }
 
 .btn:active:not(:disabled) {
   transform: scale(0.972);
-  transition-duration: 0.09s;
+  transition-duration: 0.08s;
 }
-.btn:disabled { opacity: 0.42; cursor: not-allowed; box-shadow: none; }
+.btn:disabled { opacity: 0.42; cursor: not-allowed; }
 
-/* Primary Jewel CTA (.btn-primary) — Light & Dark Optimized */
+/* Primary CTA (.btn-primary) — Palette-Tailored Jewel Liquid Portal + Twin Laser Orbit */
 .btn-primary,
 [data-theme="dark"] .btn-primary {
-  background: var(--brand-grad);
-  border-color: color-mix(in srgb, #ffffff 14%, var(--brand));
+  background: var(--brand);
+  border-color: var(--brand);
   color: #ffffff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
-    var(--shadow-cta);
+  --flair-bg: radial-gradient(circle at center, #86198f 0%, #4a153b 56%, #2a1024 100%);
+  --orbit-c1: #fbcfe8;
+  --orbit-c2: #ffffff;
 }
-.btn-primary::before,
-[data-theme="dark"] .btn-primary::before {
-  background: radial-gradient(
-    125% 110% at var(--bx, 50%) 115%,
-    rgba(255, 255, 255, 0.34) 0%,
-    color-mix(in srgb, var(--brand-2) 52%, transparent) 48%,
-    transparent 84%
-  );
+[data-theme="dark"] .btn-primary {
+  background: var(--cta-bg);
+  border-color: color-mix(in srgb, #ffffff 18%, var(--cta-bg));
+  --flair-bg: radial-gradient(circle at center, #c026d3 0%, #6d28d9 56%, #3b0764 100%);
+  --orbit-c1: #f9a8d4;
+  --orbit-c2: #ffffff;
 }
-.btn-primary::after,
-[data-theme="dark"] .btn-primary::after,
-.btn-ok::after,
-[data-theme="dark"] .btn-ok::after {
-  background: radial-gradient(
-    84px circle at var(--bx, 50%) var(--by, 50%),
-    rgba(255, 255, 255, 0.92),
-    rgba(255, 255, 255, 0.28) 52%,
-    transparent 100%
-  );
+
+/* HUB Signature Primary CTA: HUB Imperial Navy (#1F3368) -> Official HUB Crimson Burgundy (#A71B29) Aurora! */
+[data-palette="hub"] .btn-primary {
+  background: #1f3368;
+  border-color: #1f3368;
+  --flair-bg: radial-gradient(circle at center, #d42236 0%, #a71b29 55%, #78111c 100%);
+  --orbit-c1: #fbbf24;
+  --orbit-c2: #ffffff;
 }
+[data-theme="dark"][data-palette="hub"] .btn-primary {
+  background: #254085;
+  border-color: #3b5cb8;
+  --flair-bg: radial-gradient(circle at center, #e11d48 0%, #b91c2e 55%, #881322 100%);
+  --orbit-c1: #fbbf24;
+  --orbit-c2: #ffffff;
+}
+
+/* Lavender Milk Primary CTA: Violet -> Electric Rose-Indigo Nebula */
+[data-palette="lavender"] .btn-primary {
+  --flair-bg: radial-gradient(circle at center, #db2777 0%, #4338ca 56%, #1e1b4b 100%);
+  --orbit-c1: #f5d0fe;
+  --orbit-c2: #ffffff;
+}
+[data-theme="dark"][data-palette="lavender"] .btn-primary {
+  --flair-bg: radial-gradient(circle at center, #ec4899 0%, #4f46e5 56%, #312e81 100%);
+  --orbit-c1: #f5d0fe;
+  --orbit-c2: #ffffff;
+}
+
+/* Sapphire Classic Primary CTA: Cobalt -> Bioluminescent Teal-Midnight */
+[data-palette="sapphire"] .btn-primary {
+  --flair-bg: radial-gradient(circle at center, #0d9488 0%, #0f172a 60%, #090d16 100%);
+  --orbit-c1: #7dd3fc;
+  --orbit-c2: #ffffff;
+}
+[data-theme="dark"][data-palette="sapphire"] .btn-primary {
+  --flair-bg: radial-gradient(circle at center, #06b6d4 0%, #1e3a8a 56%, #0f172a 100%);
+  --orbit-c1: #67e8f9;
+  --orbit-c2: #ffffff;
+}
+
 .btn-primary:hover:not(:disabled),
 [data-theme="dark"] .btn-primary:hover:not(:disabled) {
-  background: var(--brand-grad-hover);
-  border-color: color-mix(in srgb, #ffffff 28%, var(--brand-hover));
   color: #ffffff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.48),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-    0 0 24px -4px var(--brand-glow),
-    0 6px 16px -4px var(--brand-glow);
+  border-color: transparent;
 }
 .btn-primary:hover:not(:disabled) > svg.ico,
 [data-theme="dark"] .btn-primary:hover:not(:disabled) > svg.ico { color: #ffffff; }
 
-/* HUB Signature Dual-Tone Velvet Horizon on Primary CTA */
-[data-palette="hub"] .btn-primary::before {
-  background: radial-gradient(
-    130% 115% at var(--bx, 50%) 115%,
-    rgba(235, 68, 90, 0.52) 0%,
-    rgba(251, 191, 36, 0.2) 48%,
-    transparent 85%
-  );
-}
-[data-palette="hub"] .btn-primary:hover:not(:disabled) {
-  border-color: #355299;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.44),
-    0 0 24px -5px rgba(31, 51, 104, 0.42),
-    0 6px 16px -4px rgba(167, 27, 41, 0.26);
-}
-[data-theme="dark"][data-palette="hub"] .btn-primary:hover:not(:disabled) {
-  border-color: #7aa2ff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    0 0 26px -4px rgba(91, 140, 255, 0.48),
-    0 6px 16px -4px rgba(240, 86, 104, 0.28);
-}
-
 /* Emerald Success CTA (.btn-ok) */
 .btn-ok,
 [data-theme="dark"] .btn-ok {
-  background: linear-gradient(180deg, #19a986 0%, #0f8b6d 100%);
-  border-color: color-mix(in srgb, #ffffff 16%, #109272);
+  background: #129676;
+  border-color: #129676;
   color: #ffffff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 2px 7px rgba(18, 150, 118, 0.28);
-}
-.btn-ok::before,
-[data-theme="dark"] .btn-ok::before {
-  background: radial-gradient(125% 110% at var(--bx, 50%) 115%, rgba(255, 255, 255, 0.34) 0%, rgba(110, 231, 183, 0.32) 48%, transparent 84%);
+  --flair-bg: radial-gradient(circle at center, #0d9488 0%, #065f46 58%, #064e3b 100%);
+  --orbit-c1: #a7f3d0;
+  --orbit-c2: #ffffff;
 }
 .btn-ok:hover:not(:disabled),
 [data-theme="dark"] .btn-ok:hover:not(:disabled) {
-  background: linear-gradient(180deg, #1cb892 0%, #119675 100%);
-  border-color: #34d399;
   color: #ffffff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.46),
-    0 0 22px -4px rgba(18, 150, 118, 0.42),
-    0 5px 14px -3px rgba(18, 150, 118, 0.28);
+  border-color: transparent;
 }
 .btn-ok:hover:not(:disabled) > svg.ico,
 [data-theme="dark"] .btn-ok:hover:not(:disabled) > svg.ico { color: #ffffff; }
 
-/* Ghost Translucent Capsule (.btn-ghost) — Crisp in Both Light & Dark */
+/* Ghost Button (.btn-ghost) — Soft Liquid Capsule + Laser Rim, Zero Shadow */
 .btn-ghost,
 [data-theme="dark"] .btn-ghost {
   background: transparent;
   border-color: transparent;
   color: var(--ink-3);
-  box-shadow: none !important;
+  --flair-bg: color-mix(in srgb, var(--brand) 13%, var(--bg-subtle));
 }
-.btn-ghost::before {
-  background: radial-gradient(115% 105% at var(--bx, 50%) 105%, color-mix(in srgb, var(--brand) 15%, transparent), transparent 82%);
-}
-[data-theme="dark"] .btn-ghost::before {
-  background: radial-gradient(120% 110% at var(--bx, 50%) 105%, color-mix(in srgb, var(--brand) 26%, rgba(255, 255, 255, 0.05)), transparent 84%);
+[data-theme="dark"] .btn-ghost {
+  --flair-bg: color-mix(in srgb, var(--brand) 24%, var(--surface-elevated));
 }
 .btn-ghost:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--brand) 6.5%, transparent);
+  background: transparent;
+  border-color: transparent;
   color: var(--brand-ink);
-  border-color: color-mix(in srgb, var(--brand) 20%, transparent);
-  box-shadow: none !important;
 }
 [data-theme="dark"] .btn-ghost:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--brand) 12%, rgba(255, 255, 255, 0.03));
+  background: transparent;
+  border-color: transparent;
   color: #ffffff;
-  border-color: color-mix(in srgb, var(--brand) 28%, transparent);
-  box-shadow: none !important;
 }
 
-/* Ruby Glass Danger Button (.btn-danger) — Tuned for Light & Dark */
+/* Danger Button (.btn-danger) — Ruby Liquid Sweep, Zero Shadow */
 .btn-danger,
 [data-theme="dark"] .btn-danger {
   color: var(--err);
   border-color: var(--err-border);
   background: var(--err-soft);
-  box-shadow: none;
+  --flair-bg: color-mix(in srgb, var(--err) 22%, var(--err-soft));
+  --orbit-c1: var(--err);
+  --orbit-c2: #fda4af;
 }
-.btn-danger::before,
-[data-theme="dark"] .btn-danger::before {
-  background: radial-gradient(125% 110% at var(--bx, 50%) 115%, color-mix(in srgb, var(--err) 26%, transparent), transparent 84%);
-}
-.btn-danger::after,
-[data-theme="dark"] .btn-danger::after {
-  background: radial-gradient(80px circle at var(--bx, 50%) var(--by, 50%), color-mix(in srgb, #ffffff 45%, var(--err)), var(--err) 52%, transparent 100%);
+[data-theme="dark"] .btn-danger {
+  --flair-bg: color-mix(in srgb, var(--err) 34%, var(--surface-elevated));
+  --orbit-c1: #fda4af;
+  --orbit-c2: var(--err);
 }
 .btn-danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--err) 11%, var(--surface));
-  border-color: color-mix(in srgb, var(--err) 65%, var(--err-border));
+  border-color: color-mix(in srgb, var(--err) 55%, var(--err-border));
   color: var(--err-ink);
-  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--err) 28%, transparent);
 }
 [data-theme="dark"] .btn-danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--err) 20%, var(--surface-elevated));
-  border-color: color-mix(in srgb, var(--err) 60%, transparent);
+  border-color: color-mix(in srgb, var(--err) 55%, transparent);
   color: #ffe4e6;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 0 20px -4px color-mix(in srgb, var(--err) 38%, transparent);
 }
 .btn-danger:hover:not(:disabled) > svg.ico,
 [data-theme="dark"] .btn-danger:hover:not(:disabled) > svg.ico { color: currentColor; }
@@ -1991,18 +1992,19 @@ mark.user-hl {
   justify-content: space-between;
   gap: 8px;
   cursor: pointer;
-  box-shadow: var(--shadow-xs);
+  box-shadow: none;
   user-select: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, transform 0.12s var(--ease-out);
+  transition: border-color 0.22s var(--ease-out), background-color 0.22s var(--ease-out), transform 0.12s var(--ease-out);
 }
 .csel-btn:hover {
-  border-color: var(--brand-border);
-  background: var(--bg-subtle);
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  box-shadow: none;
 }
 .csel-btn.open {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-soft);
-  background: var(--surface);
+  box-shadow: none;
+  background: var(--brand-soft);
 }
 .csel-btn:active { transform: scale(0.985); }
 .csel-lbl {
@@ -2258,6 +2260,7 @@ mark.user-hl {
 .ch-sec-dots { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
 .sec-mini {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   font-family: var(--mono);
   font-size: 0.69rem;
@@ -2268,10 +2271,13 @@ mark.user-hl {
   color: var(--ink-3);
   background: var(--bg-subtle);
   cursor: pointer;
-  transition: transform 0.12s var(--ease-out), border-color 0.36s var(--ease-out), color 0.32s ease, background-color 0.36s var(--ease-out), box-shadow 0.38s var(--ease-out);
+  --flair-bg: color-mix(in srgb, var(--brand) 20%, var(--brand-soft));
+  transition: transform 0.12s var(--ease-out), border-color 0.32s var(--ease-out), color 0.28s ease, background-color 0.32s var(--ease-out);
 }
-.sec-mini:hover { border-color: var(--brand); color: var(--brand-ink); background: var(--brand-soft); box-shadow: 0 0 12px -3px var(--brand-glow); }
-[data-theme="dark"] .sec-mini:hover { color: #ffffff; border-color: var(--brand); background: color-mix(in srgb, var(--brand) 24%, var(--surface-elevated)); }
+[data-theme="dark"] .sec-mini { --flair-bg: color-mix(in srgb, var(--brand) 34%, var(--surface-elevated)); }
+.sec-mini.is-hovered .btn-flair { transform: translate(-50%, -50%) scale(1); }
+.sec-mini:hover { border-color: var(--brand); color: var(--brand-ink); box-shadow: none; }
+[data-theme="dark"] .sec-mini:hover { color: #ffffff; border-color: var(--brand); box-shadow: none; }
 .sec-mini:active { transform: scale(0.95); }
 .sec-mini.done { background: var(--ok-soft); border-color: var(--ok-border); color: var(--ok-ink); }
 
@@ -2580,6 +2586,7 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
 .pager-nums { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 28px; flex-wrap: wrap; }
 .pg-btn {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   min-width: 33px;
   height: 33px;
@@ -2590,15 +2597,17 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
   color: var(--ink-2);
   font-family: var(--mono);
   font-size: 0.78rem;
-  box-shadow: var(--shadow-xs);
+  box-shadow: none;
   cursor: pointer;
-  transition: transform 0.12s var(--ease-out), background-color 0.38s var(--ease-out), border-color 0.38s var(--ease-out), color 0.32s ease, box-shadow 0.4s var(--ease-out);
+  --flair-bg: color-mix(in srgb, var(--brand) 16%, var(--brand-soft));
+  transition: transform 0.1s var(--ease-out), background-color 0.36s var(--ease-out), border-color 0.36s var(--ease-out), color 0.32s ease;
 }
-[data-theme="dark"] .pg-btn { background: var(--surface-elevated); border-color: color-mix(in srgb, #ffffff 10%, var(--border)); }
-.pg-btn:hover:not(:disabled) { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-ink); box-shadow: 0 0 14px -3px var(--brand-glow); }
-[data-theme="dark"] .pg-btn:hover:not(:disabled) { color: #ffffff; background: color-mix(in srgb, var(--brand) 22%, var(--surface-elevated)); }
+[data-theme="dark"] .pg-btn { background: var(--surface-elevated); border-color: color-mix(in srgb, #ffffff 10%, var(--border)); --flair-bg: color-mix(in srgb, var(--brand) 28%, var(--surface-elevated)); }
+.pg-btn.is-hovered:not(:disabled):not(.active) .btn-flair { transform: translate(-50%, -50%) scale(1); }
+.pg-btn:hover:not(:disabled):not(.active) { border-color: var(--brand); color: var(--brand-ink); box-shadow: none; }
+[data-theme="dark"] .pg-btn:hover:not(:disabled):not(.active) { color: #ffffff; border-color: var(--brand); box-shadow: none; }
 .pg-btn:active:not(:disabled) { transform: scale(0.95); }
-.pg-btn.active { background: var(--brand-grad); border-color: var(--brand); color: #ffffff; font-weight: 650; box-shadow: var(--shadow-cta); }
+.pg-btn.active { background: var(--brand); border-color: var(--brand); color: #ffffff; font-weight: 650; box-shadow: none; }
 .pg-btn:disabled { opacity: 0.38; cursor: not-allowed; box-shadow: none; }
 
 /* ================= ASSESSMENT, STRIKETHROUGH ELIMINATION & QUESTION ITEMS ================= */
@@ -2760,6 +2769,7 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
 .matrix-40 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5.5px; margin: 12px 0; }
 .m-cell {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   height: 32px;
   border-radius: var(--r-xs);
@@ -2773,10 +2783,13 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.12s var(--ease-out), border-color 0.36s var(--ease-out), background-color 0.36s var(--ease-out), color 0.32s ease, box-shadow 0.38s var(--ease-out);
+  --flair-bg: color-mix(in srgb, var(--brand) 20%, var(--brand-soft));
+  transition: transform 0.12s var(--ease-out), border-color 0.32s var(--ease-out), background-color 0.32s var(--ease-out), color 0.28s ease;
 }
-.m-cell:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 12px -3px var(--brand-glow); }
-[data-theme="dark"] .m-cell:hover { color: #ffffff; background: color-mix(in srgb, var(--brand) 22%, var(--surface-elevated)); }
+[data-theme="dark"] .m-cell { --flair-bg: color-mix(in srgb, var(--brand) 32%, var(--surface-elevated)); }
+.m-cell.is-hovered .btn-flair { transform: translate(-50%, -50%) scale(1); }
+.m-cell:hover { border-color: var(--brand); color: var(--brand-ink); box-shadow: none; }
+[data-theme="dark"] .m-cell:hover { color: #ffffff; box-shadow: none; }
 .m-cell:active { transform: scale(0.94); }
 .m-cell.cur { outline: 2px solid var(--brand); outline-offset: 1px; background: var(--surface); font-weight: 700; color: var(--brand); }
 .m-cell.ans { background: var(--brand-soft); border-color: var(--brand-border); color: var(--brand-ink); font-weight: 650; }
@@ -2938,8 +2951,8 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
 .lab-table th:first-child, .lab-table td:first-child { text-align: left; }
 .lab-table th { background: var(--bg-subtle); }
 .game-frame { background: #ffffff; color: #2a1823; border: 1px solid var(--border); border-radius: var(--r-md); padding: 22px; }
-.game-frame button { transition: transform 0.12s var(--ease-out), filter 0.35s ease, box-shadow 0.38s var(--ease-out); }
-.game-frame button:hover { filter: brightness(1.04); box-shadow: 0 4px 12px rgba(42, 24, 35, 0.1); }
+.game-frame button { box-shadow: none !important; transition: transform 0.12s var(--ease-out), filter 0.28s ease; }
+.game-frame button:hover { filter: brightness(1.06); box-shadow: none !important; }
 .game-frame button:active { transform: scale(0.97); }
 
 /* ================= REVERSIBLE ANIMATED MODALS, CMD PALETTE & SCROLL FAB ================= */
@@ -3029,18 +3042,18 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
   justify-content: center;
   cursor: pointer;
   z-index: 90;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   opacity: 0;
   transform: translateY(12px) scale(0.9);
   pointer-events: none;
-  transition: opacity 0.22s ease, transform 0.22s var(--ease-out), box-shadow 0.15s;
+  transition: opacity 0.22s ease, transform 0.22s var(--ease-out), background-color 0.24s ease, border-color 0.24s ease;
 }
 .scroll-fab.visible {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
 }
-.scroll-fab:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px) scale(1.05); }
+.scroll-fab:hover { background: var(--brand-soft); border-color: var(--brand); box-shadow: none; transform: translateY(0) scale(1.06); }
 .scroll-fab:active { transform: scale(0.93); }
 .scroll-fab svg.fab-ring { position: absolute; inset: -1px; width: 39px; height: 39px; transform: rotate(-90deg); pointer-events: none; }
 
