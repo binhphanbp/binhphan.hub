@@ -1,5 +1,9 @@
 <div align="center">
-  <img src="web-folder/img/hub-shield.svg" alt="HUB Official Emblem" width="68" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="web-folder/img/hub-shield-white.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="web-folder/img/hub-shield.svg" />
+    <img src="web-folder/img/hub-shield.svg" alt="HUB Official Emblem" width="68" />
+  </picture>
   <h1>BAF736 · Nghiệp vụ Ngân hàng Đầu tư</h1>
   <p><strong>Investment Banking Workspace · Trường Đại học Ngân hàng TP.HCM (HUB)</strong></p>
   <p>Khoa Tài chính · 3 Tín chỉ · Học liệu Song ngữ Anh – Việt · Hoạt động 100% Offline & GitHub Pages</p>

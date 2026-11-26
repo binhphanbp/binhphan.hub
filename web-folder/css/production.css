@@ -1018,16 +1018,18 @@ body.zen-mode .reader-grid { grid-template-columns: minmax(0, 760px); justify-co
 .hub-shield-svg .hub-navy { fill: #1f3368; transition: fill 0.25s ease; }
 .hub-shield-svg .hub-crimson { fill: #a71b29; transition: fill 0.25s ease; }
 [data-theme="dark"] .hub-shield-svg {
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.42));
 }
-[data-theme="dark"] .hub-shield-svg .hub-navy { fill: #eef3fc; }
-[data-theme="dark"] .hub-shield-svg .hub-crimson { fill: #f0485c; }
+[data-theme="dark"] .hub-shield-svg .hub-navy,
+[data-theme="dark"] .hub-shield-svg .hub-crimson {
+  fill: #ffffff;
+}
 .rail-head:hover .hub-shield-svg {
   transform: translateY(-1px) scale(1.08);
   filter: drop-shadow(0 5px 10px rgba(31, 51, 104, 0.24));
 }
 [data-theme="dark"] .rail-head:hover .hub-shield-svg {
-  filter: drop-shadow(0 5px 12px rgba(240, 72, 92, 0.32));
+  filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.22));
 }
 .brand-meta { min-width: 0; flex: 1; }
 .brand-name { font-size: 0.89rem; font-weight: 660; letter-spacing: -0.015em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
