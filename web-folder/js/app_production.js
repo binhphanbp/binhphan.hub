@@ -60,6 +60,9 @@
     highlight: svgWrap(`<path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>`, "ico-xs"),
     maximize: svgWrap(`<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>`),
     minimize: svgWrap(`<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>`),
+    filter: svgWrap(`<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>`, "ico-sm"),
+    download: svgWrap(`<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`, "ico-sm"),
+    toc: svgWrap(`<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`, "ico-sm"),
     checkXs: svgWrap(`<polyline points="20 6 9 17 4 12"/>`, "ico-xs"),
     xXs: svgWrap(`<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`, "ico-xs")
   };
@@ -399,18 +402,32 @@
     }).join("");
 
     const rect = btn.getBoundingClientRect();
-    portal.style.width = "max-content";
-    portal.style.minWidth = Math.round(rect.width) + "px";
-    portal.classList.add("open");
-    const pw = portal.offsetWidth || Math.max(rect.width, 220);
-    const left = Math.max(10, Math.min(window.innerWidth - pw - 12, rect.left));
-    portal.style.left = Math.round(left) + "px";
-    const mh = portal.offsetHeight || 220;
-    const spaceBelow = window.innerHeight - rect.bottom - 12;
-    if (spaceBelow < mh && rect.top > mh + 12) {
-      portal.style.top = Math.round(rect.top - mh - 6) + "px";
+    if (window.innerWidth <= 680) {
+      portal.style.width = "";
+      portal.style.minWidth = "0";
+      portal.classList.add("open");
+      const mh = portal.offsetHeight || 220;
+      const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+      const spaceBelow = vh - rect.bottom - 16;
+      if (spaceBelow < mh && rect.top > mh + 16) {
+        portal.style.top = Math.max(12, Math.round(rect.top - mh - 6)) + "px";
+      } else {
+        portal.style.top = Math.max(12, Math.min(vh - mh - 14, Math.round(rect.bottom + 6))) + "px";
+      }
     } else {
-      portal.style.top = Math.round(rect.bottom + 6) + "px";
+      portal.style.width = "max-content";
+      portal.style.minWidth = Math.round(rect.width) + "px";
+      portal.classList.add("open");
+      const pw = portal.offsetWidth || Math.max(rect.width, 220);
+      const left = Math.max(10, Math.min(window.innerWidth - pw - 12, rect.left));
+      portal.style.left = Math.round(left) + "px";
+      const mh = portal.offsetHeight || 220;
+      const spaceBelow = window.innerHeight - rect.bottom - 12;
+      if (spaceBelow < mh && rect.top > mh + 12) {
+        portal.style.top = Math.round(rect.top - mh - 6) + "px";
+      } else {
+        portal.style.top = Math.round(rect.bottom + 6) + "px";
+      }
     }
 
     const selOptEl = portal.querySelector(".csel-opt.selected");
@@ -759,14 +776,44 @@
     okBtn.onclick = () => { close(); if (opts.onConfirm) opts.onConfirm(); };
   }
 
+  let lbZoom = 1;
+  function applyLightboxZoom() {
+    const body = $("#lightboxBody");
+    const svgEl = body && body.querySelector("svg");
+    const lbl = $("#lbZoomReset");
+    if (lbl) lbl.textContent = Math.round(lbZoom * 100) + "%";
+    if (!svgEl) return;
+    if (lbZoom === 1) {
+      svgEl.style.cssText = "max-width:100%!important;width:100%;height:auto";
+    } else {
+      svgEl.style.cssText = `max-width:none!important;width:${Math.round(lbZoom * 100)}%;height:auto`;
+    }
+  }
+
   function openDiagramLightbox(title, svgHtml) {
     SFX.tap();
+    lbZoom = 1;
     const ov = $("#lightboxOverlay");
     $("#lightboxTitle").textContent = title || "";
     $("#lightboxBody").innerHTML = svgHtml || "";
+    applyLightboxZoom();
     ov.classList.remove("hidden");
     $("#lightboxClose").onclick = () => ov.classList.add("hidden");
+    if ($("#lbZoomIn")) $("#lbZoomIn").onclick = () => { SFX.tap(); lbZoom = Math.min(2.75, +(lbZoom + 0.35).toFixed(2)); applyLightboxZoom(); };
+    if ($("#lbZoomOut")) $("#lbZoomOut").onclick = () => { SFX.tap(); lbZoom = Math.max(0.75, +(lbZoom - 0.35).toFixed(2)); applyLightboxZoom(); };
+    if ($("#lbZoomReset")) $("#lbZoomReset").onclick = () => { SFX.tap(); lbZoom = 1; applyLightboxZoom(); };
     ov.onclick = (e) => { if (e.target === ov) ov.classList.add("hidden"); };
+  }
+
+  function wrapTablesForScroll(root) {
+    if (!root) return;
+    root.querySelectorAll("table").forEach((tbl) => {
+      if (tbl.parentElement && tbl.parentElement.classList.contains("tbl-scroll")) return;
+      const w = document.createElement("div");
+      w.className = "tbl-scroll";
+      tbl.parentNode.insertBefore(w, tbl);
+      w.appendChild(tbl);
+    });
   }
 
   /* ---------------- Theme, Pastel Palette (Circular View-Transition!), Zen & Scale ---------------- */
@@ -782,15 +829,27 @@
     { id: "sapphire", vi: "Xanh Ngọc Bích (Sapphire Classic)", en: "Sapphire Classic" }
   ];
 
+  const THEME_META_COLORS = {
+    light: { rose: "#fdf8fa", hub: "#f7f9fc", lavender: "#faf8fe", sapphire: "#f7f9fc" },
+    dark: { rose: "#191118", hub: "#0c1528", lavender: "#161224", sapphire: "#0c1221" }
+  };
+
   function applyThemeAndScale() {
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.setAttribute("data-palette", palette);
     document.documentElement.setAttribute("data-scale", scale);
     document.body.classList.toggle("zen-mode", zenMode);
+    const metaTc = $("#metaThemeColor");
+    if (metaTc) {
+      const grp = THEME_META_COLORS[theme] || THEME_META_COLORS.light;
+      metaTc.setAttribute("content", grp[palette] || grp.rose);
+    }
     const tb = $("#btnTheme");
     if (tb) tb.innerHTML = theme === "dark" ? I.sun : I.moon;
     const sb = $("#btnScale");
     if (sb) sb.textContent = "Aa " + scale.toUpperCase();
+    const sbMob = $("#btnScaleMob");
+    if (sbMob) sbMob.textContent = ui("Cỡ chữ: ", "Scale: ") + scale.toUpperCase();
     const zb = $("#btnZen");
     if (zb) {
       zb.innerHTML = zenMode ? I.minimize : I.maximize;
@@ -800,6 +859,11 @@
     if (snd) {
       snd.innerHTML = soundOn ? I.volume : I.volumeMute;
       snd.classList.toggle("btn-sound-on", soundOn);
+    }
+    const sndMob = $("#btnSoundMob");
+    if (sndMob) {
+      sndMob.innerHTML = soundOn ? I.volume : I.volumeMute;
+      sndMob.classList.toggle("btn-sound-on", soundOn);
     }
   }
 
@@ -961,7 +1025,7 @@
     if (popup) popup.classList.remove("show");
     Object.assign(state, { view }, extra || {});
     if (view === "chapter") state.expandedCh = state.ch;
-    document.body.classList.remove("mob-rail-open");
+    document.body.classList.remove("mob-rail-open", "mob-exam-sheet-open");
     stopTTS();
     render(true);
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -1269,11 +1333,13 @@
     if (state.view === "chapter") {
       const ch = CHAPTERS.find((c) => c.id === state.ch) || CHAPTERS[0];
       const sec = ch.sections[state.sec] || ch.sections[0];
-      el.innerHTML = `<span class="crumb-link" data-crumb-nav="home">${ui("Học phần", "Course")}</span> ${I.chevR} <span class="crumb-link" data-crumb-ch="${ch.id}">0${ch.id} · ${esc(Lp(ch, "title"))}</span> ${I.chevR} <b>${esc(sec.id)} ${esc(Lp(sec, "title"))}</b>`;
+      el.innerHTML = `<span class="crumb-parent"><span class="crumb-link" data-crumb-nav="home">${ui("Học phần", "Course")}</span> ${I.chevR} <span class="crumb-link" data-crumb-ch="${ch.id}">0${ch.id} · ${esc(Lp(ch, "title"))}</span> ${I.chevR} </span><b>${esc(sec.id)} ${esc(Lp(sec, "title"))}</b>`;
       el.querySelectorAll("[data-crumb-nav]").forEach((x) => (x.onclick = () => nav("home")));
       el.querySelectorAll("[data-crumb-ch]").forEach((x) => (x.onclick = () => nav("chapter", { ch: +x.dataset.crumbCh, sec: 0 })));
       return;
     }
+    const activeCaseObj = state.view === "caseRead" ? CASES.find((x) => x.id === state.caseId) : null;
+    const caseCrumbLbl = activeCaseObj ? (isEn() ? activeCaseObj.tieuDe.en : activeCaseObj.tieuDe.vi) : (state.caseId || "");
     const labels = {
       home: [ui("Không gian học", "Workspace"), ui("Tổng quan học phần", "Overview")],
       syllabus: [ui("Không gian học", "Workspace"), ui("Đề cương & Ma trận đề thi", "Syllabus & Blueprint")],
@@ -1283,13 +1349,13 @@
       essays: [ui("Ngân hàng đề", "Repository"), ui("204 Bài tự luận & Tính toán", "204 Essays & Problems")],
       revision: [ui("Ôn tập cốt lõi", "Revision"), ui("Flashcards · Đúng/Sai · Công thức", "Flashcards · Q&A · Formulas")],
       cases: [ui("Thực tiễn", "Practice"), ui("8 Hồ sơ thương vụ (Case Studies)", "Case Studies")],
-      caseRead: [ui("Hồ sơ thương vụ", "Case Studies"), state.caseId || "", "cases"],
+      caseRead: [ui("Hồ sơ thương vụ", "Case Studies"), caseCrumbLbl, "cases"],
       labs: [ui("Thực hành định lượng", "Quantitative"), ui("Mô hình định giá & Tình huống", "Valuation Models")],
       stats: [ui("Cá nhân", "Personal"), ui("Phân tích kết quả & Câu sai", "Analytics & Mistakes")]
     };
     const pair = labels[state.view] || ["BAF736", ""];
     const backView = pair[2] || (state.view !== "home" ? "home" : "");
-    el.innerHTML = `${backView ? `<span class="crumb-link" data-crumb-back="${backView}">${esc(pair[0])}</span>` : `<span>${esc(pair[0])}</span>`} ${I.chevR} <b>${esc(pair[1])}</b>`;
+    el.innerHTML = `<span class="crumb-parent">${backView ? `<span class="crumb-link" data-crumb-back="${backView}">${esc(pair[0])}</span>` : `<span>${esc(pair[0])}</span>`} ${I.chevR} </span><b>${esc(pair[1])}</b>`;
     el.querySelectorAll("[data-crumb-back]").forEach((x) => (x.onclick = () => nav(x.dataset.crumbBack)));
   }
 
@@ -1323,7 +1389,7 @@
             ${ui("Chương", "Chapter")} 0${next.ch.id} · ${esc(next.sec.id)} ${esc(Lp(next.sec, "title"))}
           </div>
           <p class="small muted" style="margin-bottom:16px">${esc(Lp(next.ch, "title"))} — ${ui("Đọc bài giảng, sơ đồ nghiệp vụ và phần đào sâu giáo trình.", "Read core concepts, deal diagrams, and textbook commentary.")}</p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="hero-cta-row" style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-primary" id="heroContinueBtn">${ui("Tiếp tục đọc mục này", "Continue Reading")} ${I.arrowR}</button>
             <button class="btn" id="heroExamBtn">${I.target} ${ui("Thi thử 40 câu chuẩn HUB", "40-Q Mock Final Exam")}</button>
             ${wrongCount ? `<button class="btn btn-danger" id="heroMistakeBtn">${ui(`Ôn lại ${wrongCount} câu sai`, `Review ${wrongCount} Mistakes`)}</button>` : ""}
@@ -1601,7 +1667,7 @@
         </div>
       </div>
 
-      <div class="stagger" style="--i:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-bottom:20px">
+      <div class="resp-grid-2 stagger" style="--i:1;margin-bottom:20px">
         <div class="panel panel-pad panel-hover">
           <div class="kicker">${ui("Đề thi kết thúc học phần (50%)", "Final Exam Structure (50%)")}</div>
           <h3 style="font-size:1rem;margin-bottom:10px">${ui("40 câu trắc nghiệm khách quan · 60 phút", "40 Multiple-Choice Questions · 60 Minutes")}</h3>
@@ -1656,6 +1722,7 @@
 
       <div class="prose stagger" style="--i:4">${bibHtml}</div>
     `;
+    wrapTablesForScroll(main);
   }
 
   /* ======================================================================
@@ -1759,6 +1826,30 @@
           </div>
           <h1 class="h1 stagger" style="--i:1;margin-bottom:14px">${esc(sec.id)} — ${L(sec, "title")}</h1>
 
+          <div class="mob-chapter-bar" id="mobChapterBar">
+            <div class="mob-sec-strip" id="mobSecStrip">
+              ${ch.sections.map((s, idx) => {
+                const rd = isSecRead(ch.id, s.id);
+                const act = idx === state.sec;
+                return `<button type="button" class="mob-sec-pill ${act ? "active" : (rd ? "done" : "")}" data-mob-rsec="${idx}">
+                  ${rd && !act ? I.checkXs : ""}<span>${esc(s.id)}</span>
+                </button>`;
+              }).join("")}
+            </div>
+            <div class="mob-ch-actions">
+              <button type="button" class="btn btn-sm" id="btnMobTocToggle">${I.toc} ${ui("Mục lục", "Outline")}</button>
+              <button type="button" class="btn btn-sm" id="btnListenSecMob">${I.volume} ${ui("Nghe", "Listen")}</button>
+              <button type="button" class="btn btn-sm ${readNow ? "btn-ok" : ""}" id="btnMarkSecMob"><span id="icMarkSecMob">${readNow ? I.checkDraw : I.check}</span> <span id="lblMarkSecMob">${readNow ? ui("Đã học", "Done") : ui("Đánh dấu", "Mark")}</span></button>
+              <button type="button" class="btn btn-sm" id="btnPracticeChMob">${I.target} ${ui(`Đề Ch.0${ch.id}`, `Ch.0${ch.id} Quiz`)}</button>
+              <button type="button" class="btn btn-sm" id="btnLabChMob">${I.sliders} ${ui("Mô hình", "Model")}</button>
+            </div>
+            <div class="acc-grid no-gap" id="mobTocAcc">
+              <div class="acc-inner">
+                <ul class="toc-list mob-toc-panel" id="mobOnPageToc" style="margin-bottom:0"></ul>
+              </div>
+            </div>
+          </div>
+
           <div class="uline-tabs" id="chTabBar">
             <button class="uline-tab ${state.chTab === "all" ? "active" : ""}" data-ctab="all">${ui("Đầy đủ", "Complete")}</button>
             <button class="uline-tab ${state.chTab === "core" ? "active" : ""}" data-ctab="core">${ui("Bài giảng cốt lõi", "Core Lecture")}</button>
@@ -1822,9 +1913,11 @@
       }
 
       activeHeadings = [...lb.querySelectorAll("h2, h3")];
+      wrapTablesForScroll(lb);
       const tocEl = $("#onPageToc");
+      const mobTocEl = $("#mobOnPageToc");
       if (activeHeadings.length) {
-        tocEl.innerHTML = `<span class="toc-ink" id="tocInk"></span>` + activeHeadings.map((hEl, idx) => {
+        const itemsHtml = activeHeadings.map((hEl, idx) => {
           if (!hEl.id) hEl.id = "hd-" + idx;
           const plain = hEl.textContent;
           const isSub = hEl.tagName === "H3";
@@ -1844,20 +1937,31 @@
           }
           return `<li><span class="toc-link ${idx === 0 ? "active" : ""} ${isSub ? "sub" : ""}" data-scroll-id="${hEl.id}">${esc(plain)}</span></li>`;
         }).join("");
-        tocEl.querySelectorAll("[data-scroll-id]").forEach((a) => {
-          a.onclick = () => {
-            SFX.tap();
-            const t = document.getElementById(a.dataset.scrollId);
-            if (t) {
-              t.scrollIntoView({ behavior: "smooth", block: "start" });
-              t.classList.remove("heading-flash");
-              void t.offsetWidth;
-              t.classList.add("heading-flash");
-            }
-          };
-        });
+        tocEl.innerHTML = `<span class="toc-ink" id="tocInk"></span>` + itemsHtml;
+        if (mobTocEl) mobTocEl.innerHTML = itemsHtml;
+        const bindTocJump = (container) => {
+          if (!container) return;
+          container.querySelectorAll("[data-scroll-id]").forEach((a) => {
+            a.onclick = () => {
+              SFX.tap();
+              const mAcc = $("#mobTocAcc");
+              if (mAcc) mAcc.classList.remove("is-open");
+              const t = document.getElementById(a.dataset.scrollId);
+              if (t) {
+                t.scrollIntoView({ behavior: "smooth", block: "start" });
+                t.classList.remove("heading-flash");
+                void t.offsetWidth;
+                t.classList.add("heading-flash");
+              }
+            };
+          });
+        };
+        bindTocJump(tocEl);
+        bindTocJump(mobTocEl);
       } else {
-        tocEl.innerHTML = `<span class="toc-ink" id="tocInk"></span><li><span class="toc-link active">${esc(sec.id)} ${esc(Lp(sec, "title"))}</span></li>`;
+        const single = `<li><span class="toc-link active">${esc(sec.id)} ${esc(Lp(sec, "title"))}</span></li>`;
+        tocEl.innerHTML = `<span class="toc-ink" id="tocInk"></span>` + single;
+        if (mobTocEl) mobTocEl.innerHTML = single;
       }
       syncTocInk(true);
 
@@ -1885,7 +1989,7 @@
             cb.innerHTML = `${I.copy} <span>${ui("Sao chép", "Copy")}</span>`;
           }, 1600);
         };
-        box.appendChild(cb);
+        box.insertBefore(cb, box.firstChild);
       });
 
       lb.querySelectorAll(".fig-card").forEach((card) => {
@@ -1915,19 +2019,24 @@
         SFX.tap();
         tabBar.querySelectorAll(".uline-tab").forEach((x) => x.classList.toggle("active", x === b));
         updateTabInk(tabBar);
+        if (b.scrollIntoView) b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
         mountLectureTab(b.dataset.ctab, true);
       };
     });
 
-    main.querySelectorAll("[data-rsec]").forEach((b) => (b.onclick = () => {
+    main.querySelectorAll("[data-rsec], [data-mob-rsec]").forEach((b) => (b.onclick = () => {
       SFX.tap();
-      state.sec = +b.dataset.rsec;
+      state.sec = +(b.dataset.rsec != null ? b.dataset.rsec : b.dataset.mobRsec);
       stopTTS();
       render(true);
       window.scrollTo({ top: 0 });
     }));
+    const actMobSec = main.querySelector(".mob-sec-pill.active");
+    if (actMobSec && actMobSec.scrollIntoView) {
+      requestAnimationFrame(() => actMobSec.scrollIntoView({ inline: "center", block: "nearest" }));
+    }
 
-    $("#btnListenSec").onclick = () => {
+    const triggerListen = () => {
       SFX.tap();
       if (tts.playing) { stopTTS(); return; }
       const lb = $("#lectureBody");
@@ -1936,19 +2045,33 @@
       lb.classList.remove("tts-an-trich");
       startTTS(`Ch.0${ch.id} · ${sec.id}`, txt);
     };
-    $("#btnMarkSec").onclick = function () {
+    const triggerMarkSec = (srcBtn) => {
       const nextState = !isSecRead(ch.id, sec.id);
-      if (nextState) { SFX.correct(1); spawnMicroBurst(this, "var(--ok)"); }
+      if (nextState) { SFX.correct(1); spawnMicroBurst(srcBtn, "var(--ok)"); }
       else SFX.tap();
       setSecRead(ch.id, sec.id, nextState);
-      this.classList.toggle("btn-ok", nextState);
-      $("#icMarkSec").innerHTML = nextState ? I.checkDraw : I.check;
-      $("#lblMarkSec").textContent = nextState ? ui("Đã đánh dấu hoàn thành", "Completed") : ui("Đánh dấu đã học", "Mark as completed");
+      if ($("#btnMarkSec")) $("#btnMarkSec").classList.toggle("btn-ok", nextState);
+      if ($("#icMarkSec")) $("#icMarkSec").innerHTML = nextState ? I.checkDraw : I.check;
+      if ($("#lblMarkSec")) $("#lblMarkSec").textContent = nextState ? ui("Đã đánh dấu hoàn thành", "Completed") : ui("Đánh dấu đã học", "Mark as completed");
+      if ($("#btnMarkSecMob")) $("#btnMarkSecMob").classList.toggle("btn-ok", nextState);
+      if ($("#icMarkSecMob")) $("#icMarkSecMob").innerHTML = nextState ? I.checkDraw : I.check;
+      if ($("#lblMarkSecMob")) $("#lblMarkSecMob").textContent = nextState ? ui("Đã học", "Done") : ui("Đánh dấu", "Mark");
       showToast(nextState ? ui(`Đã hoàn thành mục ${sec.id}`, `Marked ${sec.id} completed`) : ui(`Đã bỏ đánh dấu mục ${sec.id}`, `Unmarked ${sec.id}`));
       renderRail();
     };
+    $("#btnListenSec").onclick = triggerListen;
+    if ($("#btnListenSecMob")) $("#btnListenSecMob").onclick = triggerListen;
+    $("#btnMarkSec").onclick = function () { triggerMarkSec(this); };
+    if ($("#btnMarkSecMob")) $("#btnMarkSecMob").onclick = function () { triggerMarkSec(this); };
+    if ($("#btnMobTocToggle")) $("#btnMobTocToggle").onclick = () => {
+      SFX.tap();
+      const acc = $("#mobTocAcc");
+      if (acc) acc.classList.toggle("is-open");
+    };
     $("#btnPracticeCh").onclick = () => startQuickPractice(ch.id);
+    if ($("#btnPracticeChMob")) $("#btnPracticeChMob").onclick = () => startQuickPractice(ch.id);
     $("#btnLabCh").onclick = () => nav("labs", { labGroup: "ch", labKey: String(ch.id) });
+    if ($("#btnLabChMob")) $("#btnLabChMob").onclick = () => nav("labs", { labGroup: "ch", labKey: String(ch.id) });
     if ($("#btnDocPrev")) $("#btnDocPrev").onclick = () => nav("chapter", { ch: prevTarget.ch, sec: prevTarget.sec });
     if ($("#btnDocNext")) $("#btnDocNext").onclick = () => nav("chapter", { ch: nextTarget.ch, sec: nextTarget.sec });
     if ($("#btnDocFinish")) $("#btnDocFinish").onclick = () => nav("exam");
@@ -2055,7 +2178,7 @@
         <div>
           <div class="kicker">ASSESSMENT STUDIO</div>
           <h1 class="h1">${ui("Phòng thi thử & Luyện đề trắc nghiệm", "Mock Exam & Practice Studio")}</h1>
-          <p class="lead">${ui("Môi trường làm bài tập trung hỗ trợ bàn phím (A–D chọn đáp án, phím mũi tên chuyển câu, F gắn cờ xem lại, S lưu câu hỏi).", "Keyboard-driven testing workspace: A–D to answer, arrows to navigate, F to flag, S to bookmark.")}</p>
+          <p class="lead"><span class="desk-kbd-hint">${ui("Môi trường làm bài tập trung hỗ trợ bàn phím (A–D chọn đáp án, phím mũi tên chuyển câu, F gắn cờ xem lại, S lưu câu hỏi).", "Keyboard-driven testing workspace: A–D to answer, arrows to navigate, F to flag, S to bookmark.")}</span><span class="touch-swipe-hint">${ui("Làm bài tập trung với đồng hồ đếm ngược, gạch loại trừ phương án nhiễu (×), gắn cờ xem lại và bảng điều hướng 40 câu nhanh.", "Focused exam studio with live countdown, distractor elimination, question flagging, and 40-Q navigator sheet.")}</span></p>
         </div>
       </div>
 
@@ -2071,7 +2194,7 @@
           </div>
         </div>` : ""}
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:start">
+      <div class="resp-grid-cards" style="gap:20px;align-items:start">
         <div style="display:flex;flex-direction:column;gap:12px">
           <div class="panel panel-pad panel-hover spot-surface stagger" style="--i:1">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -2316,6 +2439,8 @@
     const ansCount = qz.answers.filter((a) => a !== null).length;
     const cntEl = $("#examAnsCount");
     if (cntEl) cntEl.textContent = `${ansCount}/${qz.qs.length}`;
+    const cntMobEl = $("#examAnsCountMob");
+    if (cntMobEl) cntMobEl.textContent = `${ansCount}/${qz.qs.length}`;
     const fillEl = $("#examProgressFill");
     if (fillEl) fillEl.style.width = `${Math.round((ansCount / qz.qs.length) * 100)}%`;
     const grid = $("#examMatrixGrid");
@@ -2444,33 +2569,35 @@
       }).join("");
 
       summaryHtml = `
-        <div class="panel panel-pad stagger" style="--i:0;margin-bottom:22px">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:18px">
-              <div class="score-gauge-wrap">
-                <svg viewBox="0 0 84 84">
-                  <circle cx="42" cy="42" r="${r}" fill="none" stroke="var(--bg-muted)" stroke-width="6.5"/>
-                  <circle id="scoreGaugeArc" cx="42" cy="42" r="${r}" fill="none" stroke="${pct >= 50 ? "var(--ok)" : "var(--err)"}" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${qz.justFinished ? circ.toFixed(1) : offset.toFixed(1)}" style="transition:stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1)"/>
-                </svg>
-                <div class="score-gauge-center">${pct}%</div>
+        <div class="panel panel-pad stagger" style="--i:0;margin-bottom:20px">
+          <div class="exam-sum-grid">
+            <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+              <div class="exam-sum-hero">
+                <div class="score-gauge-wrap">
+                  <svg viewBox="0 0 84 84">
+                    <circle cx="42" cy="42" r="${r}" fill="none" stroke="var(--bg-muted)" stroke-width="6.5"/>
+                    <circle id="scoreGaugeArc" cx="42" cy="42" r="${r}" fill="none" stroke="${pct >= 50 ? "var(--ok)" : "var(--err)"}" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${qz.justFinished ? circ.toFixed(1) : offset.toFixed(1)}" style="transition:stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1)"/>
+                  </svg>
+                  <div class="score-gauge-center">${pct}%</div>
+                </div>
+                <div style="min-width:0">
+                  <div class="kicker" style="color:${pct >= 50 ? "var(--ok)" : "var(--err)"}">${pct >= 50 ? ui("Kết quả hoàn thành", "Assessment Complete") : ui("Cần củng cố thêm", "Review Recommended")}</div>
+                  <div style="font-size:1.45rem;font-weight:700;letter-spacing:-0.03em;line-height:1.2" class="num">
+                    <span id="scoreCountUp">${pts}</span><span style="font-size:0.9rem;color:var(--ink-3);font-weight:500"> / 10 điểm</span>
+                  </div>
+                  <div class="small muted" style="margin-top:3px">${qz.score}/${qz.qs.length} ${ui("câu trả lời đúng", "correct answers")}</div>
+                </div>
               </div>
-              <div>
-                <div class="kicker" style="color:${pct >= 50 ? "var(--ok)" : "var(--err)"}">${pct >= 50 ? ui("Kết quả hoàn thành", "Assessment Complete") : ui("Cần củng cố thêm", "Review Recommended")}</div>
-                <div style="font-size:1.55rem;font-weight:700;letter-spacing:-0.03em" class="num">
-                  <span id="scoreCountUp">${pts}</span><span style="font-size:0.95rem;color:var(--ink-3);font-weight:500"> / 10 điểm</span>
-                  <span style="font-size:0.95rem;color:var(--ink-3);font-weight:450;margin-left:8px">(${qz.score}/${qz.qs.length} câu đúng)</span>
-                </div>
-                <div class="seg" id="examRevSeg" style="margin-top:10px;flex-wrap:wrap">
-                  <button type="button" class="${qz.reviewFilter === "all" ? "active" : ""}" data-rvf="all">${ui("Tất cả", "All")} (${qz.qs.length})</button>
-                  <button type="button" class="${qz.reviewFilter === "wrong" ? "active" : ""}" data-rvf="wrong">${ui("Câu sai / Bỏ trống", "Missed")} (${qz.qs.filter((q, i) => qz.answers[i] !== q.ans).length})</button>
-                  <button type="button" class="${qz.reviewFilter === "flagged" ? "active" : ""}" data-rvf="flagged">${ui("Câu gắn cờ", "Flagged")} (${Object.keys(qz.flagged).length})</button>
-                </div>
+              <div class="seg exam-rev-seg" id="examRevSeg">
+                <button type="button" class="${qz.reviewFilter === "all" ? "active" : ""}" data-rvf="all">${ui("Tất cả", "All")} (${qz.qs.length})</button>
+                <button type="button" class="${qz.reviewFilter === "wrong" ? "active" : ""}" data-rvf="wrong">${ui("Sai / Trống", "Missed")} (${qz.qs.filter((q, i) => qz.answers[i] !== q.ans).length})</button>
+                <button type="button" class="${qz.reviewFilter === "flagged" ? "active" : ""}" data-rvf="flagged">${ui("Gắn cờ", "Flagged")} (${Object.keys(qz.flagged).length})</button>
               </div>
             </div>
-            <div style="min-width:230px;flex:1;max-width:340px;display:flex;flex-direction:column;gap:5px">
+            <div style="min-width:220px;flex:1;max-width:360px;display:flex;flex-direction:column;gap:5px">
               ${chBreakdown}
             </div>
-            <div style="display:flex;gap:8px">
+            <div class="exam-sum-actions">
               <button class="btn btn-primary" id="btnExamAgain">${I.rotate} ${ui("Tạo đề khác", "New Session")}</button>
               <button class="btn" id="btnExamStats">${I.chart} ${ui("Phân tích", "Analytics")}</button>
             </div>
@@ -2489,9 +2616,9 @@
       }
       if (qz.singleMode) {
         return `<div class="stagger" style="--i:0">${buildExamQCardHTML(qz, qz.cur)}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px;flex-wrap:wrap">
+          <div class="exam-nav-row" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px;flex-wrap:wrap">
             <button class="btn" id="btnPrevQ" ${qz.cur === 0 ? "disabled" : ""}>${I.arrowL} ${ui("Câu trước", "Previous")}</button>
-            <div class="small muted" style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+            <div class="small muted desk-kbd-hint" style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
               <span class="kbd" data-kbd="a">A</span><span class="kbd" data-kbd="b">B</span><span class="kbd" data-kbd="c">C</span><span class="kbd" data-kbd="d">D</span> ${ui("Chọn", "Pick")} ·
               <span class="kbd" data-kbd="left">←</span><span class="kbd" data-kbd="right">→</span> ${ui("Chuyển", "Move")} ·
               <span class="kbd" data-kbd="f">F</span> ${ui("Cờ", "Flag")} · <span class="kbd" data-kbd="s">S</span> ${ui("Lưu", "Save")}
@@ -2506,9 +2633,27 @@
 
     main.innerHTML = `
       ${summaryHtml}
+      <div class="mob-exam-bar">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+          ${qz.timeLimit && !qz.done ? `<span class="mob-exam-clock" id="examClockMob">--:--</span>` : ""}
+          ${qz.done
+            ? `<span class="mono small" style="font-weight:650">${ui("Đúng", "Score")} ${qz.score}/${qz.qs.length}</span>`
+            : `<span class="mono small" style="font-weight:650" id="examAnsCountMob">${answeredCount}/${qz.qs.length}</span>`}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button type="button" class="btn btn-sm" id="btnMobMatrixTog">${I.grid} ${ui("Bảng câu", "Grid")}</button>
+          ${!qz.done
+            ? `<button type="button" class="btn btn-sm btn-primary" id="btnMobSubmit">${I.check} ${ui("Nộp bài", "Submit")}</button>`
+            : `<button type="button" class="btn btn-sm btn-primary" id="btnMobNewExam">${I.rotate} ${ui("Đề mới", "New")}</button>`}
+        </div>
+      </div>
       <div class="exam-grid">
         <div style="min-width:0" id="examQuestionsCol">${renderExamLeftHtml()}</div>
         <aside class="exam-rail">
+          <div class="mob-only-btn" style="width:100%;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <b style="font-size:0.9rem">${ui("Bảng điều hướng câu hỏi", "Question Navigator")}</b>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnCloseExamSheet">${I.x} ${ui("Đóng", "Close")}</button>
+          </div>
           ${qz.timeLimit && !qz.done ? `<div class="clock-display" id="examClock">--:--</div>` : ""}
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;margin-bottom:6px">
             <b style="color:var(--ink)">${esc(qz.scope)}</b>
@@ -2574,10 +2719,12 @@
     if (qz.timeLimit && !qz.done) {
       const tick = () => {
         const el = $("#examClock");
-        if (!el) { clearInterval(examTimer); return; }
+        const elMob = $("#examClockMob");
+        if (!el && !elMob) { clearInterval(examTimer); return; }
         const rem = Math.max(0, Math.round((qz.startTime + qz.timeLimit * 1000 - Date.now()) / 1000));
-        el.textContent = String(Math.floor(rem / 60)).padStart(2, "0") + ":" + String(rem % 60).padStart(2, "0");
-        el.classList.toggle("urgent", rem < 300);
+        const str = String(Math.floor(rem / 60)).padStart(2, "0") + ":" + String(rem % 60).padStart(2, "0");
+        if (el) { el.textContent = str; el.classList.toggle("urgent", rem < 300); }
+        if (elMob) { elMob.textContent = str; elMob.classList.toggle("urgent", rem < 300); }
         if (rem <= 0) finalizeQuiz();
       };
       clearInterval(examTimer);
@@ -2587,17 +2734,30 @@
 
     main.querySelectorAll("[data-jump]").forEach((b) => (b.onclick = () => {
       SFX.tap();
+      document.body.classList.remove("mob-exam-sheet-open");
       const idx = +b.dataset.jump;
       qz.cur = idx;
       if (!qz.done && qz.singleMode) {
         $("#examQuestionsCol").innerHTML = renderExamLeftHtml();
         bindExamLeft();
         updateExamPaletteDOM(qz);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         const t = document.getElementById("exq-" + idx);
         if (t) t.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }));
+
+    if ($("#btnMobMatrixTog")) $("#btnMobMatrixTog").onclick = () => {
+      SFX.tap();
+      document.body.classList.toggle("mob-exam-sheet-open");
+      setTimeout(() => updateSegThumb($("#examViewSeg")), 30);
+    };
+    if ($("#btnCloseExamSheet")) $("#btnCloseExamSheet").onclick = () => {
+      SFX.tap();
+      document.body.classList.remove("mob-exam-sheet-open");
+    };
+    if ($("#btnMobSubmit")) $("#btnMobSubmit").onclick = requestSubmitQuiz;
 
     const vSeg = $("#examViewSeg");
     if (vSeg) {
@@ -2627,6 +2787,7 @@
     if ($("#btnSubmitQuiz")) $("#btnSubmitQuiz").onclick = requestSubmitQuiz;
     if ($("#btnPauseQuiz")) $("#btnPauseQuiz").onclick = () => nav("exam");
     if ($("#btnExamAgain")) $("#btnExamAgain").onclick = () => { state.quiz = null; nav("exam"); };
+    if ($("#btnMobNewExam")) $("#btnMobNewExam").onclick = () => { state.quiz = null; nav("exam"); };
     if ($("#btnRailNew")) $("#btnRailNew").onclick = () => { state.quiz = null; nav("exam"); };
     if ($("#btnExamStats")) $("#btnExamStats").onclick = () => nav("stats");
   }
@@ -2882,22 +3043,27 @@
       </div>
 
       <div class="toolbar-sticky">
-        <select class="sel" id="bkCh">
-          <option value="0">${ui("Mọi chương", "All Chapters")} (${MCQS.length})</option>
-          ${CHAPTERS.map((c) => `<option value="${c.id}" ${state.bankCh === c.id ? "selected" : ""}>Ch.0${c.id} · ${esc(Lp(c, "title"))} (${MCQS.filter((q) => q.ch === c.id).length})</option>`).join("")}
-        </select>
-        <select class="sel" id="bkLv">
-          <option value="0">${ui("Mọi cấp độ", "All Levels")}</option>
-          ${[1, 2, 3, 4].map((l) => `<option value="${l}" ${state.bankLv === l ? "selected" : ""}>${LV[l]} (${MCQS.filter((q) => q.level === l).length})</option>`).join("")}
-        </select>
-        <div class="seg" id="bkFilterSeg">
-          <button type="button" data-bkf="all" class="${state.bankFilter === "all" ? "active" : ""}">${ui("Tất cả", "All")}</button>
-          <button type="button" data-bkf="star" class="${state.bankFilter === "star" ? "active" : ""}">${ui("Đã lưu", "Saved")} (<span id="bkStarCnt">${Object.keys(stars).length}</span>)</button>
-          <button type="button" data-bkf="wrong" class="${state.bankFilter === "wrong" ? "active" : ""}">${ui("Cần ôn lại", "Missed")} (<span id="bkWrongCnt">${Object.keys(wrongs).length}</span>)</button>
+        <div class="toolbar-mob-row">
+          <div class="search-field">
+            ${I.search}
+            <input class="inp" id="bkSearch" type="search" placeholder="${ui("Tìm theo mã câu, nội dung, khái niệm...", "Filter by keyword or ID...")}" value="${esc(state.bankSearch)}">
+          </div>
+          <button type="button" class="btn btn-sm mob-only-btn" id="bkMobFilterBtn">${I.filter} <span>${ui("Bộ lọc", "Filters")}</span></button>
         </div>
-        <div class="search-field">
-          ${I.search}
-          <input class="inp" id="bkSearch" type="search" placeholder="${ui("Tìm theo mã câu, nội dung, khái niệm...", "Filter by keyword or ID...")}" value="${esc(state.bankSearch)}">
+        <div class="toolbar-filters" id="bkFilterDrawer">
+          <select class="sel" id="bkCh">
+            <option value="0">${ui("Mọi chương", "All Chapters")} (${MCQS.length})</option>
+            ${CHAPTERS.map((c) => `<option value="${c.id}" ${state.bankCh === c.id ? "selected" : ""}>Ch.0${c.id} · ${esc(Lp(c, "title"))} (${MCQS.filter((q) => q.ch === c.id).length})</option>`).join("")}
+          </select>
+          <select class="sel" id="bkLv">
+            <option value="0">${ui("Mọi cấp độ", "All Levels")}</option>
+            ${[1, 2, 3, 4].map((l) => `<option value="${l}" ${state.bankLv === l ? "selected" : ""}>${LV[l]} (${MCQS.filter((q) => q.level === l).length})</option>`).join("")}
+          </select>
+          <div class="seg" id="bkFilterSeg">
+            <button type="button" data-bkf="all" class="${state.bankFilter === "all" ? "active" : ""}">${ui("Tất cả", "All")}</button>
+            <button type="button" data-bkf="star" class="${state.bankFilter === "star" ? "active" : ""}">${ui("Đã lưu", "Saved")} (<span id="bkStarCnt">${Object.keys(stars).length}</span>)</button>
+            <button type="button" data-bkf="wrong" class="${state.bankFilter === "wrong" ? "active" : ""}">${ui("Cần ôn", "Missed")} (<span id="bkWrongCnt">${Object.keys(wrongs).length}</span>)</button>
+          </div>
         </div>
       </div>
 
@@ -2916,6 +3082,23 @@
     updateBankLiveStats();
     syncSlidingControls(main);
 
+    const syncBkFilterBadge = () => {
+      const fb = $("#bkMobFilterBtn");
+      if (!fb) return;
+      const n = (state.bankCh ? 1 : 0) + (state.bankLv ? 1 : 0) + (state.bankFilter !== "all" ? 1 : 0);
+      fb.classList.toggle("btn-primary", n > 0);
+      fb.innerHTML = `${I.filter} <span>${ui("Lọc", "Filters")}${n ? ` (${n})` : ""}</span>`;
+    };
+    syncBkFilterBadge();
+    if ($("#bkMobFilterBtn")) $("#bkMobFilterBtn").onclick = () => {
+      SFX.tap();
+      const drw = $("#bkFilterDrawer");
+      if (drw) {
+        drw.classList.toggle("is-open");
+        requestAnimationFrame(() => updateSegThumb($("#bkFilterSeg")));
+      }
+    };
+
     const mSeg = $("#bkModeSeg"), fSeg = $("#bkFilterSeg");
     mSeg.querySelectorAll("button").forEach((b) => (b.onclick = () => {
       SFX.tap();
@@ -2924,14 +3107,15 @@
       updateSegThumb(mSeg);
       renderBankListOnly();
     }));
-    $("#bkCh").onchange = (e) => { SFX.tap(); state.bankCh = +e.target.value; state.bankPage = 0; renderBankListOnly(); };
-    $("#bkLv").onchange = (e) => { SFX.tap(); state.bankLv = +e.target.value; state.bankPage = 0; renderBankListOnly(); };
+    $("#bkCh").onchange = (e) => { SFX.tap(); state.bankCh = +e.target.value; state.bankPage = 0; syncBkFilterBadge(); renderBankListOnly(); };
+    $("#bkLv").onchange = (e) => { SFX.tap(); state.bankLv = +e.target.value; state.bankPage = 0; syncBkFilterBadge(); renderBankListOnly(); };
     fSeg.querySelectorAll("button").forEach((b) => (b.onclick = () => {
       SFX.tap();
       state.bankFilter = b.dataset.bkf;
       state.bankPage = 0;
       fSeg.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
       updateSegThumb(fSeg);
+      syncBkFilterBadge();
       renderBankListOnly();
     }));
 
@@ -3055,23 +3239,28 @@
       </div>
 
       <div class="toolbar-sticky">
-        <select class="sel" id="esCh">
-          <option value="0">${ui("Mọi chương", "All Chapters")} (${ESSAYS.length})</option>
-          ${CHAPTERS.map((c) => `<option value="${c.id}" ${state.essayCh === c.id ? "selected" : ""}>Ch.0${c.id} · ${esc(Lp(c, "title"))} (${ESSAYS.filter((x) => x.ch === c.id).length})</option>`).join("")}
-        </select>
-        <select class="sel" id="esType">
-          <option value="">${ui("Mọi dạng bài", "All Formats")}</option>
-          ${Object.entries(T_LBL).map(([k, v]) => `<option value="${k}" ${state.essayType === k ? "selected" : ""}>${v} (${ESSAYS.filter((x) => x.type === k).length})</option>`).join("")}
-        </select>
-        <select class="sel" id="esExam">
-          <option value="">${ui("Giữa kỳ & Cuối kỳ", "All Assessments")}</option>
-          <option value="midterm" ${state.essayExam === "midterm" ? "selected" : ""}>${ui("Giữa kỳ", "Midterm")}</option>
-          <option value="final" ${state.essayExam === "final" ? "selected" : ""}>${ui("Cuối kỳ", "Final")}</option>
-        </select>
-        <button class="btn btn-sm ${state.essayStarOnly ? "btn-primary" : ""}" id="esStarOnly">${I.bookmark} ${ui("Đã lưu", "Saved")} (<span id="esStarCnt">${Object.keys(stars).length}</span>)</button>
-        <div class="search-field">
-          ${I.search}
-          <input class="inp" id="esSearch" type="search" placeholder="${ui("Tìm đề bài, công thức, lời giải...", "Filter problems...")}" value="${esc(state.essaySearch)}">
+        <div class="toolbar-mob-row">
+          <div class="search-field">
+            ${I.search}
+            <input class="inp" id="esSearch" type="search" placeholder="${ui("Tìm đề bài, công thức, lời giải...", "Filter problems...")}" value="${esc(state.essaySearch)}">
+          </div>
+          <button type="button" class="btn btn-sm mob-only-btn" id="esMobFilterBtn">${I.filter} <span>${ui("Lọc", "Filters")}</span></button>
+        </div>
+        <div class="toolbar-filters" id="esFilterDrawer">
+          <select class="sel" id="esCh">
+            <option value="0">${ui("Mọi chương", "All Chapters")} (${ESSAYS.length})</option>
+            ${CHAPTERS.map((c) => `<option value="${c.id}" ${state.essayCh === c.id ? "selected" : ""}>Ch.0${c.id} · ${esc(Lp(c, "title"))} (${ESSAYS.filter((x) => x.ch === c.id).length})</option>`).join("")}
+          </select>
+          <select class="sel" id="esType">
+            <option value="">${ui("Mọi dạng bài", "All Formats")}</option>
+            ${Object.entries(T_LBL).map(([k, v]) => `<option value="${k}" ${state.essayType === k ? "selected" : ""}>${v} (${ESSAYS.filter((x) => x.type === k).length})</option>`).join("")}
+          </select>
+          <select class="sel" id="esExam">
+            <option value="">${ui("Giữa kỳ & Cuối kỳ", "All Assessments")}</option>
+            <option value="midterm" ${state.essayExam === "midterm" ? "selected" : ""}>${ui("Giữa kỳ", "Midterm")}</option>
+            <option value="final" ${state.essayExam === "final" ? "selected" : ""}>${ui("Cuối kỳ", "Final")}</option>
+          </select>
+          <button class="btn btn-sm ${state.essayStarOnly ? "btn-primary" : ""}" id="esStarOnly">${I.bookmark} ${ui("Đã lưu", "Saved")} (<span id="esStarCnt">${Object.keys(stars).length}</span>)</button>
         </div>
       </div>
 
@@ -3103,13 +3292,28 @@
 
     renderEssayListOnly();
 
-    $("#esCh").onchange = (e) => { SFX.tap(); state.essayCh = +e.target.value; renderEssayListOnly(); };
-    $("#esType").onchange = (e) => { SFX.tap(); state.essayType = e.target.value; renderEssayListOnly(); };
-    $("#esExam").onchange = (e) => { SFX.tap(); state.essayExam = e.target.value; renderEssayListOnly(); };
+    const syncEsFilterBadge = () => {
+      const fb = $("#esMobFilterBtn");
+      if (!fb) return;
+      const n = (state.essayCh ? 1 : 0) + (state.essayType ? 1 : 0) + (state.essayExam ? 1 : 0) + (state.essayStarOnly ? 1 : 0);
+      fb.classList.toggle("btn-primary", n > 0);
+      fb.innerHTML = `${I.filter} <span>${ui("Lọc", "Filters")}${n ? ` (${n})` : ""}</span>`;
+    };
+    syncEsFilterBadge();
+    if ($("#esMobFilterBtn")) $("#esMobFilterBtn").onclick = () => {
+      SFX.tap();
+      const drw = $("#esFilterDrawer");
+      if (drw) drw.classList.toggle("is-open");
+    };
+
+    $("#esCh").onchange = (e) => { SFX.tap(); state.essayCh = +e.target.value; syncEsFilterBadge(); renderEssayListOnly(); };
+    $("#esType").onchange = (e) => { SFX.tap(); state.essayType = e.target.value; syncEsFilterBadge(); renderEssayListOnly(); };
+    $("#esExam").onchange = (e) => { SFX.tap(); state.essayExam = e.target.value; syncEsFilterBadge(); renderEssayListOnly(); };
     $("#esStarOnly").onclick = function () {
       SFX.tap();
       state.essayStarOnly = !state.essayStarOnly;
       this.classList.toggle("btn-primary", state.essayStarOnly);
+      syncEsFilterBadge();
       renderEssayListOnly();
     };
     $("#btnExpandEssays").onclick = function () {
@@ -3262,16 +3466,18 @@
 
           stg.innerHTML = state.fcTable ? `
             <div class="panel stagger" style="--i:0;overflow:hidden">
-              <table class="tbl" style="margin:0;border:0">
-                <tr><th style="width:70px">Ch.</th><th style="width:240px">${ui("Thuật ngữ", "Term")}</th><th>${ui("Định nghĩa", "Definition")}</th><th style="width:105px"></th></tr>
-                ${deck.map((c) => `
-                  <tr>
-                    <td class="mono">0${c.ch}</td>
-                    <td><b>${L(c, "front")}</b></td>
-                    <td>${L(c, "back")}</td>
-                    <td><button class="btn btn-sm ${kn[c._i] ? "btn-ok" : ""}" data-fck="${c._i}">${kn[c._i] ? ui("Đã thuộc", "Known") : ui("Đánh dấu", "Mark")}</button></td>
-                  </tr>`).join("")}
-              </table>
+              <div class="tbl-scroll">
+                <table class="tbl" style="margin:0;border:0">
+                  <tr><th style="width:60px">Ch.</th><th style="width:200px">${ui("Thuật ngữ", "Term")}</th><th>${ui("Định nghĩa", "Definition")}</th><th style="width:100px"></th></tr>
+                  ${deck.map((c) => `
+                    <tr>
+                      <td class="mono">0${c.ch}</td>
+                      <td><b>${L(c, "front")}</b></td>
+                      <td>${L(c, "back")}</td>
+                      <td><button class="btn btn-sm ${kn[c._i] ? "btn-ok" : ""}" data-fck="${c._i}">${kn[c._i] ? ui("Đã thuộc", "Known") : ui("Đánh dấu", "Mark")}</button></td>
+                    </tr>`).join("")}
+                </table>
+              </div>
             </div>
           ` : (cur ? `
             <div class="fc-deck-wrap">
@@ -3284,19 +3490,21 @@
                         <span class="mono small muted">${state.fcIdx + 1} / ${deck.length}</span>
                       </div>
                       <div class="fc-main-txt">${L(cur, "front")}</div>
-                      <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:var(--ink-3)">
-                        <span><span class="kbd" data-kbd="space">Space</span> ${ui("Lật", "Flip")} · <span class="kbd" data-kbd="left">←</span><span class="kbd" data-kbd="right">→</span> ${ui("Chuyển", "Move")} · <span class="kbd" data-kbd="enter">Enter</span> ${ui("Thuộc", "Master")}</span>
+                      <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:var(--ink-3);gap:8px">
+                        <span class="desk-kbd-hint"><span class="kbd" data-kbd="space">Space</span> ${ui("Lật", "Flip")} · <span class="kbd" data-kbd="left">←</span><span class="kbd" data-kbd="right">→</span> ${ui("Chuyển", "Move")} · <span class="kbd" data-kbd="enter">Enter</span> ${ui("Thuộc", "Master")}</span>
+                        <span class="touch-swipe-hint">${ui("Chạm thẻ để lật · Vuốt ngang chuyển thẻ", "Tap to flip · Swipe to navigate")}</span>
                         <span>${kn[cur._i] ? `<span class="tag tag-ok">${ui("Đã thuộc", "Mastered")}</span>` : ""}</span>
                       </div>
                     </div>
                     <div class="fc-3d-face fc-3d-back spot-surface">
-                      <div style="display:flex;justify-content:space-between;align-items:center">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
                         <span class="tag tag-accent">Ch.0${cur.ch} · ${ui("Định nghĩa chuẩn", "Definition")}</span>
-                        <span class="mono small muted">${esc(Lp(cur, "front"))}</span>
+                        <span class="mono small muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(Lp(cur, "front"))}</span>
                       </div>
-                      <div class="fc-main-txt" style="font-size:1.03rem;font-weight:480;text-align:left;line-height:1.7">${L(cur, "back")}</div>
-                      <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:var(--ink-3)">
-                        <span><span class="kbd" data-kbd="space">Space</span> ${ui("Lật lại mặt trước", "Flip back")}</span>
+                      <div class="fc-main-txt" style="font-size:1.01rem;font-weight:480;text-align:left;line-height:1.68">${L(cur, "back")}</div>
+                      <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:var(--ink-3);gap:8px">
+                        <span class="desk-kbd-hint"><span class="kbd" data-kbd="space">Space</span> ${ui("Lật lại mặt trước", "Flip back")}</span>
+                        <span class="touch-swipe-hint">${ui("Chạm thẻ để lật lại", "Tap to flip back")}</span>
                         <span>${kn[cur._i] ? `<span class="tag tag-ok">${ui("Đã thuộc", "Mastered")}</span>` : ""}</span>
                       </div>
                     </div>
@@ -3306,10 +3514,10 @@
 
               <div class="meter-track" style="margin:14px 0"><div class="meter-fill ok" style="width:${Math.round(((state.fcIdx + 1) / deck.length) * 100)}%"></div></div>
 
-              <div style="display:flex;justify-content:center;gap:8px">
+              <div class="fc-ctrl-row" style="display:flex;justify-content:center;gap:8px">
                 <button class="btn" id="fcPrev">${I.arrowL} ${ui("Trước", "Prev")}</button>
-                <button class="btn ${kn[cur._i] ? "btn-ok" : ""}" id="fcToggleKnown">${I.check} ${kn[cur._i] ? ui("Đã thuộc thuật ngữ", "Mastered") : ui("Đánh dấu đã thuộc", "Mark Mastered")}</button>
-                <button class="btn btn-primary" id="fcNext">${ui("Tiếp theo", "Next")} ${I.arrowR}</button>
+                <button class="btn ${kn[cur._i] ? "btn-ok" : ""}" id="fcToggleKnown">${I.check} ${kn[cur._i] ? ui("Đã thuộc", "Mastered") : ui("Đánh dấu thuộc", "Mark Known")}</button>
+                <button class="btn btn-primary" id="fcNext">${ui("Tiếp", "Next")} ${I.arrowR}</button>
               </div>
             </div>
           ` : `<div class="panel panel-pad muted" style="text-align:center;padding:40px">${ui("Tuyệt vời! Không còn thẻ nào chưa thuộc trong nhóm này.", "All cards in this filter are mastered!")}</div>`);
@@ -3444,7 +3652,7 @@
         enhanceSelects(zone);
         zone.querySelectorAll("[data-qacard]").forEach(wireQaCard);
       } else {
-        zone.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+        zone.innerHTML = `<div class="resp-grid-2">
           ${CHAPTERS.map((c, idx) => {
             const f = (lg) => (lg === "vi" && FORMULAS_VI[c.id]) || FORMULAS[c.id] || "—";
             return `
@@ -3468,6 +3676,7 @@
       state.revTab = b.dataset.rv;
       revBar.querySelectorAll(".uline-tab").forEach((x) => x.classList.toggle("active", x === b));
       updateTabInk(revBar);
+      if (b.scrollIntoView) b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
       renderRevBody();
     }));
   }
@@ -3515,13 +3724,13 @@
           <h1 class="h1">${ui("Thư viện Hồ sơ thương vụ chuyên sâu", "Transaction Case Study Library")}</h1>
           <p class="lead">${ui("Các thương vụ IPO, M&A, LBO và tái cấu trúc kinh điển dựng từ cáo bạch và báo cáo gốc. Phần bình luận của giảng viên mở bằng mã cấp tại lớp.", "In-depth transaction dossiers built from regulatory filings, prospectuses, and textbooks.")}</p>
         </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input class="inp mono" id="inpMasterCode" placeholder="${ui("Mã lớp XXXX-XXXX-XX", "Access code")}" style="text-transform:uppercase;width:185px">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <input class="inp mono" id="inpMasterCode" placeholder="${ui("Mã lớp XXXX-XXXX-XX", "Access code")}" style="text-transform:uppercase;flex:1 1 165px;min-width:0">
           <button class="btn" id="btnMasterUnlock">${I.unlock} ${ui("Mở khoá", "Unlock")}</button>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+      <div class="resp-grid-cards">
         ${CASES.map((c, idx) => {
           const open = unlockedCases.has(c.id) || !!saved[c.id] || !!saved.__chung;
           return `
@@ -3606,8 +3815,8 @@
               <div style="font-weight:650;display:flex;align-items:center;gap:6px">${I.lock} ${ui("Bài phân tích của Giảng viên đang khoá", "Instructor Analysis Locked")}</div>
               <div class="small muted">${ui("Nhập mã do giảng viên cung cấp sau phiên thảo luận để mở bài giải.", "Enter the class code provided by your instructor.")}</div>
             </div>
-            <div style="display:flex;gap:6px">
-              <input class="inp mono" id="inpSingleCase" placeholder="XXXX-XXXX-XX" style="text-transform:uppercase;width:165px">
+            <div style="display:flex;gap:6px;width:100%;max-width:320px">
+              <input class="inp mono" id="inpSingleCase" placeholder="XXXX-XXXX-XX" style="text-transform:uppercase;flex:1;min-width:0">
               <button class="btn btn-primary" id="btnSingleUnlock">${ui("Mở khoá", "Unlock")}</button>
             </div>
           </div>
@@ -3619,6 +3828,7 @@
         </div>
       </div>
     `;
+    wrapTablesForScroll(main);
 
     $("#btnBackCases").onclick = () => nav("cases");
     if ($("#btnSingleUnlock")) {
@@ -3717,6 +3927,7 @@
           else if (state.labGroup === "game" && games[+state.labKey]) games[+state.labKey].ve(mount);
           syncRangeSliders(mount);
           enhanceSelects(mount);
+          wrapTablesForScroll(mount);
         };
         runMount();
 
@@ -3763,6 +3974,7 @@
         state.labKey = b.dataset.lk;
         subSeg.querySelectorAll("[data-lk]").forEach((x) => x.classList.toggle("active", x === b));
         updateSegThumb(subSeg);
+        if (b.scrollIntoView) b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
         paintActiveLab(true);
       }));
     };
@@ -3778,6 +3990,7 @@
       state.labKey = state.labGroup === "ch" ? "1" : (state.labGroup === "tool" ? "dcf" : "0");
       labBar.querySelectorAll(".uline-tab").forEach((x) => x.classList.toggle("active", x === b));
       updateTabInk(labBar);
+      if (b.scrollIntoView) b.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
       renderLabBody();
     }));
   }
@@ -3844,6 +4057,7 @@
         </div>
       ` : `<div class="panel panel-pad muted small stagger" style="--i:3">${ui("Chưa có phiên làm đề nào được ghi nhận.", "No completed sessions recorded yet.")}</div>`}
     `;
+    wrapTablesForScroll(main);
 
     if ($("#btnDrillAllWeak")) $("#btnDrillAllWeak").onclick = startMistakeDrill;
     if ($("#btnClearAtt")) $("#btnClearAtt").onclick = () => {
@@ -3965,6 +4179,34 @@
   /* ======================================================================
      RENDER & SHELL INITIALIZATION
      ====================================================================== */
+  function syncMobTabbar() {
+    const bar = $("#mobTabbar");
+    if (!bar) return;
+    const moreViews = new Set(["syllabus", "essays", "revision", "cases", "caseRead", "labs", "stats"]);
+    const curKey = state.view === "examRun" ? "exam" : (moreViews.has(state.view) ? "more" : state.view);
+    bar.querySelectorAll(".mob-tab").forEach((b) => {
+      b.classList.toggle("active", b.dataset.mtab === curKey);
+    });
+    const setLbl = (k, vi, en) => {
+      const el = bar.querySelector(`[data-mlbl="${k}"]`);
+      if (el) el.textContent = ui(vi, en);
+    };
+    setLbl("home", "Tổng quan", "Overview");
+    setLbl("chapter", "Bài giảng", "Chapters");
+    setLbl("bank", "Trắc nghiệm", "MCQs");
+    setLbl("exam", "Thi thử", "Exam");
+    setLbl("more", "Danh mục", "Menu");
+
+    const dot = $("#mobExamDot");
+    if (dot) dot.classList.toggle("hidden", !(state.quiz && !state.quiz.done));
+    const wb = $("#mobWrongBadge");
+    if (wb) {
+      const wc = Object.keys(getWrongMcq()).length;
+      wb.textContent = wc > 99 ? "99+" : String(wc);
+      wb.classList.toggle("hidden", wc === 0);
+    }
+  }
+
   function render() {
     const main = $("#pageWrap");
     if (!main) return;
@@ -3972,9 +4214,15 @@
     if (state.view !== "chapter") activeHeadings = [];
     renderRail();
     updateCrumb();
+    syncMobTabbar();
 
-    document.querySelectorAll("#langSeg button").forEach((b) => b.classList.toggle("active", b.dataset.lang === LANG()));
+    document.querySelectorAll("#langSeg button, #langSegMob button").forEach((b) => b.classList.toggle("active", b.dataset.lang === LANG()));
     updateSegThumb($("#langSeg"));
+    updateSegThumb($("#langSegMob"));
+    const mobLang = $("#btnMobLang");
+    if (mobLang) mobLang.textContent = LANG() === "bi" ? "VI·EN" : LANG().toUpperCase();
+    const pwaBtn = $("#btnPwaInstall");
+    if (pwaBtn) pwaBtn.innerHTML = `${I.download} <span>${ui("Cài ứng dụng về máy (PWA)", "Install Offline App")}</span>`;
     const sl = $("#searchPlaceholder");
     if (sl) sl.textContent = ui("Tìm kiếm...", "Search...");
 
@@ -4076,6 +4324,8 @@
     if ($("#brandMark") && !$("#brandMark").children.length) $("#brandMark").innerHTML = I.mark;
     $("#searchTriggerIcon").innerHTML = I.search;
     $("#btnRailToggle").innerHTML = I.sidebar;
+    if ($("#btnRailClose")) $("#btnRailClose").innerHTML = I.x;
+    if ($("#btnTopSearch")) $("#btnTopSearch").innerHTML = I.search;
     $("#cmdBarIcon").innerHTML = I.search;
     $("#ttsIcon").innerHTML = I.volume;
     $("#ttsStopBtn").innerHTML = I.stop;
@@ -4084,6 +4334,19 @@
     if ($("#selIcoFind")) $("#selIcoFind").innerHTML = I.search;
     if ($("#selIcoSpeak")) $("#selIcoSpeak").innerHTML = I.volume;
     if ($("#selIcoCopy")) $("#selIcoCopy").innerHTML = I.copy;
+    if ($("#mtIcoHome")) $("#mtIcoHome").innerHTML = I.grid;
+    if ($("#mtIcoChapter")) $("#mtIcoChapter").innerHTML = I.book;
+    if ($("#mtIcoBank")) $("#mtIcoBank").innerHTML = I.list;
+    if ($("#mtIcoExam")) $("#mtIcoExam").innerHTML = I.target;
+    if ($("#mtIcoMore")) $("#mtIcoMore").innerHTML = I.layers;
+
+    // Support PWA Home Screen Shortcut deep-links (?view=exam, ?view=bank, ?view=revision, ?view=labs, etc.)
+    try {
+      const qView = new URLSearchParams(window.location.search).get("view");
+      const validViews = new Set(["home", "syllabus", "chapter", "exam", "bank", "essays", "revision", "cases", "labs", "stats"]);
+      if (qView && validViews.has(qView)) state.view = qView;
+    } catch (e) {}
+
     applyThemeAndScale();
 
     // Rotating search placeholder ticker in Sidebar
@@ -4193,8 +4456,9 @@
       }
     }, { passive: true });
 
-    // Zero-Latency Gliding Custom Tooltip delegation
+    // Zero-Latency Gliding Custom Tooltip delegation (Desktop pointer only — prevents sticky touch tooltips)
     document.addEventListener("pointerover", (e) => {
+      if (e.pointerType === "touch") return;
       const t = e.target.closest && e.target.closest("[data-tip]");
       if (t) scheduleFloatTip(t);
       else if (activeTipTarget) hideFloatTip(false);
@@ -4243,15 +4507,16 @@
       if (!rect.width && !rect.height) return;
       currentSelectedText = txt;
       currentSelectedRange = range.cloneRange();
-      const x = Math.max(135, Math.min(window.innerWidth - 135, rect.left + rect.width / 2));
-      const placeBelow = rect.top < 102;
-      const y = placeBelow ? Math.min(window.innerHeight - 48, rect.bottom) : rect.top;
+      pop.classList.add("show");
+      const halfW = Math.min(window.innerWidth / 2 - 8, ((pop.offsetWidth || 280) / 2) + 8);
+      const x = Math.max(halfW, Math.min(window.innerWidth - halfW, rect.left + rect.width / 2));
+      const placeBelow = rect.top < 108;
+      const y = placeBelow ? Math.min(window.innerHeight - 76, rect.bottom) : rect.top;
       pop.classList.toggle("below", placeBelow);
       pop.style.left = Math.round(x) + "px";
       pop.style.top = Math.round(y) + "px";
       if ($("#selIcoCopy")) $("#selIcoCopy").innerHTML = I.copy;
       if ($("#selLblCopy")) $("#selLblCopy").textContent = ui("Chép", "Copy");
-      pop.classList.add("show");
     };
     document.addEventListener("pointerup", () => setTimeout(checkProseSelection, 15));
     document.addEventListener("keyup", (e) => { if (e.shiftKey) checkProseSelection(); });
@@ -4373,31 +4638,117 @@
       else nav(v);
     });
 
-    $("#railHead").onclick = () => nav("home");
+    const setMobRail = (open) => {
+      document.body.classList.toggle("mob-rail-open", open);
+      if (open) {
+        document.body.classList.remove("mob-exam-sheet-open");
+        setTimeout(() => {
+          updateSegThumb($("#langSegMob"));
+          syncRailActivePosition("instant");
+        }, 25);
+      }
+    };
+
+    $("#railHead").onclick = (e) => {
+      if (e.target.closest("#btnRailClose")) return;
+      nav("home");
+    };
+    if ($("#btnRailClose")) {
+      $("#btnRailClose").onclick = (e) => {
+        e.stopPropagation();
+        SFX.tap();
+        setMobRail(false);
+      };
+    }
     $("#btnRailToggle").onclick = () => {
       SFX.tap();
-      if (window.innerWidth <= 900) document.body.classList.toggle("mob-rail-open");
+      if (window.innerWidth <= 900) setMobRail(!document.body.classList.contains("mob-rail-open"));
       else {
         if (zenMode) zenMode = false;
         document.body.classList.toggle("rail-collapsed");
         applyThemeAndScale();
       }
     };
-    $("#railBackdrop").onclick = () => document.body.classList.remove("mob-rail-open");
+    $("#railBackdrop").onclick = () => setMobRail(false);
+    if ($("#examSheetBackdrop")) {
+      $("#examSheetBackdrop").onclick = () => document.body.classList.remove("mob-exam-sheet-open");
+    }
 
-    $("#langSeg").addEventListener("click", (e) => {
-      const b = e.target.closest("button");
-      if (!b || !window.I18N || b.dataset.lang === LANG()) return;
+    // Touch swipe-left to close mobile navigation drawer naturally
+    const railEl = $("#appRail") || document.querySelector(".rail");
+    if (railEl) {
+      let rx0 = null, ry0 = null;
+      railEl.addEventListener("touchstart", (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        rx0 = e.touches[0].clientX;
+        ry0 = e.touches[0].clientY;
+      }, { passive: true });
+      railEl.addEventListener("touchend", (e) => {
+        if (rx0 === null || !e.changedTouches || !e.changedTouches.length) return;
+        const dx = e.changedTouches[0].clientX - rx0;
+        const dy = e.changedTouches[0].clientY - ry0;
+        rx0 = null; ry0 = null;
+        if (dx < -55 && Math.abs(dy) < 48 && document.body.classList.contains("mob-rail-open")) {
+          setMobRail(false);
+        }
+      }, { passive: true });
+    }
+
+    // Native Mobile Bottom Tabbar Navigation
+    if ($("#mobTabbar")) {
+      $("#mobTabbar").addEventListener("click", (e) => {
+        const t = e.target.closest("[data-mtab]");
+        if (!t) return;
+        const k = t.dataset.mtab;
+        if (k === "more") {
+          SFX.tap();
+          setMobRail(!document.body.classList.contains("mob-rail-open"));
+          return;
+        }
+        if (k === "exam") {
+          if (state.quiz && !state.quiz.done) nav("examRun");
+          else nav("exam");
+          return;
+        }
+        if (k === "chapter") {
+          nav("chapter", { ch: state.ch || 1, sec: state.sec || 0 });
+          return;
+        }
+        nav(k);
+      });
+    }
+
+    const switchLangTo = (lg) => {
+      if (!window.I18N || lg === LANG()) return;
       SFX.tap();
-      window.I18N.set(b.dataset.lang);
+      window.I18N.set(lg);
       render();
       enhanceSelects(document);
+    };
+    $("#langSeg").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (b) switchLangTo(b.dataset.lang);
     });
+    if ($("#langSegMob")) {
+      $("#langSegMob").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (b) switchLangTo(b.dataset.lang);
+      });
+    }
+    if ($("#btnMobLang")) {
+      $("#btnMobLang").onclick = () => {
+        const order = ["vi", "bi", "en"];
+        const nextLg = order[(order.indexOf(LANG()) + 1) % order.length];
+        switchLangTo(nextLg);
+        const names = { vi: "Tiếng Việt (VI)", bi: "Song ngữ (VI · EN)", en: "English (EN)" };
+        showToast(names[nextLg]);
+      };
+    }
 
     $("#btnTheme").onclick = toggleThemeWithRipple;
     if ($("#btnPalette")) $("#btnPalette").onclick = cyclePaletteWithRipple;
     if ($("#btnZen")) $("#btnZen").onclick = toggleZenMode;
-    $("#btnScale").onclick = () => {
+    const cycleScale = () => {
       SFX.tap();
       scale = SCALES[(SCALES.indexOf(scale) + 1) % SCALES.length];
       try { localStorage.setItem("ibc_scale", scale); } catch (e) {}
@@ -4406,15 +4757,19 @@
       syncRailActivePosition("instant");
       showToast(ui(`Cỡ chữ đọc bài: ${scale.toUpperCase()}`, `Font scale: ${scale.toUpperCase()}`));
     };
-    if ($("#btnSound")) {
-      $("#btnSound").onclick = () => {
-        soundOn = !soundOn;
-        try { localStorage.setItem("ibc_sfx", soundOn ? "1" : "0"); } catch (e) {}
-        applyThemeAndScale();
-        if (soundOn) SFX.tap();
-        showToast(soundOn ? ui("Đã bật âm thanh phản hồi nhẹ", "Tactile sound enabled") : ui("Đã tắt âm thanh phản hồi", "Tactile sound muted"));
-      };
-    }
+    $("#btnScale").onclick = cycleScale;
+    if ($("#btnScaleMob")) $("#btnScaleMob").onclick = cycleScale;
+
+    const toggleSoundPref = () => {
+      soundOn = !soundOn;
+      try { localStorage.setItem("ibc_sfx", soundOn ? "1" : "0"); } catch (e) {}
+      applyThemeAndScale();
+      if (soundOn) SFX.tap();
+      showToast(soundOn ? ui("Đã bật âm thanh phản hồi nhẹ", "Tactile sound enabled") : ui("Đã tắt âm thanh phản hồi", "Tactile sound muted"));
+    };
+    if ($("#btnSound")) $("#btnSound").onclick = toggleSoundPref;
+    if ($("#btnSoundMob")) $("#btnSoundMob").onclick = toggleSoundPref;
+
     if ($("#scrollFab")) {
       $("#scrollFab").onclick = () => {
         SFX.tap();
@@ -4424,13 +4779,63 @@
 
     window.addEventListener("resize", () => {
       closeCustomSelect();
+      if (window.innerWidth > 900) document.body.classList.remove("mob-rail-open");
+      if (window.innerWidth > 960) document.body.classList.remove("mob-exam-sheet-open");
       syncSlidingControls(document);
       syncRailActivePosition("instant");
       syncTocInk(true);
     }, { passive: true });
 
-    $("#btnOpenSearch").onclick = () => { flashKeycap("ctrlk"); openCmd(); };
+    $("#btnOpenSearch").onclick = () => { setMobRail(false); flashKeycap("ctrlk"); openCmd(); };
+    if ($("#btnTopSearch")) $("#btnTopSearch").onclick = () => openCmd();
+    if ($("#cmdCloseBtn")) $("#cmdCloseBtn").onclick = () => { SFX.tap(); closeCmd(); };
     $("#cmdOverlay").onclick = (e) => { if (e.target.id === "cmdOverlay") closeCmd(); };
+
+    // Progressive Web App (PWA): Service Worker Registration & Install Prompt
+    let deferredPwaPrompt = null;
+    const isStandalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+    const isIosSafari = !isStandalone && /iphone|ipad|ipod/i.test(navigator.userAgent || "") && !/crios|fxios/i.test(navigator.userAgent || "");
+    const pwaInstallBtn = $("#btnPwaInstall");
+    if (pwaInstallBtn && isIosSafari) {
+      pwaInstallBtn.classList.remove("hidden");
+    }
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      if (pwaInstallBtn && !isStandalone) pwaInstallBtn.classList.remove("hidden");
+    });
+    window.addEventListener("appinstalled", () => {
+      deferredPwaPrompt = null;
+      if (pwaInstallBtn) pwaInstallBtn.classList.add("hidden");
+      showToast(ui("Đã cài đặt ứng dụng BAF736 HUB thành công", "App installed successfully"));
+    });
+    if (pwaInstallBtn) {
+      pwaInstallBtn.onclick = async () => {
+        SFX.tap();
+        if (deferredPwaPrompt) {
+          deferredPwaPrompt.prompt();
+          try { await deferredPwaPrompt.userChoice; } catch (e) {}
+          deferredPwaPrompt = null;
+          pwaInstallBtn.classList.add("hidden");
+        } else if (isIosSafari) {
+          setMobRail(false);
+          openConfirmModal({
+            title: ui("Cài đặt ứng dụng BAF736 trên iPhone / iPad", "Install BAF736 App on iOS"),
+            desc: ui(
+              "Nhấn nút Chia sẻ (biểu tượng ô vuông có mũi tên hướng lên ở thanh Safari) -> chọn 'Thêm vào Màn hình chính' (Add to Home Screen) để mở toàn màn hình và học ngoại tuyến 100%.",
+              "Tap the Share button in Safari, then choose 'Add to Home Screen' for full-screen standalone offline access."
+            ),
+            okLabel: ui("Đã hiểu", "Got it"),
+            cancelLabel: ui("Đóng", "Close")
+          });
+        }
+      };
+    }
+    if ("serviceWorker" in navigator && /^https?:$/i.test(window.location.protocol)) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+      });
+    }
 
     let cmdComposing = false;
     const cmdInp = $("#cmdInput");

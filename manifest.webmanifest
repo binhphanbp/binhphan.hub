@@ -1,0 +1,66 @@
+{
+  "id": "/",
+  "name": "BAF736 · Nghiệp vụ Ngân hàng Đầu tư (HUB)",
+  "short_name": "BAF736 HUB",
+  "description": "Không gian học tập, mô phỏng định giá DCF/LBO/M&A và ngân hàng 1.024 câu trắc nghiệm + 204 tự luận học phần BAF736 — Trường Đại học Ngân hàng TP.HCM (HUB).",
+  "lang": "vi",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "theme_color": "#fdf8fa",
+  "background_color": "#fdf8fa",
+  "categories": ["education", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/web-folder/img/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-folder/img/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-folder/img/pwa-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Thi thử 40 câu",
+      "short_name": "Thi thử",
+      "description": "Mở phòng thi thử 40 câu 60 phút chuẩn ma trận đề HUB",
+      "url": "/?view=exam",
+      "icons": [{ "src": "/web-folder/img/pwa-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "1.024 Câu Trắc nghiệm",
+      "short_name": "Trắc nghiệm",
+      "description": "Tra cứu và tự kiểm tra ngân hàng 1.024 câu hỏi trắc nghiệm",
+      "url": "/?view=bank",
+      "icons": [{ "src": "/web-folder/img/pwa-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Flashcards & Công thức",
+      "short_name": "Flashcards",
+      "description": "Ôn tập thẻ lật 3D 56 thuật ngữ và hệ thống công thức 6 chương",
+      "url": "/?view=revision",
+      "icons": [{ "src": "/web-folder/img/pwa-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Mô hình Định giá",
+      "short_name": "Mô hình",
+      "description": "Thực hành 10 mô hình DCF, LBO, WACC và tình huống thương vụ",
+      "url": "/?view=labs",
+      "icons": [{ "src": "/web-folder/img/pwa-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
