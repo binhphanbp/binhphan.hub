@@ -51,6 +51,7 @@
         <button type="button" class="btn btn-sm btn-icon" id="btnSoundMob" aria-label="Âm thanh"></button>
       </div>
       <button type="button" class="btn btn-sm btn-primary hidden" id="btnPwaInstall" style="width:100%;margin-top:6px"></button>
+      <div class="pwa-ready-pill hidden" id="pwaReadyBadge"></div>
     </div>
     <div class="rail-foot" id="railFoot"></div>
   </aside>
@@ -83,8 +84,13 @@
   </div>
 </div>
 
-<!-- Native Mobile Bottom Navigation Bar -->
+<!-- Sculpted Floating Prismatic Lumina Bottom Dock -->
+<div class="mob-dock-scrim" aria-hidden="true"></div>
 <nav class="mob-tabbar" id="mobTabbar" aria-label="Điều hướng di động">
+  <div class="mob-tab-glider" id="mobTabGlider" aria-hidden="true">
+    <span class="mob-glider-lamp"></span>
+    <span class="mob-glider-cone"></span>
+  </div>
   <button type="button" class="mob-tab active" data-mtab="home">
     <span class="mob-tab-ico" id="mtIcoHome"></span>
     <span class="mob-tab-lbl" data-mlbl="home">Tổng quan</span>

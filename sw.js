@@ -1,9 +1,9 @@
 /* ==========================================================================
    BAF736 · HUB Investment Banking Workspace — Production PWA Service Worker
-   Offline-First Architecture: Network-First App Shell + Background Warm-Cache
-   of all 62 Course Data Modules (1,024 MCQs, 204 Essays, 6 Chapters, 8 Cases)
+   Offline-First Architecture: Fresh-Reload App Shell + Guaranteed Batched
+   Warm-Cache of all 62 Course Data Modules (1,024 MCQs, 204 Essays, 8 Cases)
    ========================================================================== */
-const CACHE_NAME = 'baf736-hub-pwa-v11';
+const CACHE_NAME = 'baf736-hub-pwa-v12';
 
 const SHELL_ASSETS = [
   '/',
@@ -15,6 +15,7 @@ const SHELL_ASSETS = [
   '/web-folder/img/hub-shield-white.svg',
   '/web-folder/img/pwa-192.png',
   '/web-folder/img/pwa-512.png',
+  '/web-folder/img/pwa-maskable-192.png',
   '/web-folder/img/pwa-maskable-512.png',
   '/web-folder/img/apple-touch-icon.png'
 ];
@@ -83,28 +84,73 @@ const DATA_ASSETS = [
   '/web-folder/js/case_analysis.enc.js'
 ];
 
+async function warmAssetsInBatches(cache, urls, batchSize) {
+  for (let i = 0; i < urls.length; i += batchSize) {
+    const slice = urls.slice(i, i + batchSize);
+    await Promise.allSettled(
+      slice.map(async (u) => {
+        const hit = await cache.match(u);
+        if (!hit) {
+          const res = await fetch(u);
+          if (res && res.ok) await cache.put(u, res);
+        }
+      })
+    );
+  }
+}
+
+async function notifyOfflineReady() {
+  const cache = await caches.open(CACHE_NAME);
+  let readyCount = 0;
+  for (const u of DATA_ASSETS) {
+    if (await cache.match(u)) readyCount++;
+  }
+  const allReady = readyCount >= DATA_ASSETS.length;
+  const clients = await self.clients.matchAll({ type: 'window' });
+  for (const cl of clients) {
+    cl.postMessage({ type: 'OFFLINE_STATUS', ready: allReady, count: readyCount, total: DATA_ASSETS.length });
+  }
+}
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      await cache.addAll(SHELL_ASSETS);
-      // Warm-cache full offline dataset without blocking SW activation on slow networks
-      Promise.allSettled(DATA_ASSETS.map((url) => cache.add(url)));
+      // Bypass browser HTTP cache during SW upgrade so fresh CSS/JS shell is guaranteed
+      await Promise.all(
+        SHELL_ASSETS.map(async (url) => {
+          const res = await fetch(new Request(url, { cache: 'reload' }));
+          if (res && res.ok) await cache.put(url, res);
+        })
+      );
+      await warmAssetsInBatches(cache, DATA_ASSETS, 12);
     })
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+      await self.clients.claim();
+      const cache = await caches.open(CACHE_NAME);
+      await warmAssetsInBatches(cache, DATA_ASSETS, 12);
+      await notifyOfflineReady();
+    })()
   );
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (!event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  } else if (event.data.type === 'CHECK_OFFLINE_STATUS') {
+    event.waitUntil(
+      caches.open(CACHE_NAME)
+        .then((cache) => warmAssetsInBatches(cache, DATA_ASSETS, 12))
+        .then(() => notifyOfflineReady())
+    );
   }
 });
 
@@ -134,6 +180,7 @@ self.addEventListener('fetch', (event) => {
     url.pathname === '/index.html' ||
     url.pathname.endsWith('/production.css') ||
     url.pathname.endsWith('/app_production.js') ||
+    url.pathname.endsWith('/offline-init-modern.js') ||
     url.pathname === '/manifest.webmanifest';
 
   if (isAppShellDynamic) {
@@ -142,7 +189,7 @@ self.addEventListener('fetch', (event) => {
         .then((res) => {
           if (res && res.status === 200) {
             const copy = res.clone();
-            caches.open(CACHE_NAME).then((c) => c.put(req.mode === 'navigate' ? '/' : req, copy));
+            caches.open(CACHE_NAME).then((c) => c.put(req.mode === 'navigate' ? '/' : url.pathname, copy));
           }
           return res;
         })
@@ -151,7 +198,7 @@ self.addEventListener('fetch', (event) => {
           if (req.mode === 'navigate') {
             return (await cache.match('/')) || (await cache.match('/index.html'));
           }
-          return (await cache.match(req)) || (await cache.match(url.pathname));
+          return (await cache.match(req)) || (await cache.match(url.pathname, { ignoreSearch: true }));
         })
     );
     return;
@@ -160,11 +207,11 @@ self.addEventListener('fetch', (event) => {
   // 2. Course Data Scripts, Vector/PNG Assets & Fonts: Stale-While-Revalidate (Instant Offline/Repeat Load)
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
-      const cached = await cache.match(req);
+      const cached = (await cache.match(req)) || (sameOrigin ? await cache.match(url.pathname, { ignoreSearch: true }) : null);
       const netFetch = fetch(req)
         .then((res) => {
           if (res && (res.status === 200 || res.type === 'opaque')) {
-            cache.put(req, res.clone());
+            cache.put(sameOrigin ? url.pathname : req, res.clone());
           }
           return res;
         })

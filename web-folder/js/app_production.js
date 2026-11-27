@@ -4938,11 +4938,58 @@
   /* ======================================================================
      RENDER & SHELL INITIALIZATION
      ====================================================================== */
-  function syncMobTabbar() {
+  let prevMobGliderX = null;
+  let mobStretchTimer = 0;
+
+  function syncMobTabGlider(immediate) {
+    const bar = $("#mobTabbar");
+    const glider = $("#mobTabGlider");
+    if (!bar || !glider) return;
+    const active = bar.querySelector(".mob-tab.active");
+    if (!active || !active.offsetWidth) {
+      bar.classList.remove("glider-ready");
+      prevMobGliderX = null;
+      return;
+    }
+    const nextX = active.offsetLeft;
+    const nextW = active.offsetWidth;
+    const firstMount = !bar.classList.contains("glider-ready") || immediate || prevMobGliderX === null;
+    clearTimeout(mobStretchTimer);
+
+    if (firstMount) {
+      glider.style.transition = "none";
+      glider.style.setProperty("--gw", nextW.toFixed(1) + "px");
+      glider.style.setProperty("--gx", nextX.toFixed(1) + "px");
+      glider.style.setProperty("--gsx", "1");
+      glider.style.setProperty("--gsy", "1");
+      void glider.offsetWidth;
+      glider.style.transition = "";
+      bar.classList.add("glider-ready");
+    } else {
+      const dist = Math.abs(nextX - prevMobGliderX);
+      glider.style.setProperty("--gw", nextW.toFixed(1) + "px");
+      glider.style.setProperty("--gx", nextX.toFixed(1) + "px");
+      if (dist > 6) {
+        const stretchX = Math.min(1.12, 1 + dist / 1400);
+        glider.style.setProperty("--gsx", stretchX.toFixed(3));
+        glider.style.setProperty("--gsy", "0.94");
+        mobStretchTimer = setTimeout(() => {
+          glider.style.setProperty("--gsx", "1");
+          glider.style.setProperty("--gsy", "1");
+        }, 145);
+      }
+    }
+    prevMobGliderX = nextX;
+  }
+
+  function syncMobTabbar(immediateGlider) {
     const bar = $("#mobTabbar");
     if (!bar) return;
+    const drawerOpen = document.body.classList.contains("mob-rail-open");
     const moreViews = new Set(["syllabus", "essays", "revision", "cases", "caseRead", "labs", "stats"]);
-    const curKey = state.view === "examRun" ? "exam" : (moreViews.has(state.view) ? "more" : state.view);
+    const curKey = drawerOpen
+      ? "more"
+      : (state.view === "examRun" ? "exam" : (moreViews.has(state.view) ? "more" : state.view));
     bar.querySelectorAll(".mob-tab").forEach((b) => {
       b.classList.toggle("active", b.dataset.mtab === curKey);
     });
@@ -4964,6 +5011,7 @@
       wb.textContent = wc > 99 ? "99+" : String(wc);
       wb.classList.toggle("hidden", wc === 0);
     }
+    syncMobTabGlider(!!immediateGlider);
   }
 
   function render() {
@@ -5695,9 +5743,13 @@
       const wasOpen = document.body.classList.contains("mob-rail-open");
       if (wasOpen === open) return;
       document.body.classList.toggle("mob-rail-open", open);
+      syncMobTabbar(false);
       if (open) {
         document.body.classList.remove("mob-exam-sheet-open");
         pushOverlayHistory();
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: "CHECK_OFFLINE_STATUS" });
+        }
         setTimeout(() => {
           updateSegThumb($("#langSegMob"));
           syncRailActivePosition("instant");
@@ -5774,9 +5826,15 @@
         }
         const targetView = k === "exam" ? (state.quiz && !state.quiz.done ? "examRun" : "exam") : k;
         if (state.view === targetView && !document.body.classList.contains("mob-rail-open")) {
+          t.classList.remove("rebound");
+          void t.offsetWidth;
+          t.classList.add("rebound");
+          setTimeout(() => t.classList.remove("rebound"), 400);
           if (window.scrollY > 40) {
             SFX.tap();
             smoothScrollToY(0, 480);
+          } else {
+            SFX.tap();
           }
           return;
         }
@@ -5870,6 +5928,7 @@
       if (window.innerWidth > 900) document.body.classList.remove("mob-rail-open");
       if (window.innerWidth > 960) document.body.classList.remove("mob-exam-sheet-open");
       syncSlidingControls(document);
+      syncMobTabGlider(true);
       syncRailActivePosition("instant");
       syncTocInk(true);
     }, { passive: true });
@@ -5932,6 +5991,21 @@
       };
     }
     if ("serviceWorker" in navigator && /^https?:$/i.test(window.location.protocol)) {
+      const pwaBadge = $("#pwaReadyBadge");
+      let offlineReadyState = false;
+      const paintPwaBadge = () => {
+        if (!pwaBadge) return;
+        if (offlineReadyState) {
+          pwaBadge.classList.remove("hidden");
+          pwaBadge.innerHTML = `${I.checkXs} <span>${ui("Sẵn sàng Ngoại tuyến 100%", "100% Offline Ready")}</span>`;
+        }
+      };
+      navigator.serviceWorker.addEventListener("message", (ev) => {
+        if (ev.data && ev.data.type === "OFFLINE_STATUS" && ev.data.ready) {
+          offlineReadyState = true;
+          paintPwaBadge();
+        }
+      });
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("sw.js").then((reg) => {
           if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
@@ -5944,6 +6018,9 @@
               }
             });
           });
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: "CHECK_OFFLINE_STATUS" });
+          }
         }).catch(() => {});
       });
     }

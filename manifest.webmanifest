@@ -10,7 +10,11 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
-  "theme_color": "#fdf8fa",
+  "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "theme_color": "#1f3368",
   "background_color": "#fdf8fa",
   "categories": ["education", "finance", "productivity"],
   "icons": [
@@ -27,10 +31,32 @@
       "purpose": "any"
     },
     {
+      "src": "/web-folder/img/pwa-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/web-folder/img/pwa-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/web-folder/img/pwa-screen-mobile.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Giao diện học tập BAF736 trên di động với thanh điều hướng nổi Lumina Dock"
+    },
+    {
+      "src": "/web-folder/img/pwa-screen-desktop.png",
+      "sizes": "1440x900",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Không gian học tập & phòng thi thử 40 câu BAF736 trên máy tính"
     }
   ],
   "shortcuts": [

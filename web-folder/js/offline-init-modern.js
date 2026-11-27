@@ -1,7 +1,25 @@
-/* BAF736 Studio Offline Bootstrap */
+/* BAF736 Studio Offline & Zero-FOUC Theme Bootstrap */
 (function () {
   "use strict";
   try {
+    var th = localStorage.getItem("ibc_theme") || "light";
+    var pal = localStorage.getItem("ibc_palette") || "rose";
+    var sc = localStorage.getItem("ibc_scale") || "md";
+    var root = document.documentElement;
+    if (root && root.setAttribute) {
+      root.setAttribute("data-theme", th);
+      root.setAttribute("data-palette", pal);
+      root.setAttribute("data-scale", sc);
+    }
+    var tcMap = {
+      light: { rose: "#fdf8fa", hub: "#f7f9fc", lavender: "#faf8fe", sapphire: "#f7f9fc" },
+      dark: { rose: "#191118", hub: "#0c1528", lavender: "#161224", sapphire: "#0c1221" }
+    };
+    var metaTc = document.getElementById && document.getElementById("metaThemeColor");
+    if (metaTc && metaTc.setAttribute) {
+      var grp = tcMap[th] || tcMap.light;
+      metaTc.setAttribute("content", grp[pal] || grp.rose);
+    }
     if (!localStorage.getItem("ibc_lang")) {
       localStorage.setItem("ibc_lang", "vi");
     }
