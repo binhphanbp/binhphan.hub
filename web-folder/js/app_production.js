@@ -879,6 +879,7 @@
 
   let activeVt = null;
   function runCircularViewTransition(ev, mutateFn) {
+    const root = document.documentElement;
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!document.startViewTransition || reduce || !ev || !ev.currentTarget) {
       mutateFn();
@@ -887,6 +888,7 @@
     if (activeVt) {
       try { activeVt.skipTransition(); } catch (e) {}
       activeVt = null;
+      root.classList.remove("vt-switching");
       mutateFn();
       return;
     }
@@ -895,25 +897,54 @@
       mutateFn();
       return;
     }
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    const maxR = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    const x = Math.round((rect.left + rect.width / 2) * 10) / 10;
+    const y = Math.round((rect.top + rect.height / 2) * 10) / 10;
+    const maxR = Math.ceil(Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y)) + 4);
+    const vtDuration = Math.round(Math.min(1120, Math.max(740, 520 + maxR * 0.28)));
+
+    // Pre-seed origin & freeze all CSS transitions/animations/blurs BEFORE snapshot capture for 0ms repaint hitch!
+    if ($("#floatTip")) $("#floatTip").classList.remove("show");
+    root.style.setProperty("--vt-x", `${x}px`);
+    root.style.setProperty("--vt-y", `${y}px`);
+    root.classList.add("vt-switching");
+
     try {
-      const vt = document.startViewTransition(mutateFn);
+      const vt = document.startViewTransition(() => {
+        mutateFn();
+      });
       activeVt = vt;
+      const cleanupVt = () => {
+        if (activeVt === vt) {
+          activeVt = null;
+          root.classList.remove("vt-switching");
+        }
+      };
       if (vt.finished && vt.finished.finally) {
-        vt.finished.finally(() => { if (activeVt === vt) activeVt = null; });
+        vt.finished.finally(cleanupVt);
       } else {
-        setTimeout(() => { if (activeVt === vt) activeVt = null; }, 500);
+        setTimeout(cleanupVt, vtDuration + 160);
       }
       vt.ready.then(() => {
-        document.documentElement.animate(
-          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxR}px at ${x}px ${y}px)`] },
-          { duration: 440, easing: "cubic-bezier(0.22, 1, 0.36, 1)", pseudoElement: "::view-transition-new(root)" }
+        const anim = document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${maxR}px at ${x}px ${y}px)`
+            ]
+          },
+          {
+            duration: vtDuration,
+            easing: "cubic-bezier(0.44, 0.03, 0.24, 1)",
+            fill: "both",
+            pseudoElement: "::view-transition-new(root)"
+          }
         );
-      }).catch(() => {});
+        anim.onfinish = cleanupVt;
+        anim.oncancel = cleanupVt;
+      }).catch(cleanupVt);
     } catch (e) {
       activeVt = null;
+      root.classList.remove("vt-switching");
       mutateFn();
     }
   }
@@ -943,8 +974,8 @@
       palette = next.id;
       try { localStorage.setItem("ibc_palette", palette); } catch (e) {}
       applyThemeAndScale();
+      showToast(ui(`Tông màu: ${next.vi}`, `Palette: ${next.en}`));
     });
-    showToast(ui(`Tông màu: ${next.vi}`, `Palette: ${next.en}`));
   }
 
   /* ---------------- App State ---------------- */
@@ -4690,7 +4721,7 @@
       const flair = getBtnFlair(btn);
       flair.style.width = diameter + "px";
       flair.style.height = diameter + "px";
-      const cooledDown = (performance.now() - (btn._outTs || 0)) > 360;
+      const cooledDown = (performance.now() - (btn._outTs || 0)) > 860;
       if (cooledDown && !btn.classList.contains("is-hovered")) {
         flair.style.transition = "none";
         flair.style.left = x.toFixed(1) + "px";
@@ -4733,20 +4764,25 @@
       activeRadarCards.forEach((el) => {
         el.classList.remove("is-radar-near", "is-radar-inside", "is-radar-subdued");
         el.style.removeProperty("--spot-prox");
+        el.style.removeProperty("--radar-delay");
       });
       activeRadarCards.clear();
-      document.body.classList.remove("radar-active");
     }
 
     function updateRadarField() {
       radarRaf = 0;
       const cx = lastPtrX;
       const cy = lastPtrY;
-      if (cx < -1000 || cy < -1000) {
+      if (cx < -1000 || cy < -1000 || document.documentElement.classList.contains("vt-switching")) {
         clearAllRadarCards();
         return;
       }
       const hitTarget = document.elementFromPoint(cx, cy) || lastPtrTarget;
+      // Pause card radar cleanly while interacting with topbar or sidebar navigation
+      if (hitTarget && hitTarget.closest && hitTarget.closest(".topbar, .rail, .mob-tabbar, .overlay:not(.hidden)")) {
+        clearAllRadarCards();
+        return;
+      }
       const overBtn = !!(hitTarget && hitTarget.closest && hitTarget.closest(".btn, .pg-btn, .sec-mini, .m-cell"));
       const innermostCard = hitTarget && hitTarget.closest ? hitTarget.closest(RADAR_SEL) : null;
 
@@ -4754,6 +4790,7 @@
       const vw = window.innerWidth || 1440;
       const candidates = document.querySelectorAll(RADAR_SEL);
       const nextActive = new Set();
+      const syncDelay = `-${(performance.now() % 4200).toFixed(0)}ms`;
 
       for (let i = 0; i < candidates.length; i++) {
         const el = candidates[i];
@@ -4772,7 +4809,10 @@
           const inside = dx === 0 && dy === 0;
           const prox = inside ? 1 : Math.pow(Math.max(0, 1 - dist / RADAR_REACH), 1.3);
           el.style.setProperty("--spot-prox", prox.toFixed(3));
-          el.classList.add("is-radar-near");
+          if (!el.classList.contains("is-radar-near")) {
+            el.style.setProperty("--radar-delay", syncDelay);
+            el.classList.add("is-radar-near");
+          }
           el.classList.toggle("is-radar-inside", inside);
           const hasInnerCard = inside && innermostCard && innermostCard !== el && el.contains(innermostCard);
           el.classList.toggle("is-radar-subdued", !!(inside && (hasInnerCard || overBtn)));
@@ -4783,11 +4823,11 @@
         if (!nextActive.has(el)) {
           el.classList.remove("is-radar-near", "is-radar-inside", "is-radar-subdued");
           el.style.removeProperty("--spot-prox");
+          el.style.removeProperty("--radar-delay");
         }
       });
       activeRadarCards.clear();
       nextActive.forEach((el) => activeRadarCards.add(el));
-      document.body.classList.toggle("radar-active", nextActive.size > 0);
     }
 
     function scheduleRadarUpdate() {
@@ -4831,7 +4871,7 @@
     document.addEventListener("pointerdown", (e) => {
       if (e.button && e.button !== 0) return;
       const host = e.target.closest && e.target.closest(".btn, .opt-row, .nav-item, .nav-sub, .uline-tab, .pg-btn, .m-cell, .sec-mini, .cmd-row");
-      if (host && !e.target.closest(".opt-elim-btn, .ch-chev")) {
+      if (host && !e.target.closest(".opt-elim-btn, .ch-chev, #btnTheme, #btnPalette")) {
         if (!host.classList.contains("nav-item") && !host.classList.contains("nav-sub")) {
           spawnRipple(host, e);
         } else {

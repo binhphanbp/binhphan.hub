@@ -643,12 +643,43 @@
 [data-scale="lg"] { --base-px: 15.5px; --prose-px: 17px; }
 [data-scale="xl"] { --base-px: 16.5px; --prose-px: 18.5px; }
 
+::view-transition-image-pair(root) {
+  isolation: isolate;
+}
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
+  display: block;
 }
-::view-transition-new(root) { z-index: 9999; }
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) {
+  z-index: 9999;
+  will-change: clip-path;
+}
+html.vt-switching::view-transition-new(root) {
+  clip-path: circle(0px at var(--vt-x, 50%) var(--vt-y, 50%));
+}
+/* Freeze all descendant transitions, infinite animations & heavy blur passes during theme View-Transition so GPU slides static textures at 120fps with zero repaint hitch! */
+html.vt-switching *,
+html.vt-switching *::before,
+html.vt-switching *::after {
+  transition: none !important;
+  animation: none !important;
+}
+html.vt-switching .overlay.hidden {
+  display: none !important;
+  backdrop-filter: none !important;
+}
+html.vt-switching .topbar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--surface) !important;
+}
+html.vt-switching .float-tip {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -868,7 +899,7 @@ svg.ico {
   flex-shrink: 0;
   display: inline-block;
   vertical-align: -2px;
-  transition: transform 0.4s var(--ease-out), color 0.32s ease;
+  transition: transform 0.62s cubic-bezier(0.22, 1, 0.36, 1), color 0.52s ease;
 }
 svg.ico-sm { width: 13.5px; height: 13.5px; }
 svg.ico-xs { width: 12px; height: 12px; }
@@ -1041,16 +1072,11 @@ code {
 @property --radar-angle {
   syntax: "<angle>";
   initial-value: 0deg;
-  inherits: true;
+  inherits: false;
 }
 @keyframes radarSweepSpin {
   from { --radar-angle: 0deg; }
   to { --radar-angle: 360deg; }
-}
-
-/* World-space synchronized sweep phase across all cards on screen */
-body.radar-active {
-  animation: radarSweepSpin 3.8s linear infinite;
 }
 
 :is(.spot-surface, .stat-cell, .opt-row:not(.correct):not(.wrong), .matrix-box, .fig-card, .case-card, .result-pill) {
@@ -1178,15 +1204,19 @@ body.radar-active {
   z-index: 3;
 }
 
-/* Proximity Activation (All cards within 300px light up in unified world-space!) */
+/* Proximity Activation (All cards within 300px light up in unified world-space with zero DOM-tree inheritance!) */
 :is(.spot-surface, .stat-cell, .opt-row:not(.correct):not(.wrong), .matrix-box, .fig-card, .case-card, .result-pill).is-radar-near {
   border-color: color-mix(in srgb, var(--radar-c1) calc(var(--spot-prox, 0) * 48%), var(--border));
 }
 :is(.spot-surface, .stat-cell, .opt-row:not(.correct):not(.wrong), .matrix-box, .fig-card, .case-card, .result-pill).is-radar-near::before {
   opacity: calc(var(--spot-prox, 0) * 0.52);
+  animation: radarSweepSpin 4.2s linear infinite;
+  animation-delay: var(--radar-delay, 0ms);
 }
 :is(.spot-surface, .stat-cell, .opt-row:not(.correct):not(.wrong), .matrix-box, .fig-card, .case-card, .result-pill).is-radar-near::after {
   opacity: clamp(0, calc(var(--spot-prox, 0) * 1.22), 1);
+  animation: radarSweepSpin 4.2s linear infinite;
+  animation-delay: var(--radar-delay, 0ms);
 }
 
 /* Direct Radar Lock-On */
@@ -1806,10 +1836,10 @@ mark.user-hl {
   --orbit-c1: var(--brand);
   --orbit-c2: var(--violet);
   transition:
-    border-color 0.34s var(--ease-out),
-    color 0.28s var(--ease-out),
-    background-color 0.34s var(--ease-out),
-    transform 0.1s var(--ease-out);
+    border-color 0.62s cubic-bezier(0.25, 0.8, 0.25, 1),
+    color 0.54s cubic-bezier(0.25, 0.8, 0.25, 1),
+    background-color 0.62s cubic-bezier(0.25, 0.8, 0.25, 1),
+    transform 0.14s var(--ease-out);
 }
 [data-theme="dark"] .btn {
   background: var(--surface-elevated);
@@ -1845,7 +1875,7 @@ mark.user-hl {
   --orbit-c2: #60a5fa;
 }
 
-/* Direction-Aware Liquid Aurora Sphere (Blooms at cursor entry, tracks cursor live, drains out exact exit!) */
+/* Direction-Aware Liquid Aurora Sphere (Viscous Silk Bloom on Enter, Graceful Drain on Exit!) */
 .btn-flair {
   position: absolute;
   left: 50%;
@@ -1856,18 +1886,24 @@ mark.user-hl {
   background: var(--flair-bg);
   transform: translate(-50%, -50%) scale(0);
   transition:
-    transform 0.48s cubic-bezier(0.16, 1, 0.3, 1),
-    left 0.16s cubic-bezier(0.22, 1, 0.36, 1),
-    top 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.86s cubic-bezier(0.32, 0, 0.22, 1),
+    left 0.44s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.44s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   z-index: -1;
   will-change: transform;
+}
+:is(.btn, .pg-btn, .sec-mini, .m-cell).is-hovered:not(:disabled) .btn-flair {
+  transition:
+    transform 1.05s cubic-bezier(0.25, 0.82, 0.32, 1),
+    left 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.48s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .btn.is-hovered:not(:disabled) .btn-flair {
   transform: translate(-50%, -50%) scale(1);
 }
 
-/* Twin Symmetrical Conic Laser Border Comets (1.5px Precision, Zero Box-Shadow!) */
+/* Twin Symmetrical Conic Laser Border Comets (1.5px Precision, Slow Majestic 5.6s Orbit, Zero Box-Shadow!) */
 .btn::after,
 .pg-btn::after {
   content: "";
@@ -1895,13 +1931,13 @@ mark.user-hl {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
-  transition: opacity 0.28s ease;
+  transition: opacity 0.62s cubic-bezier(0.25, 0.8, 0.25, 1);
   pointer-events: none;
 }
 .btn:hover:not(:disabled)::after,
 .pg-btn:hover:not(:disabled):not(.active)::after {
   opacity: 1;
-  animation: borderOrbit 2.2s linear infinite;
+  animation: borderOrbit 5.6s linear infinite;
 }
 
 .btn:hover:not(:disabled) {
@@ -2851,7 +2887,7 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
   box-shadow: none;
   cursor: pointer;
   --flair-bg: color-mix(in srgb, var(--brand) 16%, var(--brand-soft));
-  transition: transform 0.1s var(--ease-out), background-color 0.36s var(--ease-out), border-color 0.36s var(--ease-out), color 0.32s ease;
+  transition: transform 0.14s var(--ease-out), background-color 0.52s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.52s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.46s ease;
 }
 [data-theme="dark"] .pg-btn { background: var(--surface-elevated); border-color: color-mix(in srgb, #ffffff 10%, var(--border)); --flair-bg: color-mix(in srgb, var(--brand) 28%, var(--surface-elevated)); }
 .pg-btn.is-hovered:not(:disabled):not(.active) .btn-flair { transform: translate(-50%, -50%) scale(1); }
