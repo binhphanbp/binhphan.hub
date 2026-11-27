@@ -881,7 +881,7 @@
   function runCircularViewTransition(ev, mutateFn) {
     const root = document.documentElement;
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!document.startViewTransition || reduce || !ev || !ev.currentTarget) {
+    if (!document.startViewTransition || reduce) {
       mutateFn();
       return;
     }
@@ -892,24 +892,12 @@
       mutateFn();
       return;
     }
-    const rect = ev.currentTarget.getBoundingClientRect();
-    if (!rect.width && !rect.height) {
-      mutateFn();
-      return;
-    }
-    const x = Math.round((rect.left + rect.width / 2) * 10) / 10;
-    const y = Math.round((rect.top + rect.height / 2) * 10) / 10;
-    const maxR = Math.ceil(Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y)) + 4);
-    const vtDuration = Math.round(Math.min(1120, Math.max(740, 520 + maxR * 0.28)));
 
-    // Pre-seed origin & freeze all CSS transitions/animations/blurs BEFORE snapshot capture for 0ms repaint hitch!
-    if ($("#floatTip")) $("#floatTip").classList.remove("show");
-    root.style.setProperty("--vt-x", `${x}px`);
-    root.style.setProperty("--vt-y", `${y}px`);
-    root.classList.add("vt-switching");
-
+    // Zero DOM mutations BEFORE startViewTransition so Chromium reuses the live GPU frame buffer in <1ms!
     try {
       const vt = document.startViewTransition(() => {
+        if ($("#floatTip")) $("#floatTip").classList.remove("show");
+        root.classList.add("vt-switching");
         mutateFn();
       });
       activeVt = vt;
@@ -922,26 +910,8 @@
       if (vt.finished && vt.finished.finally) {
         vt.finished.finally(cleanupVt);
       } else {
-        setTimeout(cleanupVt, vtDuration + 160);
+        setTimeout(cleanupVt, 620);
       }
-      vt.ready.then(() => {
-        const anim = document.documentElement.animate(
-          {
-            clipPath: [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${maxR}px at ${x}px ${y}px)`
-            ]
-          },
-          {
-            duration: vtDuration,
-            easing: "cubic-bezier(0.44, 0.03, 0.24, 1)",
-            fill: "both",
-            pseudoElement: "::view-transition-new(root)"
-          }
-        );
-        anim.onfinish = cleanupVt;
-        anim.oncancel = cleanupVt;
-      }).catch(cleanupVt);
     } catch (e) {
       activeVt = null;
       root.classList.remove("vt-switching");
@@ -4751,9 +4721,9 @@
       btn.classList.remove("is-hovered");
     }, { passive: true });
 
-    // Holographic Multi-Card Proximity Radar Engine (60/120fps rAF World-Space Synchronized Tracker)
+    // Clean Cursor Spotlight & Multi-Card Proximity Specular Rim (60/120fps rAF Tracker)
     const RADAR_SEL = ".spot-surface, .stat-cell, .opt-row:not(.correct):not(.wrong), .matrix-box, .fig-card, .case-card, .result-pill";
-    const RADAR_REACH = 300;
+    const RADAR_REACH = 220;
     let radarRaf = 0;
     let lastPtrX = -9999;
     let lastPtrY = -9999;
@@ -4764,7 +4734,6 @@
       activeRadarCards.forEach((el) => {
         el.classList.remove("is-radar-near", "is-radar-inside", "is-radar-subdued");
         el.style.removeProperty("--spot-prox");
-        el.style.removeProperty("--radar-delay");
       });
       activeRadarCards.clear();
     }
@@ -4778,7 +4747,6 @@
         return;
       }
       const hitTarget = document.elementFromPoint(cx, cy) || lastPtrTarget;
-      // Pause card radar cleanly while interacting with topbar or sidebar navigation
       if (hitTarget && hitTarget.closest && hitTarget.closest(".topbar, .rail, .mob-tabbar, .overlay:not(.hidden)")) {
         clearAllRadarCards();
         return;
@@ -4790,7 +4758,6 @@
       const vw = window.innerWidth || 1440;
       const candidates = document.querySelectorAll(RADAR_SEL);
       const nextActive = new Set();
-      const syncDelay = `-${(performance.now() % 4200).toFixed(0)}ms`;
 
       for (let i = 0; i < candidates.length; i++) {
         const el = candidates[i];
@@ -4807,12 +4774,9 @@
           el.style.setProperty("--mx", (cx - r.left).toFixed(1) + "px");
           el.style.setProperty("--my", (cy - r.top).toFixed(1) + "px");
           const inside = dx === 0 && dy === 0;
-          const prox = inside ? 1 : Math.pow(Math.max(0, 1 - dist / RADAR_REACH), 1.3);
+          const prox = inside ? 1 : Math.pow(Math.max(0, 1 - dist / RADAR_REACH), 1.4);
           el.style.setProperty("--spot-prox", prox.toFixed(3));
-          if (!el.classList.contains("is-radar-near")) {
-            el.style.setProperty("--radar-delay", syncDelay);
-            el.classList.add("is-radar-near");
-          }
+          el.classList.add("is-radar-near");
           el.classList.toggle("is-radar-inside", inside);
           const hasInnerCard = inside && innermostCard && innermostCard !== el && el.contains(innermostCard);
           el.classList.toggle("is-radar-subdued", !!(inside && (hasInnerCard || overBtn)));
@@ -4823,7 +4787,6 @@
         if (!nextActive.has(el)) {
           el.classList.remove("is-radar-near", "is-radar-inside", "is-radar-subdued");
           el.style.removeProperty("--spot-prox");
-          el.style.removeProperty("--radar-delay");
         }
       });
       activeRadarCards.clear();
