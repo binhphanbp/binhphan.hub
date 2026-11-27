@@ -4720,6 +4720,80 @@
       btn.classList.remove("is-hovered");
     }, { passive: true });
 
+    // Holographic Multi-Card Proximity Radar Engine (60/120fps rAF World-Space Synchronized Tracker)
+    const RADAR_SEL = ".spot-surface, .stat-cell, .opt-row:not(.correct):not(.wrong), .matrix-box, .fig-card, .case-card, .result-pill";
+    const RADAR_REACH = 300;
+    let radarRaf = 0;
+    let lastPtrX = -9999;
+    let lastPtrY = -9999;
+    let lastPtrTarget = null;
+    const activeRadarCards = new Set();
+
+    function clearAllRadarCards() {
+      activeRadarCards.forEach((el) => {
+        el.classList.remove("is-radar-near", "is-radar-inside", "is-radar-subdued");
+        el.style.removeProperty("--spot-prox");
+      });
+      activeRadarCards.clear();
+      document.body.classList.remove("radar-active");
+    }
+
+    function updateRadarField() {
+      radarRaf = 0;
+      const cx = lastPtrX;
+      const cy = lastPtrY;
+      if (cx < -1000 || cy < -1000) {
+        clearAllRadarCards();
+        return;
+      }
+      const hitTarget = document.elementFromPoint(cx, cy) || lastPtrTarget;
+      const overBtn = !!(hitTarget && hitTarget.closest && hitTarget.closest(".btn, .pg-btn, .sec-mini, .m-cell"));
+      const innermostCard = hitTarget && hitTarget.closest ? hitTarget.closest(RADAR_SEL) : null;
+
+      const vh = window.innerHeight || 900;
+      const vw = window.innerWidth || 1440;
+      const candidates = document.querySelectorAll(RADAR_SEL);
+      const nextActive = new Set();
+
+      for (let i = 0; i < candidates.length; i++) {
+        const el = candidates[i];
+        const r = el.getBoundingClientRect();
+        if (r.width < 10 || r.height < 10) continue;
+        if (r.bottom < -RADAR_REACH || r.top > vh + RADAR_REACH || r.right < -RADAR_REACH || r.left > vw + RADAR_REACH) continue;
+
+        const dx = cx < r.left ? r.left - cx : (cx > r.right ? cx - r.right : 0);
+        const dy = cy < r.top ? r.top - cy : (cy > r.bottom ? cy - r.bottom : 0);
+        const dist = Math.hypot(dx, dy);
+
+        if (dist <= RADAR_REACH) {
+          nextActive.add(el);
+          el.style.setProperty("--mx", (cx - r.left).toFixed(1) + "px");
+          el.style.setProperty("--my", (cy - r.top).toFixed(1) + "px");
+          const inside = dx === 0 && dy === 0;
+          const prox = inside ? 1 : Math.pow(Math.max(0, 1 - dist / RADAR_REACH), 1.3);
+          el.style.setProperty("--spot-prox", prox.toFixed(3));
+          el.classList.add("is-radar-near");
+          el.classList.toggle("is-radar-inside", inside);
+          const hasInnerCard = inside && innermostCard && innermostCard !== el && el.contains(innermostCard);
+          el.classList.toggle("is-radar-subdued", !!(inside && (hasInnerCard || overBtn)));
+        }
+      }
+
+      activeRadarCards.forEach((el) => {
+        if (!nextActive.has(el)) {
+          el.classList.remove("is-radar-near", "is-radar-inside", "is-radar-subdued");
+          el.style.removeProperty("--spot-prox");
+        }
+      });
+      activeRadarCards.clear();
+      nextActive.forEach((el) => activeRadarCards.add(el));
+      document.body.classList.toggle("radar-active", nextActive.size > 0);
+    }
+
+    function scheduleRadarUpdate() {
+      if (!radarRaf) radarRaf = requestAnimationFrame(updateRadarField);
+    }
+
     document.addEventListener("pointermove", (e) => {
       if (e.pointerType === "touch") return;
       const btn = e.target.closest && e.target.closest(FLAIR_SEL);
@@ -4731,12 +4805,27 @@
         flair.style.left = x.toFixed(1) + "px";
         flair.style.top = y.toFixed(1) + "px";
       }
-      const card = e.target.closest && e.target.closest(".spot-surface");
-      if (!card) return;
-      const r = card.getBoundingClientRect();
-      card.style.setProperty("--mx", (e.clientX - r.left) + "px");
-      card.style.setProperty("--my", (e.clientY - r.top) + "px");
+      lastPtrX = e.clientX;
+      lastPtrY = e.clientY;
+      lastPtrTarget = e.target;
+      scheduleRadarUpdate();
     }, { passive: true });
+
+    window.addEventListener("scroll", () => {
+      if (lastPtrX > -1000) scheduleRadarUpdate();
+    }, { passive: true });
+
+    document.addEventListener("pointerleave", () => {
+      lastPtrX = -9999;
+      lastPtrY = -9999;
+      clearAllRadarCards();
+    }, { passive: true });
+
+    window.addEventListener("blur", () => {
+      lastPtrX = -9999;
+      lastPtrY = -9999;
+      clearAllRadarCards();
+    });
 
     // Global Tactile Press Ripple on interactive controls
     document.addEventListener("pointerdown", (e) => {
