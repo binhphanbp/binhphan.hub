@@ -964,6 +964,9 @@ code {
 .btn-ok .ripple-wave {
   background: rgba(255, 255, 255, 0.28);
 }
+:is(.btn, .pg-btn, .sec-mini, .m-cell) > .ripple-wave {
+  z-index: -1;
+}
 
 .micro-burst-dot {
   position: fixed;
@@ -2668,7 +2671,8 @@ mark.user-hl {
 .ib-nguon-muc { margin-top: 28px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px 16px; background: var(--bg-subtle); font-size: 0.84rem; }
 .ib-nguon-muc summary { cursor: pointer; font-weight: 600; color: var(--ink-2); }
 .ib-cite { color: var(--ink-3); font-size: 0.92em; }
-.src-kt { font-family: var(--mono); font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; margin-left: 5px; background: var(--brand-soft); color: var(--brand-ink); border: 1px solid var(--brand-border); }
+.src-kt { font-family: var(--mono); font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; margin-left: 5px; background: var(--brand-soft); color: var(--brand-ink); border: 1px solid var(--brand-border); cursor: help; display: inline-block; transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s var(--ease-spring); }
+.src-kt[data-tip]:hover { border-color: var(--brand); transform: translateY(-1px); }
 .tts-an-trich .ib-cite { display: none; }
 
 .bi-alt { color: var(--ink-3); font-size: 0.92em; }
@@ -2993,6 +2997,7 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
 .fc-3d-face {
   grid-area: 1 / 1;
   position: relative;
+  isolation: auto;
   min-width: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -3007,6 +3012,11 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
   gap: 12px;
   box-shadow: var(--shadow-sm);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.fc-3d-face::before,
+.fc-3d-face::after {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .fc-3d-card:hover .fc-3d-face { border-color: var(--brand-border); border-top-color: var(--brand); box-shadow: var(--shadow-hover); }
 .fc-3d-back {
@@ -3273,11 +3283,11 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
     opacity: 0 !important;
     animation: none !important;
   }
-  .btn:hover:not(:disabled):not(.btn-primary):not(.btn-ok):not(.btn-danger):not(.btn-ghost):not(.btn-sound-on):not(.btn-zen-on) {
+  .btn:hover:not(:disabled):not(.btn-primary):not(.btn-ok):not(.btn-danger):not(.btn-ghost):not(.btn-sound-on):not(.btn-zen-on):not(.btn-autoscroll-on) {
     border-color: var(--border);
     color: var(--ink);
   }
-  [data-theme="dark"] .btn:hover:not(:disabled):not(.btn-primary):not(.btn-ok):not(.btn-danger):not(.btn-ghost):not(.btn-sound-on):not(.btn-zen-on) {
+  [data-theme="dark"] .btn:hover:not(:disabled):not(.btn-primary):not(.btn-ok):not(.btn-danger):not(.btn-ghost):not(.btn-sound-on):not(.btn-zen-on):not(.btn-autoscroll-on) {
     border-color: color-mix(in srgb, #ffffff 11%, var(--border));
     color: var(--ink);
   }

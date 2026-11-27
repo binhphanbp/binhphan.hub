@@ -122,7 +122,37 @@
     wave.style.left = (ev.clientX - r.left) + "px";
     wave.style.top = (ev.clientY - r.top) + "px";
     host.appendChild(wave);
-    wave.addEventListener("animationend", () => wave.remove(), { once: true });
+    wave.addEventListener("animationend", () => {
+      wave.remove();
+      if (host.dataset && host.dataset.dynRipple === "1" && !host.querySelector(":scope > .ripple-wave")) {
+        host.classList.remove("ripple-host");
+        delete host.dataset.dynRipple;
+      }
+    }, { once: true });
+  }
+
+  function mutateBtn(btn, fn) {
+    if (!btn) return;
+    const fxNodes = [...btn.querySelectorAll(":scope > .btn-flair, :scope > .ripple-wave")];
+    const wasHovered = btn.classList.contains("is-hovered");
+    fxNodes.forEach((n) => n.remove());
+    fn(btn);
+    if (wasHovered && !btn.disabled) btn.classList.add("is-hovered");
+    for (let i = fxNodes.length - 1; i >= 0; i--) {
+      btn.insertBefore(fxNodes[i], btn.firstChild);
+    }
+    if (activeTipTarget === btn) {
+      const tip = document.getElementById("floatTip");
+      if (tip && tip.classList.contains("show")) positionFloatTip(btn);
+    }
+  }
+
+  function upgradeNativeTitles(root) {
+    (root || document).querySelectorAll("[title]").forEach((el) => {
+      const t = (el.getAttribute("title") || "").trim();
+      if (t && !el.hasAttribute("data-tip")) el.setAttribute("data-tip", t);
+      el.removeAttribute("title");
+    });
   }
 
   let tipTimer = null;
@@ -857,25 +887,31 @@
       metaTc.setAttribute("content", grp[palette] || grp.rose);
     }
     const tb = $("#btnTheme");
-    if (tb) tb.innerHTML = theme === "dark" ? I.sun : I.moon;
+    if (tb) mutateBtn(tb, (b) => { b.innerHTML = theme === "dark" ? I.sun : I.moon; });
     const sb = $("#btnScale");
-    if (sb) sb.textContent = "Aa " + scale.toUpperCase();
+    if (sb) mutateBtn(sb, (b) => { b.textContent = "Aa " + scale.toUpperCase(); });
     const sbMob = $("#btnScaleMob");
-    if (sbMob) sbMob.textContent = ui("Cỡ chữ: ", "Scale: ") + scale.toUpperCase();
+    if (sbMob) mutateBtn(sbMob, (b) => { b.textContent = ui("Cỡ chữ: ", "Scale: ") + scale.toUpperCase(); });
     const zb = $("#btnZen");
     if (zb) {
-      zb.innerHTML = zenMode ? I.minimize : I.maximize;
-      zb.classList.toggle("btn-zen-on", zenMode);
+      mutateBtn(zb, (b) => {
+        b.innerHTML = zenMode ? I.minimize : I.maximize;
+        b.classList.toggle("btn-zen-on", zenMode);
+      });
     }
     const snd = $("#btnSound");
     if (snd) {
-      snd.innerHTML = soundOn ? I.volume : I.volumeMute;
-      snd.classList.toggle("btn-sound-on", soundOn);
+      mutateBtn(snd, (b) => {
+        b.innerHTML = soundOn ? I.volume : I.volumeMute;
+        b.classList.toggle("btn-sound-on", soundOn);
+      });
     }
     const sndMob = $("#btnSoundMob");
     if (sndMob) {
-      sndMob.innerHTML = soundOn ? I.volume : I.volumeMute;
-      sndMob.classList.toggle("btn-sound-on", soundOn);
+      mutateBtn(sndMob, (b) => {
+        b.innerHTML = soundOn ? I.volume : I.volumeMute;
+        b.classList.toggle("btn-sound-on", soundOn);
+      });
     }
     syncAutoScrollButtons();
   }
@@ -923,19 +959,23 @@
     const sp = AUTO_SPEEDS[autoScrollSpeedIdx] || AUTO_SPEEDS[1];
     const b1 = $("#btnAutoScroll");
     if (b1) {
-      b1.innerHTML = autoScrollActive ? I.autoScrollOn : I.autoScrollOff;
-      b1.classList.toggle("btn-autoscroll-on", autoScrollActive);
       b1.setAttribute(
         "data-tip",
         autoScrollActive
           ? ui(`Đang tự động cuộn (${sp.vi}) · Bấm hoặc lăn chuột để dừng · Shift+Click đổi tốc độ`, `Auto-scrolling (${sp.en}) · Click or scroll to pause · Shift+Click for speed`)
           : ui("Bật tự động cuộn trang êm ái (Phím A · Shift+Click đổi tốc độ)", "Enable smooth auto-scroll (Key A · Shift+Click for speed)")
       );
+      mutateBtn(b1, (b) => {
+        b.innerHTML = autoScrollActive ? I.autoScrollOn : I.autoScrollOff;
+        b.classList.toggle("btn-autoscroll-on", autoScrollActive);
+      });
     }
     const b2 = $("#btnAutoScrollMob");
     if (b2) {
-      b2.innerHTML = autoScrollActive ? I.autoScrollOn : I.autoScrollOff;
-      b2.classList.toggle("btn-autoscroll-on", autoScrollActive);
+      mutateBtn(b2, (b) => {
+        b.innerHTML = autoScrollActive ? I.autoScrollOn : I.autoScrollOff;
+        b.classList.toggle("btn-autoscroll-on", autoScrollActive);
+      });
     }
   }
 
@@ -994,8 +1034,10 @@
     const dt = autoScrollLastTs ? Math.min(0.05, Math.max(0.001, (now - autoScrollLastTs) / 1000)) : 0.016;
     autoScrollLastTs = now;
 
-    // Pause cleanly if a modal/drawer is open or during active timed exam (unless pinned manually)
-    const blocked = hasOpenOverlay() || (state.view === "examRun" && !autoScrollPinned);
+    // Pause cleanly if a modal/drawer is open, text is selected, or during active timed exam (unless pinned manually)
+    const sel = window.getSelection && window.getSelection();
+    const hasTextSel = !!(($("#selPopover") && $("#selPopover").classList.contains("show")) || (sel && !sel.isCollapsed && String(sel).trim().length > 1));
+    const blocked = hasOpenOverlay() || hasTextSel || (state.view === "examRun" && !autoScrollPinned);
     const targetSpeed = (blocked || autoScrollSoftHold) ? 0 : (AUTO_SPEEDS[autoScrollSpeedIdx] || AUTO_SPEEDS[1]).px;
     // Smooth viscous velocity ramp (accelerates & decelerates like silk, zero sudden jerk!)
     const accelRate = 1 - Math.pow(0.02, dt);
@@ -1022,7 +1064,10 @@
   }
 
   function startAutoScroll(isManualToggle) {
-    clearTimeout(autoScrollBootTimer);
+    if (autoScrollBootTimer) {
+      clearTimeout(autoScrollBootTimer);
+      autoScrollBootTimer = 0;
+    }
     stopWheelInertia();
     invalidateScrollMetrics();
     const maxY = getMaxScrollY();
@@ -1041,7 +1086,10 @@
   }
 
   function stopAutoScroll(clearPin) {
-    clearTimeout(autoScrollBootTimer);
+    if (autoScrollBootTimer) {
+      clearTimeout(autoScrollBootTimer);
+      autoScrollBootTimer = 0;
+    }
     if (clearPin) autoScrollPinned = false;
     if (!autoScrollActive && !autoScrollRaf) {
       syncAutoScrollButtons();
@@ -1125,6 +1173,12 @@
     SFX.tap();
     zenMode = !zenMode;
     applyThemeAndScale();
+    setTimeout(() => {
+      invalidateScrollMetrics();
+      syncSlidingControls(document);
+      syncTocInk(true);
+      if (onScrollSettledHook) onScrollSettledHook();
+    }, 280);
     showToast(zenMode ? ui("Chế độ đọc tập trung Zen (Bấm Z để thoát)", "Zen focus mode enabled (Press Z to exit)") : ui("Đã khôi phục thanh công cụ", "Workspace panels restored"));
   }
 
@@ -2015,14 +2069,17 @@
           });
           $("#wuExplBody").innerHTML = buildExplInnerHTML(q, oi);
           requestAnimationFrame(() => $("#wuExplAcc").classList.add("is-open"));
+          if (onScrollSettledHook) onScrollSettledHook();
         };
       });
 
       $("#wuStarBtn").onclick = function () {
         const on = toggleStarMcq(q.id);
         if (on) spawnMicroBurst(this, "var(--accent)");
-        this.className = "btn btn-sm " + (on ? "btn-primary" : "btn-ghost");
-        this.innerHTML = on ? I.bookmarkFill : I.bookmark;
+        mutateBtn(this, (b) => {
+          b.className = "btn btn-sm " + (on ? "btn-primary" : "btn-ghost");
+          b.innerHTML = on ? I.bookmarkFill : I.bookmark;
+        });
       };
 
       $("#wuNextBtn").onclick = () => {
@@ -2319,6 +2376,7 @@
 
       activeHeadings = [...lb.querySelectorAll("h2, h3")];
       wrapTablesForScroll(lb);
+      upgradeNativeTitles(lb);
       const tocEl = $("#onPageToc");
       const mobTocEl = $("#mobOnPageToc");
       if (activeHeadings.length) {
@@ -2386,12 +2444,16 @@
           if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(() => {});
           SFX.correct(1);
           spawnMicroBurst(cb, "var(--ok)");
-          cb.classList.add("copied");
-          cb.innerHTML = `${I.checkDraw} <span>${ui("Đã chép", "Copied")}</span>`;
+          mutateBtn(cb, (b) => {
+            b.classList.add("copied");
+            b.innerHTML = `${I.checkDraw} <span>${ui("Đã chép", "Copied")}</span>`;
+          });
           clearTimeout(cb._t);
           cb._t = setTimeout(() => {
-            cb.classList.remove("copied");
-            cb.innerHTML = `${I.copy} <span>${ui("Sao chép", "Copy")}</span>`;
+            mutateBtn(cb, (b) => {
+              b.classList.remove("copied");
+              b.innerHTML = `${I.copy} <span>${ui("Sao chép", "Copy")}</span>`;
+            });
           }, 1600);
         };
         box.insertBefore(cb, box.firstChild);
@@ -2800,8 +2862,8 @@
             <span class="tag">${LV[q.level]}</span>
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm ${isFlag ? "btn-danger" : "btn-ghost"}" data-flag="${i}" title="Phím F">${isFlag ? I.flagFill : I.flag} ${ui("Xem lại", "Flag")}</button>
-            <button class="btn btn-sm ${isStar ? "btn-primary" : "btn-ghost"}" data-star="${esc(q.id)}" title="Phím S">${isStar ? I.bookmarkFill : I.bookmark} ${ui("Lưu", "Save")}</button>
+            <button class="btn btn-sm ${isFlag ? "btn-danger" : "btn-ghost"}" data-flag="${i}" data-tip="${ui("Gắn cờ xem lại (Phím F)", "Flag for review (Key F)")}">${isFlag ? I.flagFill : I.flag} ${ui("Xem lại", "Flag")}</button>
+            <button class="btn btn-sm ${isStar ? "btn-primary" : "btn-ghost"}" data-star="${esc(q.id)}" data-tip="${ui("Lưu câu hỏi này (Phím S)", "Bookmark question (Key S)")}">${isStar ? I.bookmarkFill : I.bookmark} ${ui("Lưu", "Save")}</button>
           </div>
         </div>
         <div class="q-prompt">${L(q, "q")}</div>
@@ -2939,22 +3001,27 @@
         updateExamPaletteDOM(qz, qi);
         saveActiveQuiz();
         renderRail();
+        if (onScrollSettledHook) onScrollSettledHook();
       };
     });
     cardEl.querySelectorAll("[data-flag]").forEach((b) => (b.onclick = () => {
       SFX.tap();
       const idx = +b.dataset.flag;
       if (qz.flagged[idx]) delete qz.flagged[idx]; else { qz.flagged[idx] = true; spawnMicroBurst(b, "var(--warn)"); }
-      b.className = "btn btn-sm " + (qz.flagged[idx] ? "btn-danger" : "btn-ghost");
-      b.innerHTML = `${qz.flagged[idx] ? I.flagFill : I.flag} ${ui("Xem lại", "Flag")}`;
+      mutateBtn(b, (el) => {
+        el.className = "btn btn-sm " + (qz.flagged[idx] ? "btn-danger" : "btn-ghost");
+        el.innerHTML = `${qz.flagged[idx] ? I.flagFill : I.flag} ${ui("Xem lại", "Flag")}`;
+      });
       updateExamPaletteDOM(qz, idx);
       saveActiveQuiz();
     }));
     cardEl.querySelectorAll("[data-star]").forEach((b) => (b.onclick = () => {
       const on = toggleStarMcq(b.dataset.star);
       if (on) spawnMicroBurst(b, "var(--accent)");
-      b.className = "btn btn-sm " + (on ? "btn-primary" : "btn-ghost");
-      b.innerHTML = `${on ? I.bookmarkFill : I.bookmark} ${ui("Lưu", "Save")}`;
+      mutateBtn(b, (el) => {
+        el.className = "btn btn-sm " + (on ? "btn-primary" : "btn-ghost");
+        el.innerHTML = `${on ? I.bookmarkFill : I.bookmark} ${ui("Lưu", "Save")}`;
+      });
     }));
   }
 
@@ -3171,10 +3238,16 @@
         $("#examQuestionsCol").innerHTML = renderExamLeftHtml();
         bindExamLeft();
         updateExamPaletteDOM(qz);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        smoothScrollToY(0, 380);
       } else {
         const t = document.getElementById("exq-" + idx);
-        if (t) t.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (t) {
+          const targetY = t.getBoundingClientRect().top + window.scrollY - Math.max(82, (window.innerHeight - t.offsetHeight) * 0.25);
+          smoothScrollToY(targetY, 460);
+          t.classList.remove("heading-flash");
+          void t.offsetWidth;
+          t.classList.add("heading-flash");
+        }
       }
     }));
 
@@ -3393,14 +3466,17 @@
         renderRail();
         const resetBtn = $("#bkResetWrap");
         if (resetBtn) resetBtn.classList.remove("hidden");
+        if (onScrollSettledHook) onScrollSettledHook();
       };
     });
 
     cardEl.querySelectorAll("[data-star]").forEach((b) => (b.onclick = () => {
       const on = toggleStarMcq(b.dataset.star);
       if (on) spawnMicroBurst(b, "var(--accent)");
-      b.className = "btn btn-sm " + (on ? "btn-primary" : "btn-ghost");
-      b.innerHTML = on ? I.bookmarkFill : I.bookmark;
+      mutateBtn(b, (el) => {
+        el.className = "btn btn-sm " + (on ? "btn-primary" : "btn-ghost");
+        el.innerHTML = on ? I.bookmarkFill : I.bookmark;
+      });
       updateBankFilterCounts();
       if (state.bankFilter === "star" && !on) renderBankListOnly();
     }));
@@ -3458,7 +3534,7 @@
       SFX.tap();
       state.bankPage = +b.dataset.pg;
       renderBankListOnly();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      smoothScrollToY(0, 420);
     }));
   }
 
@@ -3523,8 +3599,10 @@
       const fb = $("#bkMobFilterBtn");
       if (!fb) return;
       const n = (state.bankCh ? 1 : 0) + (state.bankLv ? 1 : 0) + (state.bankFilter !== "all" ? 1 : 0);
-      fb.classList.toggle("btn-primary", n > 0);
-      fb.innerHTML = `${I.filter} <span>${ui("Lọc", "Filters")}${n ? ` (${n})` : ""}</span>`;
+      mutateBtn(fb, (el) => {
+        el.classList.toggle("btn-primary", n > 0);
+        el.innerHTML = `${I.filter} <span>${ui("Lọc", "Filters")}${n ? ` (${n})` : ""}</span>`;
+      });
     };
     syncBkFilterBadge();
     if ($("#bkMobFilterBtn")) $("#bkMobFilterBtn").onclick = () => {
@@ -3615,15 +3693,19 @@
         body.innerHTML = `${L(item, "guide")}<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border-strong);font-size:0.83rem;color:var(--ink-3)"><b style="color:var(--ink)">${ui("Biểu điểm chấm (Rubric):", "Marking Rubric:")}</b> ${L(item, "rubric")}</div>`;
       }
       requestAnimationFrame(() => acc.classList.toggle("is-open", nowOpen));
-      b.className = "btn btn-sm " + (nowOpen ? "" : "btn-primary");
-      b.textContent = nowOpen ? ui("Ẩn lời giải mẫu", "Hide Solution") : ui("Xem lời giải & Biểu điểm", "View Model Solution");
+      mutateBtn(b, (el) => {
+        el.className = "btn btn-sm " + (nowOpen ? "" : "btn-primary");
+        el.textContent = nowOpen ? ui("Ẩn lời giải mẫu", "Hide Solution") : ui("Xem lời giải & Biểu điểm", "View Model Solution");
+      });
     }));
 
     cardEl.querySelectorAll("[data-estar]").forEach((b) => (b.onclick = () => {
       const on = toggleStarEssay(b.dataset.estar);
       if (on) spawnMicroBurst(b, "var(--accent)");
-      b.className = "btn btn-sm " + (on ? "btn-primary" : "btn-ghost");
-      b.innerHTML = on ? I.bookmarkFill : I.bookmark;
+      mutateBtn(b, (el) => {
+        el.className = "btn btn-sm " + (on ? "btn-primary" : "btn-ghost");
+        el.innerHTML = on ? I.bookmarkFill : I.bookmark;
+      });
       const sc = $("#esStarCnt");
       if (sc) sc.textContent = Object.keys(getStarsEssay()).length;
       if (state.essayStarOnly && !on) renderEssayListOnly();
@@ -3733,8 +3815,10 @@
       const fb = $("#esMobFilterBtn");
       if (!fb) return;
       const n = (state.essayCh ? 1 : 0) + (state.essayType ? 1 : 0) + (state.essayExam ? 1 : 0) + (state.essayStarOnly ? 1 : 0);
-      fb.classList.toggle("btn-primary", n > 0);
-      fb.innerHTML = `${I.filter} <span>${ui("Lọc", "Filters")}${n ? ` (${n})` : ""}</span>`;
+      mutateBtn(fb, (el) => {
+        el.classList.toggle("btn-primary", n > 0);
+        el.innerHTML = `${I.filter} <span>${ui("Lọc", "Filters")}${n ? ` (${n})` : ""}</span>`;
+      });
     };
     syncEsFilterBadge();
     if ($("#esMobFilterBtn")) $("#esMobFilterBtn").onclick = () => {
@@ -3757,8 +3841,10 @@
       SFX.tap();
       state.essayRevealAll = !state.essayRevealAll;
       state.essayOpen = {};
-      this.classList.toggle("btn-primary", state.essayRevealAll);
-      this.innerHTML = `${state.essayRevealAll ? I.eyeOff : I.eye} ${state.essayRevealAll ? ui("Thu gọn lời giải", "Collapse All") : ui("Mở toàn bộ lời giải", "Expand All")}`;
+      mutateBtn(this, (el) => {
+        el.classList.toggle("btn-primary", state.essayRevealAll);
+        el.innerHTML = `${state.essayRevealAll ? I.eyeOff : I.eye} ${state.essayRevealAll ? ui("Thu gọn lời giải", "Collapse All") : ui("Mở toàn bộ lời giải", "Expand All")}`;
+      });
       renderEssayListOnly();
     };
 
@@ -3819,7 +3905,7 @@
         const nowOpen = !acc.classList.contains("is-open");
         state.qaOpen[rid] = nowOpen;
         acc.classList.toggle("is-open", nowOpen);
-        togBtn.textContent = nowOpen ? ui("Thu gọn", "Hide") : ui("Xem đáp án", "Reveal");
+        mutateBtn(togBtn, (el) => { el.textContent = nowOpen ? ui("Thu gọn", "Hide") : ui("Xem đáp án", "Reveal"); });
       };
     }
     cardEl.querySelectorAll("[data-tf]").forEach((b) => (b.onclick = () => {
@@ -3828,10 +3914,12 @@
       updateStreak(val === item.tf);
       cardEl.querySelectorAll("[data-tf]").forEach((x) => {
         const xv = x.dataset.tf.endsWith("|1");
-        x.className = "btn btn-sm " + (xv === val ? (val === item.tf ? "btn-ok" : "btn-danger") : "");
+        mutateBtn(x, (el) => {
+          el.className = "btn btn-sm " + (xv === val ? (val === item.tf ? "btn-ok" : "btn-danger") : "");
+        });
       });
       acc.classList.add("is-open");
-      if (togBtn) togBtn.textContent = ui("Thu gọn", "Hide");
+      if (togBtn) mutateBtn(togBtn, (el) => { el.textContent = ui("Thu gọn", "Hide"); });
     }));
   }
 
@@ -3962,6 +4050,7 @@
           const scene = $("#fcScene"), tilt = $("#fcTilt");
           if (scene && tilt) {
             scene.onpointermove = (e) => {
+              if (e.pointerType === "touch") return;
               const r = scene.getBoundingClientRect();
               const nx = (e.clientX - r.left) / r.width - 0.5;
               const ny = (e.clientY - r.top) / r.height - 0.5;
@@ -3978,6 +4067,8 @@
             let dragX0 = null;
             const card = $("#fcCard");
             card.onpointerdown = (ev) => { dragX0 = ev.clientX; };
+            card.onpointercancel = () => { dragX0 = null; };
+            card.onpointerleave = () => { dragX0 = null; };
             card.onpointerup = (ev) => {
               if (dragX0 !== null) {
                 const dx = ev.clientX - dragX0;
@@ -4000,6 +4091,7 @@
               SFX.flip();
               state.fcBack = !state.fcBack;
               this.classList.toggle("is-flipped", state.fcBack);
+              if (onScrollSettledHook) onScrollSettledHook();
             };
           }
           if ($("#fcPrev")) $("#fcPrev").onclick = () => {
@@ -4026,8 +4118,10 @@
           stg.querySelectorAll("[data-fck]").forEach((b) => (b.onclick = function () {
             const on = toggleFcKnown(+b.dataset.fck);
             if (on) SFX.correct(1); else SFX.tap();
-            this.className = "btn btn-sm " + (on ? "btn-ok" : "");
-            this.textContent = on ? ui("Đã thuộc", "Known") : ui("Đánh dấu", "Mark");
+            mutateBtn(this, (el) => {
+              el.className = "btn btn-sm " + (on ? "btn-ok" : "");
+              el.textContent = on ? ui("Đã thuộc", "Known") : ui("Đánh dấu", "Mark");
+            });
             const tc2 = $("#fcTodoCnt"), kc2 = $("#fcKnownCnt");
             const kn2 = getFcKnown();
             if (tc2) tc2.textContent = FLASHCARDS.length - Object.keys(kn2).length;
@@ -4063,7 +4157,9 @@
         if ($("#btnFcView")) $("#btnFcView").onclick = function () {
           SFX.tap();
           state.fcTable = !state.fcTable;
-          this.textContent = state.fcTable ? ui("Chuyển sang Thẻ lật 3D", "3D Card Deck") : ui("Xem dạng Bảng tra cứu", "Glossary Table");
+          mutateBtn(this, (el) => {
+            el.textContent = state.fcTable ? ui("Chuyển sang Thẻ lật 3D", "3D Card Deck") : ui("Xem dạng Bảng tra cứu", "Glossary Table");
+          });
           paintFcStage();
         };
       } else if (state.revTab === "qa") {
@@ -4661,9 +4757,9 @@
     updateSegThumb($("#langSeg"));
     updateSegThumb($("#langSegMob"));
     const mobLang = $("#btnMobLang");
-    if (mobLang) mobLang.textContent = LANG() === "bi" ? "VI·EN" : LANG().toUpperCase();
+    if (mobLang) mutateBtn(mobLang, (b) => { b.textContent = LANG() === "bi" ? "VI·EN" : LANG().toUpperCase(); });
     const pwaBtn = $("#btnPwaInstall");
-    if (pwaBtn) pwaBtn.innerHTML = `${I.download} <span>${ui("Cài ứng dụng về máy (PWA)", "Install Offline App")}</span>`;
+    if (pwaBtn) mutateBtn(pwaBtn, (b) => { b.innerHTML = `${I.download} <span>${ui("Cài ứng dụng về máy (PWA)", "Install Offline App")}</span>`; });
     const sl = $("#searchPlaceholder");
     if (sl) sl.textContent = ui("Tìm kiếm...", "Search...");
 
@@ -4682,6 +4778,7 @@
       case "stats": renderStats(main); break;
       default: renderHome(main);
     }
+    upgradeNativeTitles(main);
     syncSlidingControls(main);
     onWindowScroll();
   }
@@ -4761,7 +4858,9 @@
     if (!isPageScrolling) {
       isPageScrolling = true;
       document.documentElement.classList.add("is-scrolling");
-      hideFloatTip(true);
+      if (!activeTipTarget || !activeTipTarget.closest || !activeTipTarget.closest(".topbar, .rail, .mob-tabbar")) {
+        hideFloatTip(true);
+      }
       const selPop = $("#selPopover");
       if (selPop && selPop.classList.contains("show")) selPop.classList.remove("show");
     }
@@ -4994,6 +5093,8 @@
 
       for (let i = 0; i < candidates.length; i++) {
         const el = candidates[i];
+        if (el.classList.contains("fc-3d-back") && !el.closest(".is-flipped")) continue;
+        if (el.classList.contains("fc-3d-front") && el.closest(".is-flipped")) continue;
         const r = el.getBoundingClientRect();
         if (r.width < 10 || r.height < 10) continue;
         if (r.bottom < -RADAR_REACH || r.top > vh + RADAR_REACH || r.right < -RADAR_REACH || r.left > vw + RADAR_REACH) continue;
@@ -5090,7 +5191,7 @@
     }
 
     window.addEventListener("wheel", (e) => {
-      if (autoScrollActive) stopAutoScroll(true);
+      if (autoScrollActive || autoScrollBootTimer) stopAutoScroll(true);
       if (programmaticScrollAnim) {
         cancelAnimationFrame(programmaticScrollAnim);
         programmaticScrollAnim = 0;
@@ -5120,15 +5221,16 @@
       if (!wheelRaf) wheelRaf = requestAnimationFrame(runWheelGlide);
     }, { passive: false });
 
-    window.addEventListener("touchstart", () => {
-      if (autoScrollActive) stopAutoScroll(true);
+    window.addEventListener("touchstart", (e) => {
+      const inChrome = e.target && e.target.closest && e.target.closest(".topbar, .rail, .mob-tabbar");
+      if (!inChrome && (autoScrollActive || autoScrollBootTimer)) stopAutoScroll(true);
       stopWheelInertia();
     }, { passive: true });
 
     window.addEventListener("mousedown", (e) => {
       // Clicking native scrollbar thumb/track immediately yields control
       if (e.clientX >= document.documentElement.clientWidth - 16) {
-        if (autoScrollActive) stopAutoScroll(true);
+        if (autoScrollActive || autoScrollBootTimer) stopAutoScroll(true);
         stopWheelInertia();
       }
     }, { passive: true });
@@ -5154,6 +5256,7 @@
         if (!host.classList.contains("nav-item") && !host.classList.contains("nav-sub")) {
           spawnRipple(host, e);
         } else {
+          if (!host.classList.contains("ripple-host")) host.dataset.dynRipple = "1";
           host.classList.add("ripple-host");
           spawnRipple(host, e);
         }
@@ -5311,7 +5414,25 @@
       railHoverTarget = null;
       syncRailHoverPill();
     });
-    railNav.addEventListener("scroll", () => hideFloatTip(true), { passive: true });
+    let railScrollSettle = 0;
+    railNav.addEventListener("scroll", () => {
+      hideFloatTip(true);
+      if (railHoverTarget) {
+        railHoverTarget = null;
+        syncRailHoverPill();
+      }
+      clearTimeout(railScrollSettle);
+      railScrollSettle = setTimeout(() => {
+        if (lastPtrX > -1000) {
+          const hit = document.elementFromPoint(lastPtrX, lastPtrY);
+          const ni = hit && hit.closest && hit.closest("#railNav .nav-item");
+          if (ni) {
+            railHoverTarget = ni;
+            syncRailHoverPill();
+          }
+        }
+      }, 110);
+    }, { passive: true });
 
     railNav.addEventListener("click", (e) => {
       const chevBtn = e.target.closest("[data-ch-toggle]");
@@ -5382,6 +5503,12 @@
         if (zenMode) zenMode = false;
         document.body.classList.toggle("rail-collapsed");
         applyThemeAndScale();
+        setTimeout(() => {
+          invalidateScrollMetrics();
+          syncSlidingControls(document);
+          syncTocInk(true);
+          if (onScrollSettledHook) onScrollSettledHook();
+        }, 280);
       }
     };
     $("#railBackdrop").onclick = () => setMobRail(false);
@@ -5619,10 +5746,17 @@
       }
     });
 
-    $("#ttsPauseBtn").onclick = () => {
+    $("#ttsPauseBtn").onclick = function () {
       if (!synth) return;
-      if (tts.paused) { synth.resume(); tts.paused = false; $("#ttsPauseBtn").innerHTML = I.pause; }
-      else { synth.pause(); tts.paused = true; $("#ttsPauseBtn").innerHTML = I.play; }
+      if (tts.paused) {
+        synth.resume();
+        tts.paused = false;
+        mutateBtn(this, (b) => { b.innerHTML = I.pause; });
+      } else {
+        synth.pause();
+        tts.paused = true;
+        mutateBtn(this, (b) => { b.innerHTML = I.play; });
+      }
     };
     $("#ttsStopBtn").onclick = stopTTS;
 
@@ -5671,7 +5805,7 @@
 
       // Pause auto-scroll immediately on manual scroll keys
       if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End"].includes(e.key) || (e.code === "Space" && state.view !== "revision")) {
-        if (autoScrollActive) stopAutoScroll(true);
+        if (autoScrollActive || autoScrollBootTimer) stopAutoScroll(true);
         stopWheelInertia();
       }
 
