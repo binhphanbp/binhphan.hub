@@ -3167,27 +3167,195 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
 
 .modal-card { width: min(460px, 100%); background: var(--surface-elevated); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-modal); padding: 22px 24px; }
 
-.cmd-dialog { width: min(640px, 100%); background: var(--surface-elevated); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-modal); overflow: hidden; display: flex; flex-direction: column; max-height: 74vh; }
-.cmd-bar { display: flex; align-items: center; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--border); }
-.cmd-bar input { flex: 1; border: 0; background: transparent; font-size: 0.95rem; color: var(--ink); outline: none; }
-.cmd-results { overflow-y: auto; padding: 6px; }
+.cmd-dialog { width: min(680px, 100%); background: var(--surface-elevated); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-modal); overflow: hidden; display: flex; flex-direction: column; max-height: 78vh; }
+.cmd-bar { display: flex; align-items: center; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.cmd-bar input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 0.95rem; color: var(--ink); outline: none; }
+.cmd-bar input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.cmd-clear-btn {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bg-muted);
+  color: var(--ink-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.14s ease, color 0.14s ease, transform 0.14s var(--ease-spring);
+}
+.cmd-clear-btn:hover { background: var(--brand-soft); color: var(--brand); transform: scale(1.08); }
+.cmd-scope-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.cmd-scope-bar::-webkit-scrollbar { display: none; }
+.cmd-scope-pill {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 0.74rem;
+  font-weight: 560;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+.cmd-scope-pill:hover { border-color: var(--brand-border); color: var(--ink); }
+.cmd-scope-pill:active { transform: scale(0.95); }
+.cmd-scope-pill.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #ffffff;
+  font-weight: 640;
+}
+.cmd-scope-cnt {
+  font-family: var(--mono);
+  font-size: 0.67rem;
+  opacity: 0.85;
+  padding: 0 4.5px;
+  border-radius: 99px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+.cmd-scope-pill.active .cmd-scope-cnt {
+  background: rgba(255, 255, 255, 0.22);
+  opacity: 1;
+}
+.cmd-results { overflow-y: auto; padding: 8px; flex: 1; }
+.cmd-group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px 4px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 660;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  color: var(--ink-3);
+}
+.cmd-group-head:not(:first-child) {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+.cmd-zero-sec { padding: 6px 8px 10px; }
+.cmd-zero-lbl {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 660;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.cmd-chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+.cmd-chip {
+  height: 27px;
+  padding: 0 10.5px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--ink-2);
+  font-size: 0.76rem;
+  font-weight: 540;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+.cmd-chip:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-ink); transform: translateY(-1px); }
+.cmd-chip:active { transform: scale(0.96); }
 .cmd-row {
   position: relative;
   overflow: hidden;
-  padding: 9px 11px;
+  padding: 9.5px 11px;
   border-radius: var(--r-sm);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   cursor: pointer;
   transition: background-color 0.12s ease, transform 0.12s var(--ease-out);
 }
+.cmd-row > svg.ico { margin-top: 2px; color: var(--ink-3); }
 .cmd-row.active { background: var(--brand-soft); transform: translateX(2px); }
-.cmd-row.active svg.ico { color: var(--brand); }
+.cmd-row.active > svg.ico { color: var(--brand); }
 .cmd-row.active .cmd-row-title { color: var(--brand-ink); font-weight: 620; }
+[data-theme="dark"] .cmd-row.active .cmd-row-title { color: #ffffff; }
 .cmd-row-main { flex: 1; min-width: 0; }
-.cmd-row-title { font-size: 0.86rem; font-weight: 560; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cmd-row-sub { font-size: 0.76rem; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmd-row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cmd-row-title { font-size: 0.86rem; font-weight: 570; color: var(--ink); line-height: 1.38; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.cmd-row-badge {
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 620;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.cmd-row.active .cmd-row-badge { border-color: var(--brand-border); color: var(--brand-ink); background: var(--surface); }
+.cmd-row-sub {
+  font-size: 0.765rem;
+  color: var(--ink-3);
+  line-height: 1.44;
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cmd-more-row {
+  color: var(--brand-ink);
+  font-size: 0.79rem;
+  font-weight: 600;
+  align-items: center;
+  padding: 7px 11px;
+}
+mark.search-hl {
+  background: color-mix(in srgb, var(--warn) 28%, var(--brand-soft));
+  color: inherit;
+  font-weight: 650;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+[data-theme="dark"] mark.search-hl {
+  background: rgba(251, 191, 36, 0.28);
+  color: #fef08a;
+}
+.cmd-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-subtle);
+  font-size: 0.73rem;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+.cmd-foot-hints { display: flex; align-items: center; gap: 14px; }
 
 .lightbox-card { width: min(1040px, 96vw); max-height: 90vh; background: var(--surface-elevated); color: var(--ink); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-modal); display: flex; flex-direction: column; overflow: hidden; }
 .lightbox-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface-elevated); color: var(--ink); }
@@ -4211,16 +4379,26 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
   <button type="button" class="btn btn-sm btn-icon btn-danger" id="ttsStopBtn" aria-label="Dừng đọc"></button>
 </div>
 
-<!-- Command Palette (Ctrl + K) -->
+<!-- Global Academic Search & Command Studio (Ctrl + K) -->
 <div class="overlay hidden" id="cmdOverlay">
-  <div class="cmd-dialog">
+  <div class="cmd-dialog" role="dialog" aria-modal="true" aria-label="Tìm kiếm toàn cục học phần BAF736">
     <div class="cmd-bar">
-      <span id="cmdBarIcon" class="muted"></span>
-      <input type="search" id="cmdInput" placeholder="Tìm chương mục, câu hỏi trắc nghiệm, tự luận, thuật ngữ..." autocomplete="off">
+      <span id="cmdBarIcon" class="muted" style="display:inline-flex"></span>
+      <input type="search" id="cmdInput" placeholder="Tìm bài giảng, công thức, câu hỏi (có dấu hoặc không dấu: dung so, WACC, LBO...)" autocomplete="off">
+      <button type="button" class="cmd-clear-btn hidden" id="cmdClearBtn" aria-label="Xoá từ khoá"></button>
       <span class="kbd desk-kbd-hint">ESC</span>
       <button type="button" class="btn btn-ghost btn-sm mob-only-btn" id="cmdCloseBtn">Đóng</button>
     </div>
+    <div class="cmd-scope-bar hidden" id="cmdScopeBar"></div>
     <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-foot desk-kbd-hint" id="cmdFoot">
+      <div class="cmd-foot-hints">
+        <span><span class="kbd">↑</span> <span class="kbd">↓</span> Di chuyển</span>
+        <span><span class="kbd">Tab</span> Lọc nhóm</span>
+        <span><span class="kbd">Enter</span> Mở ngay</span>
+      </div>
+      <span class="mono" id="cmdStatsTxt"></span>
+    </div>
   </div>
 </div>
 
@@ -25557,7 +25735,8 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       "ibc_stars_essay",
       "ibc_fc_known",
       "ibc_active_quiz",
-      "ibc_ma_mo"
+      "ibc_ma_mo",
+      "ibc_recent_searches"
     ];
     try {
       STUDY_KEYS.forEach((k) => localStorage.removeItem(k));
@@ -26139,6 +26318,9 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     labGroup: "ch",
     labKey: "1",
     cmdActiveIdx: 0,
+    cmdScope: "all",
+    bankExpandQuery: "",
+    essayExpandQuery: "",
 
     warmupQid: null,
     warmupPick: null,
@@ -28387,16 +28569,19 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     if (!zone) return;
     const stars = getStarsMcq();
     const wrongs = getWrongMcq();
-    const kw = state.bankSearch.trim().toLowerCase();
+    const rawKw = state.bankSearch.trim();
+    const qPlan = buildSearchPlan(rawKw);
 
     const filtered = MCQS.filter((q) => {
       if (state.bankCh && q.ch !== state.bankCh) return false;
       if (state.bankLv && q.level !== state.bankLv) return false;
       if (state.bankFilter === "star" && !stars[q.id]) return false;
       if (state.bankFilter === "wrong" && !wrongs[q.id]) return false;
-      if (kw) {
-        const hay = [q.id, q.q, q.qVi, ...(q.opts || []), ...(q.optsVi || []), q.expl, q.explVi].filter(Boolean).join(" ").toLowerCase();
-        if (!hay.includes(kw)) return false;
+      if (qPlan.hasQuery) {
+        if (q._normHay === undefined) {
+          q._normHay = normVi([q.id, q.q, q.qVi, ...(q.opts || []), ...(q.optsVi || []), q.expl, q.explVi].filter(Boolean).join(" "));
+        }
+        if (!matchesSearchPlan(q._normHay, qPlan)) return false;
       }
       return true;
     });
@@ -28407,7 +28592,24 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     const slice = filtered.slice(state.bankPage * PAGE, (state.bankPage + 1) * PAGE);
 
     const metaEl = $("#bankMetaText");
-    if (metaEl) metaEl.textContent = ui(`Kết quả: ${filtered.length} câu · Trang ${state.bankPage + 1}/${pages}`, `${filtered.length} results · Page ${state.bankPage + 1}/${pages}`);
+    if (metaEl) {
+      const baseMeta = ui(`Kết quả: ${filtered.length} câu · Trang ${state.bankPage + 1}/${pages}`, `${filtered.length} results · Page ${state.bankPage + 1}/${pages}`);
+      if (state.bankExpandQuery && state.bankSearch && state.bankExpandQuery !== state.bankSearch) {
+        metaEl.innerHTML = `${esc(baseMeta)} · <button type="button" class="btn btn-ghost btn-sm" id="btnBankExpandAll" style="height:24px;padding:0 8px;color:var(--brand-ink)">${ui(`Xem toàn bộ câu khớp "${state.bankExpandQuery}"`, `Show all matching "${state.bankExpandQuery}"`)}</button>`;
+        const expBtn = $("#btnBankExpandAll");
+        if (expBtn) expBtn.onclick = () => {
+          SFX.tap();
+          state.bankSearch = state.bankExpandQuery;
+          state.bankExpandQuery = "";
+          state.bankPage = 0;
+          const inp = $("#bkSearch");
+          if (inp) { inp.value = state.bankSearch; inp.dispatchEvent(new Event("input")); }
+          else renderBankListOnly();
+        };
+      } else {
+        metaEl.textContent = baseMeta;
+      }
+    }
     const resetWrap = $("#bkResetWrap");
     if (resetWrap) resetWrap.classList.toggle("hidden", Object.keys(state.bankPicked).length === 0);
 
@@ -28415,6 +28617,10 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       ? slice.map((q, i) => buildBankCardHTML(q, i)).join("")
       : `<div class="panel panel-pad muted" style="text-align:center;padding:40px">${ui("Không có câu hỏi nào khớp điều kiện lọc.", "No matching questions.")}</div>`)
       + buildPageNumbers(state.bankPage, pages);
+
+    if (qPlan.hasQuery && slice.length) {
+      zone.querySelectorAll(".q-prompt, .opt-txt, .expl-panel").forEach((el) => highlightDomTextNodes(el, qPlan.hlTerms));
+    }
 
     zone.querySelectorAll(".q-item").forEach(wireBankCard);
     zone.querySelectorAll("[data-pg]").forEach((b) => (b.onclick = () => {
@@ -28603,24 +28809,46 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     const zone = $("#essayListZone");
     if (!zone) return;
     const stars = getStarsEssay();
-    const kw = state.essaySearch.trim().toLowerCase();
+    const rawKw = state.essaySearch.trim();
+    const qPlan = buildSearchPlan(rawKw);
     const shown = ESSAYS.filter((e) => {
       if (state.essayCh && e.ch !== state.essayCh) return false;
       if (state.essayType && e.type !== state.essayType) return false;
       const ex = e.exam || "both";
       if (state.essayExam && ex !== state.essayExam && ex !== "both") return false;
       if (state.essayStarOnly && !stars[e.id]) return false;
-      if (kw) {
-        const hay = [e.id, e.q, e.qVi, e.guide, e.guideVi].filter(Boolean).join(" ").toLowerCase();
-        if (!hay.includes(kw)) return false;
+      if (qPlan.hasQuery) {
+        if (e._normHay === undefined) {
+          e._normHay = normVi([e.id, e.q, e.qVi, e.guide, e.guideVi, e.rubric, e.rubricVi].filter(Boolean).join(" "));
+        }
+        if (!matchesSearchPlan(e._normHay, qPlan)) return false;
       }
       return true;
     });
     const metaEl = $("#essayMetaText");
-    if (metaEl) metaEl.textContent = ui(`Hiển thị ${shown.length} / ${ESSAYS.length} bài`, `Showing ${shown.length} of ${ESSAYS.length} problems`);
+    if (metaEl) {
+      const baseMeta = ui(`Hiển thị ${shown.length} / ${ESSAYS.length} bài`, `Showing ${shown.length} of ${ESSAYS.length} problems`);
+      if (state.essayExpandQuery && state.essaySearch && state.essayExpandQuery !== state.essaySearch) {
+        metaEl.innerHTML = `${esc(baseMeta)} · <button type="button" class="btn btn-ghost btn-sm" id="btnEssayExpandAll" style="height:24px;padding:0 8px;color:var(--brand-ink)">${ui(`Xem toàn bộ bài khớp "${state.essayExpandQuery}"`, `Show all matching "${state.essayExpandQuery}"`)}</button>`;
+        const expBtn = $("#btnEssayExpandAll");
+        if (expBtn) expBtn.onclick = () => {
+          SFX.tap();
+          state.essaySearch = state.essayExpandQuery;
+          state.essayExpandQuery = "";
+          const inp = $("#esSearch");
+          if (inp) { inp.value = state.essaySearch; inp.dispatchEvent(new Event("input")); }
+          else renderEssayListOnly();
+        };
+      } else {
+        metaEl.textContent = baseMeta;
+      }
+    }
     zone.innerHTML = shown.length
       ? shown.map((e, idx) => buildEssayCardHTML(e, idx)).join("")
       : `<div class="panel panel-pad muted" style="text-align:center;padding:40px">${ui("Không tìm thấy bài tập phù hợp.", "No matching items.")}</div>`;
+    if (qPlan.hasQuery && shown.length) {
+      zone.querySelectorAll(".prose").forEach((el) => highlightDomTextNodes(el, qPlan.hlTerms));
+    }
     zone.querySelectorAll(".q-item").forEach(wireEssayCard);
   }
 
@@ -29076,7 +29304,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
           ${CHAPTERS.map((c, idx) => {
             const f = (lg) => (lg === "vi" && FORMULAS_VI[c.id]) || FORMULAS[c.id] || "—";
             return `
-              <div class="panel panel-pad panel-hover spot-surface stagger" style="--i:${idx}">
+              <div class="panel panel-pad panel-hover spot-surface stagger" data-formula-ch="${c.id}" style="--i:${idx}">
                 <div class="kicker">CHƯƠNG 0${c.id}</div>
                 <h3 style="font-size:1rem;margin-bottom:10px">${L(c, "title")}</h3>
                 <div style="font-size:0.9rem;line-height:1.85;color:var(--ink-2)">${theoNN(f)}</div>
@@ -29500,17 +29728,734 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
   }
 
   /* ======================================================================
-     COMMAND PALETTE (CTRL+K WITH SMOOTH ENTER/EXIT + ARROW NAVIGATION)
+     FULL-CORPUS VIETNAMESE DIACRITIC-INSENSITIVE ACADEMIC SEARCH STUDIO
      ====================================================================== */
-  function openCmd() {
+  function stripHtmlPlain(htmlStr) {
+    if (!htmlStr) return "";
+    return String(htmlStr)
+      .replace(/<\/(p|li|h[1-6]|tr|div|blockquote|section|article)>|<br\s*\/?>/gi, " · ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, " ")
+      .replace(/(?:\s*·\s*)+/g, " · ")
+      .trim();
+  }
+
+  function normVi(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/[đĐ]/g, "d")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function normWithMap(str) {
+    const s = String(str || "");
+    let norm = "";
+    const map = [];
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      const base = (ch === "đ" || ch === "Đ")
+        ? "d"
+        : ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      for (let k = 0; k < base.length; k++) {
+        norm += base[k];
+        map.push(i);
+      }
+    }
+    return { orig: s, norm, map };
+  }
+
+  function tokenizeVi(raw) {
+    const n = normVi(raw);
+    if (!n) return [];
+    return n.split(/[\s,;]+/).filter((t) => t.length > 0).slice(0, 8);
+  }
+
+  const isAlphaNumCode = (c) => (c >= 97 && c <= 122) || (c >= 48 && c <= 57);
+
+  function indexOfWordTerm(normHay, term, fromIdx) {
+    if (!term || !normHay) return -1;
+    let pos = fromIdx || 0;
+    const tLen = term.length;
+    const hLen = normHay.length;
+    while (pos <= hLen - tLen) {
+      const idx = normHay.indexOf(term, pos);
+      if (idx === -1) return -1;
+      const prevOk = idx === 0 || !isAlphaNumCode(normHay.charCodeAt(idx - 1));
+      if (prevOk) {
+        // Short 1-3 letter tokens require word-end boundary too unless numeric/hyphenated
+        if (tLen <= 3) {
+          const endIdx = idx + tLen;
+          const nextOk = endIdx >= hLen || !isAlphaNumCode(normHay.charCodeAt(endIdx));
+          if (nextOk) return idx;
+        } else {
+          return idx;
+        }
+      }
+      pos = idx + 1;
+    }
+    return -1;
+  }
+
+  // Domain-Curated Investment Banking Bilingual Synonym & Alias Bridge
+  const IB_SYNONYM_PHRASES = [
+    ["pha loang", ["pha loang", "dilut", "lam giam lai co ban", "suy giam"]],
+    ["boi dap", ["boi dap", "accret", "lam tang lai co ban"]],
+    ["dung so", ["dung so", "bookbuilding", "book-building"]],
+    ["vien thuoc doc", ["vien thuoc doc", "poison pill"]],
+    ["hiep si trang", ["hiep si trang", "white knight"]],
+    ["quyen chon mua them", ["quyen chon mua them", "greenshoe", "over-allotment"]],
+    ["phan bo vuot muc", ["phan bo vuot muc", "greenshoe", "over-allotment"]],
+    ["mua lai bang von vay", ["mua lai bang von vay", "lbo", "leveraged buyout"]],
+    ["chiet khau dong tien", ["chiet khau dong tien", "dcf", "discounted cash flow"]],
+    ["chi phi von binh quan", ["chi phi von binh quan", "wacc"]],
+    ["phong ve thon tinh", ["phong ve", "anti-takeover", "poison pill", "staggered board", "white knight"]]
+  ];
+
+  function buildSearchPlan(rawQuery) {
+    const fullNorm = normVi(rawQuery);
+    if (!fullNorm) return { hasQuery: false, fullNorm: "", groups: [], hlTerms: [], needsProximity: false };
+
+    let rem = fullNorm;
+    const groups = [];
+    const hlSet = new Set();
+    if (fullNorm.length >= 2) hlSet.add(fullNorm);
+
+    for (let i = 0; i < IB_SYNONYM_PHRASES.length; i++) {
+      const [phrase, alts] = IB_SYNONYM_PHRASES[i];
+      if (indexOfWordTerm(rem, phrase, 0) !== -1) {
+        groups.push(alts);
+        alts.forEach((a) => hlSet.add(a));
+        rem = rem.split(phrase).join(" ").replace(/\s+/g, " ").trim();
+      }
+    }
+
+    const remTokens = rem ? rem.split(/[\s,;]+/).filter(Boolean).slice(0, 6) : [];
+    remTokens.forEach((tk) => {
+      groups.push([tk]);
+      hlSet.add(tk);
+    });
+
+    const rawToks = tokenizeVi(rawQuery);
+    const allShortVi = rawToks.length >= 2 && rawToks.every((t) => t.length <= 4 && !/\d/.test(t));
+    // Prioritize multi-word phrases first for clean highlighting
+    const hlTerms = [...hlSet].sort((a, b) => b.length - a.length);
+    return {
+      hasQuery: groups.length > 0,
+      fullNorm,
+      rawLower: String(rawQuery || "").trim().toLowerCase(),
+      groups,
+      rawToks,
+      hlTerms,
+      needsProximity: allShortVi
+    };
+  }
+
+  function matchesSearchPlan(normHay, plan) {
+    if (!plan.hasQuery) return true;
+    if (!normHay) return false;
+    // Fast exact phrase check
+    if (plan.fullNorm.length >= 2 && indexOfWordTerm(normHay, plan.fullNorm, 0) !== -1) return true;
+
+    const firstPositions = [];
+    for (let g = 0; g < plan.groups.length; g++) {
+      const alts = plan.groups[g];
+      let foundIdx = -1;
+      for (let a = 0; a < alts.length; a++) {
+        const idx = indexOfWordTerm(normHay, alts[a], 0);
+        if (idx !== -1 && (foundIdx === -1 || idx < foundIdx)) foundIdx = idx;
+      }
+      if (foundIdx === -1) return false;
+      firstPositions.push(foundIdx);
+    }
+
+    // Eliminate scattered false positives on short Vietnamese syllable pairs (e.g. "dung so" != "sử dụng ... 300 chữ ... hệ số")
+    if (plan.needsProximity && plan.groups.length >= 2) {
+      const g0 = plan.groups[0];
+      for (let a = 0; a < g0.length; a++) {
+        let p = indexOfWordTerm(normHay, g0[a], 0);
+        while (p !== -1) {
+          const winStart = Math.max(0, p - 46);
+          const winSlice = normHay.slice(winStart, p + 62);
+          let allNear = true;
+          for (let g = 1; g < plan.groups.length; g++) {
+            const ok = plan.groups[g].some((alt) => indexOfWordTerm(winSlice, alt, 0) !== -1);
+            if (!ok) { allNear = false; break; }
+          }
+          if (allNear) return true;
+          p = indexOfWordTerm(normHay, g0[a], p + 1);
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  function computeHighlightRanges(norm, map, origLen, terms) {
+    if (!terms || !terms.length || !norm) return [];
+    const sorted = [...new Set(terms)].filter(Boolean).sort((a, b) => b.length - a.length);
+    // If a multi-word phrase (>=5 chars with space) matches in this text, skip tiny <=3 char single-syllable noise highlights!
+    const hasPhraseHit = sorted.some((t) => t.includes(" ") && t.length >= 5 && indexOfWordTerm(norm, t, 0) !== -1);
+    const rawRanges = [];
+    for (let t = 0; t < sorted.length; t++) {
+      const tok = sorted[t];
+      if (hasPhraseHit && !tok.includes(" ") && tok.length <= 4) continue;
+      let from = 0;
+      while (from <= norm.length - tok.length) {
+        const idx = indexOfWordTerm(norm, tok, from);
+        if (idx === -1) break;
+        const origStart = map[idx];
+        const origEnd = (idx + tok.length - 1 < map.length ? map[idx + tok.length - 1] + 1 : origLen);
+        rawRanges.push([origStart, origEnd]);
+        from = idx + Math.max(1, tok.length);
+      }
+    }
+    if (!rawRanges.length) return [];
+    rawRanges.sort((a, b) => a[0] - b[0] || b[1] - a[1]);
+    const merged = [rawRanges[0]];
+    for (let i = 1; i < rawRanges.length; i++) {
+      const prev = merged[merged.length - 1];
+      const cur = rawRanges[i];
+      if (cur[0] <= prev[1]) prev[1] = Math.max(prev[1], cur[1]);
+      else merged.push(cur);
+    }
+    return merged;
+  }
+
+  function highlightPlainToHtml(text, tokens) {
+    const s = String(text || "");
+    if (!s) return "";
+    if (!tokens || !tokens.length) return esc(s);
+    const { norm, map } = normWithMap(s);
+    const ranges = computeHighlightRanges(norm, map, s.length, tokens);
+    if (!ranges.length) return esc(s);
+    let out = "";
+    let cursor = 0;
+    for (let i = 0; i < ranges.length; i++) {
+      const [a, b] = ranges[i];
+      if (a > cursor) out += esc(s.slice(cursor, a));
+      out += `<mark class="search-hl">${esc(s.slice(a, b))}</mark>`;
+      cursor = b;
+    }
+    if (cursor < s.length) out += esc(s.slice(cursor));
+    return out;
+  }
+
+  function extractContextSnippet(plainBody, fallbackSub, tokens, maxChars) {
+    const limit = maxChars || 132;
+    const src = String(plainBody || fallbackSub || "").trim();
+    if (!src) return "";
+    if (!tokens || !tokens.length) return esc(src.slice(0, limit) + (src.length > limit ? "…" : ""));
+    const { norm, map } = normWithMap(src);
+    let bestNormIdx = -1;
+    // Prefer exact multi-word phrase or longest term at word boundary
+    const sorted = [...tokens].sort((a, b) => b.length - a.length);
+    for (let i = 0; i < sorted.length; i++) {
+      const pos = indexOfWordTerm(norm, sorted[i], 0);
+      if (pos !== -1) { bestNormIdx = pos; break; }
+    }
+    if (bestNormIdx === -1) {
+      const fb = String(fallbackSub || src).slice(0, limit);
+      return highlightPlainToHtml(fb, tokens) + (src.length > limit ? "…" : "");
+    }
+    const centerOrig = map[bestNormIdx] || 0;
+    let start = Math.max(0, centerOrig - 42);
+    if (start > 0) {
+      const sp = src.indexOf(" ", start);
+      if (sp !== -1 && sp < centerOrig) start = sp + 1;
+    }
+    let end = Math.min(src.length, start + limit);
+    if (end < src.length) {
+      const sp2 = src.lastIndexOf(" ", end);
+      if (sp2 > centerOrig + 16) end = sp2;
+    }
+    const slice = src.slice(start, end).replace(/^·\s*|\s*·$/g, "").trim();
+    return (start > 0 ? "…" : "") + highlightPlainToHtml(slice, tokens) + (end < src.length ? "…" : "");
+  }
+
+  function highlightDomTextNodes(rootEl, tokens) {
+    if (!rootEl || !tokens || !tokens.length) return 0;
+    const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        const p = node.parentElement;
+        if (!p) return NodeFilter.FILTER_REJECT;
+        const tag = p.tagName;
+        if (tag === "SCRIPT" || tag === "STYLE" || tag === "MARK" || p.closest(".callout-copy-btn, .hd-anchor, .opt-elim-btn")) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const textNodes = [];
+    let cur;
+    while ((cur = walker.nextNode())) textNodes.push(cur);
+    let hitCount = 0;
+    for (let i = 0; i < textNodes.length; i++) {
+      const tn = textNodes[i];
+      const txt = tn.nodeValue;
+      const { norm, map } = normWithMap(txt);
+      const ranges = computeHighlightRanges(norm, map, txt.length, tokens);
+      if (!ranges.length) continue;
+      hitCount += ranges.length;
+      const frag = document.createDocumentFragment();
+      let cursor = 0;
+      for (let r = 0; r < ranges.length; r++) {
+        const [a, b] = ranges[r];
+        if (a > cursor) frag.appendChild(document.createTextNode(txt.slice(cursor, a)));
+        const m = document.createElement("mark");
+        m.className = "search-hl";
+        m.textContent = txt.slice(a, b);
+        frag.appendChild(m);
+        cursor = b;
+      }
+      if (cursor < txt.length) frag.appendChild(document.createTextNode(txt.slice(cursor)));
+      if (tn.parentNode) tn.parentNode.replaceChild(frag, tn);
+    }
+    return hitCount;
+  }
+
+  function focusSearchHitInContainer(container, rawQuery) {
+    const plan = buildSearchPlan(rawQuery);
+    if (!container || !plan.hasQuery) return;
+    const blocks = [...container.querySelectorAll("h2, h3, .keyterm, .formula, .example, .fig-card, .case-card, blockquote, tr, li, p")];
+    let bestEl = null;
+    let bestScore = 0;
+    for (let i = 0; i < blocks.length; i++) {
+      const el = blocks[i];
+      const n = normVi(el.textContent || "");
+      if (!n) continue;
+      let matchedGroups = 0;
+      for (let g = 0; g < plan.groups.length; g++) {
+        if (plan.groups[g].some((alt) => indexOfWordTerm(n, alt, 0) !== -1)) matchedGroups++;
+      }
+      if (!matchedGroups) continue;
+      let sc = matchedGroups * 35;
+      if (plan.fullNorm && indexOfWordTerm(n, plan.fullNorm, 0) !== -1) sc += 150;
+      const tag = el.tagName;
+      if (tag === "H2" || tag === "H3") sc += 65;
+      else if (el.classList.contains("keyterm") || el.classList.contains("formula")) sc += 45;
+      if (sc > bestScore) {
+        bestScore = sc;
+        bestEl = el;
+      }
+    }
+    if (bestEl) {
+      highlightDomTextNodes(bestEl, plan.hlTerms);
+      requestAnimationFrame(() => {
+        const y = bestEl.getBoundingClientRect().top + window.scrollY - 92;
+        if (y > 40) smoothScrollToY(y, 440);
+        bestEl.classList.remove("heading-flash");
+        void bestEl.offsetWidth;
+        bestEl.classList.add("heading-flash");
+      });
+    }
+  }
+
+  function getRecentSearches() {
+    const arr = store.get("recent_searches", []);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string" && x.trim().length >= 2).slice(0, 6) : [];
+  }
+
+  function pushRecentSearch(rawQ) {
+    const clean = String(rawQ || "").trim();
+    if (clean.length < 2 || clean.startsWith("!") || /^\d{6,16}$/.test(clean)) return;
+    const prev = getRecentSearches().filter((x) => x.toLowerCase() !== clean.toLowerCase());
+    prev.unshift(clean);
+    store.set("recent_searches", prev.slice(0, 6));
+  }
+
+  let cachedSearchCorpus = null;
+  let cachedSearchLang = null;
+
+  function getSearchCorpus() {
+    const lg = LANG();
+    if (cachedSearchCorpus && cachedSearchLang === lg) return cachedSearchCorpus;
+    const docs = [];
+
+    // 1. Lectures (All 27 sections: full lecture HTML + Deep-Dive + Diagrams + Mini-Cases)
+    CHAPTERS.forEach((ch) => {
+      ch.sections.forEach((s, secIdx) => {
+        const coreVi = sectionHTML(ch, s, "vi");
+        const coreEn = sectionHTML(ch, s, "en");
+        const deepVi = window.renderDeepDive ? window.renderDeepDive(ch.id, s.id, "vi") : "";
+        const deepEn = window.renderDeepDive ? window.renderDeepDive(ch.id, s.id, "en") : "";
+        const figH = window.renderFigures ? window.renderFigures(ch.id, s.id) : "";
+        const caseH = window.renderCases ? window.renderCases(ch.id, s.id, "vi") : "";
+
+        const headingMatches = [...String(coreVi + " " + deepVi).matchAll(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi)]
+          .map((m) => stripHtmlPlain(m[1]))
+          .filter(Boolean)
+          .join(" · ");
+        const bodyPlain = stripHtmlPlain([coreVi, deepVi, figH, caseH, coreEn, deepEn].filter(Boolean).join(" "));
+        const titleDisp = `${s.id} — ${Lp(s, "title")}`;
+        const subDisp = headingMatches || Lp(ch, "title");
+
+        docs.push({
+          cat: "lecture",
+          prio: 16,
+          idNorm: normVi(s.id),
+          ico: I.book,
+          badge: `Bài giảng · Ch.0${ch.id}`,
+          title: titleDisp,
+          sub: subDisp,
+          body: bodyPlain,
+          titleNorm: normVi(`${s.id} ${s.title || ""} ${s.titleVi || ""} ${ch.titleVi || ""}`),
+          subNorm: normVi(headingMatches),
+          bodyNorm: normVi(bodyPlain),
+          allLower: `${s.id} ${titleDisp} ${subDisp} ${bodyPlain}`.toLowerCase(),
+          open: (rawQ) => {
+            pushRecentSearch(rawQ);
+            nav("chapter", { ch: ch.id, sec: secIdx, chTab: "all" });
+            if (rawQ) setTimeout(() => focusSearchHitInContainer($("#lectureBody"), rawQ), 45);
+          }
+        });
+      });
+    });
+
+    // 2. Terminology Flashcards (56) + Chapter Formula Sheets (6)
+    FLASHCARDS.forEach((f, idx) => {
+      const titleDisp = `${f.frontVi || f.front}${f.front && f.frontVi && f.front !== f.frontVi ? ` (${f.front})` : ""}`;
+      const bodyPlain = stripHtmlPlain(`${f.backVi || ""} ${f.back || ""}`);
+      const backNormOnly = normVi(f.backVi || f.back || "");
+      const frontNormOnly = normVi(`${f.frontVi || ""} ${f.front || ""}`);
+      docs.push({
+        cat: "term",
+        prio: 18,
+        idNorm: "",
+        ico: I.layers,
+        badge: `Thuật ngữ · Ch.0${f.ch}`,
+        title: titleDisp,
+        sub: f.backVi || f.back || "",
+        body: bodyPlain,
+        titleNorm: frontNormOnly,
+        subNorm: backNormOnly,
+        bodyNorm: backNormOnly,
+        allLower: `${titleDisp} ${bodyPlain}`.toLowerCase(),
+        open: (rawQ) => {
+          pushRecentSearch(rawQ);
+          const qn = normVi(rawQ);
+          const flipBack = !!(qn && !frontNormOnly.includes(qn) && backNormOnly.includes(qn));
+          nav("revision", { revTab: "fc", fcCh: 0, fcFilter: "all", fcOrder: null, fcIdx: idx, fcBack: false, fcTable: false });
+          if (flipBack) {
+            setTimeout(() => {
+              state.fcBack = true;
+              const cEl = $("#fcCard");
+              if (cEl) cEl.classList.add("is-flipped");
+            }, 65);
+          }
+        }
+      });
+    });
+
+    CHAPTERS.forEach((c) => {
+      const fRaw = `${FORMULAS_VI[c.id] || ""} ${FORMULAS[c.id] || ""}`;
+      const fPlain = stripHtmlPlain(fRaw);
+      const titleDisp = `${ui("Hệ thống Công thức Chương", "Formulas · Chapter")} 0${c.id} — ${Lp(c, "title")}`;
+      docs.push({
+        cat: "term",
+        prio: 17,
+        idNorm: normVi(`ct${c.id}`),
+        ico: I.zap,
+        badge: `Công thức · Ch.0${c.id}`,
+        title: titleDisp,
+        sub: fPlain,
+        body: fPlain,
+        titleNorm: normVi(`cong thuc formula chuong 0${c.id} ${c.titleVi || ""} ${c.title || ""}`),
+        subNorm: normVi(fPlain),
+        bodyNorm: normVi(fPlain),
+        allLower: `${titleDisp} ${fPlain}`.toLowerCase(),
+        open: (rawQ) => {
+          pushRecentSearch(rawQ);
+          nav("revision", { revTab: "formula" });
+          setTimeout(() => {
+            const card = document.querySelector(`[data-formula-ch="${c.id}"]`);
+            if (card) {
+              if (rawQ) highlightDomTextNodes(card, tokenizeVi(rawQ));
+              const y = card.getBoundingClientRect().top + window.scrollY - 86;
+              if (y > 30) smoothScrollToY(y, 420);
+              card.classList.remove("heading-flash");
+              void card.offsetWidth;
+              card.classList.add("heading-flash");
+            }
+          }, 45);
+        }
+      });
+    });
+
+    // 3. Case Studies (8) + Interactive Valuation Models & Deal Games (13)
+    CASES.forEach((c) => {
+      const tVi = (c.tieuDe && c.tieuDe.vi) || "";
+      const tEn = (c.tieuDe && c.tieuDe.en) || "";
+      const pVi = (c.phu && c.phu.vi) || "";
+      const pEn = (c.phu && c.phu.en) || "";
+      const sumPlain = stripHtmlPlain(caseTx(c.tomTat));
+      const fullPlain = stripHtmlPlain(`${sumPlain} ${caseTx(c.noiDung)} ${(caseTx(c.mucTieu) || []).join(" ")} ${(caseTx(c.cauHoi) || []).join(" ")}`);
+      const titleDisp = isEn() ? (tEn || tVi) : (tVi || tEn);
+      docs.push({
+        cat: "case",
+        prio: 15,
+        idNorm: normVi(c.id),
+        ico: I.briefcase,
+        badge: `Case Study · Ch.0${c.ch}`,
+        title: titleDisp,
+        sub: `${isEn() ? pEn : pVi} — ${sumPlain}`,
+        body: fullPlain,
+        titleNorm: normVi(`${c.id} ${tVi} ${tEn} ${c.nam || ""}`),
+        subNorm: normVi(`${pVi} ${pEn} ${sumPlain}`),
+        bodyNorm: normVi(fullPlain),
+        allLower: `${titleDisp} ${pVi} ${fullPlain}`.toLowerCase(),
+        open: (rawQ) => {
+          pushRecentSearch(rawQ);
+          nav("caseRead", { caseId: c.id });
+          if (rawQ) setTimeout(() => focusSearchHitInContainer($(".reader-sheet"), rawQ), 45);
+        }
+      });
+    });
+
+    const labsObj = window.LABS || {};
+    Object.keys(labsObj).forEach((k) => {
+      const lb = labsObj[k];
+      const titleDisp = stripHtmlPlain(isEn() ? lb.title : (lb.titleVi || lb.title));
+      const guidePlain = stripHtmlPlain(`${lb.guideVi || ""} ${lb.guide || ""}`);
+      docs.push({
+        cat: "case",
+        prio: 14,
+        idNorm: normVi(`lab${k}`),
+        ico: I.sliders,
+        badge: `Mô hình · Ch.0${k}`,
+        title: titleDisp,
+        sub: stripHtmlPlain(isEn() ? lb.guide : (lb.guideVi || lb.guide)),
+        body: guidePlain,
+        titleNorm: normVi(`mo hinh dinh gia simulator ${lb.titleVi || ""} ${lb.title || ""}`),
+        subNorm: normVi(guidePlain),
+        bodyNorm: normVi(guidePlain),
+        allLower: `${titleDisp} ${guidePlain}`.toLowerCase(),
+        open: (rawQ) => {
+          pushRecentSearch(rawQ);
+          nav("labs", { labGroup: "ch", labKey: String(k) });
+        }
+      });
+    });
+
+    const toolsObj = window.TOOLS || {};
+    Object.keys(toolsObj).forEach((k) => {
+      const tl = toolsObj[k];
+      const titleDisp = stripHtmlPlain(isEn() ? tl.title : (tl.titleVi || tl.title));
+      const guidePlain = stripHtmlPlain(`${tl.tabVi || ""} ${tl.tab || ""} ${tl.guideVi || ""} ${tl.guide || ""}`);
+      docs.push({
+        cat: "case",
+        prio: 15,
+        idNorm: normVi(k),
+        ico: I.sliders,
+        badge: ui("Công cụ định giá", "Valuation Tool"),
+        title: titleDisp,
+        sub: stripHtmlPlain(isEn() ? tl.guide : (tl.guideVi || tl.guide)),
+        body: guidePlain,
+        titleNorm: normVi(`${k} cong cu mo hinh ${tl.tabVi || ""} ${tl.titleVi || ""} ${tl.title || ""}`),
+        subNorm: normVi(guidePlain),
+        bodyNorm: normVi(guidePlain),
+        allLower: `${k} ${titleDisp} ${guidePlain}`.toLowerCase(),
+        open: (rawQ) => {
+          pushRecentSearch(rawQ);
+          nav("labs", { labGroup: "tool", labKey: k });
+        }
+      });
+    });
+
+    const gamesArr = (window.HUB_GAMES || []).slice().sort((a, b) => (a.ch || 0) - (b.ch || 0));
+    gamesArr.forEach((g, gIdx) => {
+      const tVi = cleanEmoji((g.ten && g.ten.vi) || "");
+      const tEn = cleanEmoji((g.ten && g.ten.en) || "");
+      const mVi = cleanEmoji((g.moTa && g.moTa.vi) || "");
+      const mEn = cleanEmoji((g.moTa && g.moTa.en) || "");
+      const titleDisp = isEn() ? (tEn || tVi) : (tVi || tEn);
+      docs.push({
+        cat: "case",
+        prio: 14,
+        idNorm: normVi(g.id || `game${gIdx}`),
+        ico: I.target,
+        badge: `Mô phỏng · Ch.0${g.ch || 1}`,
+        title: titleDisp,
+        sub: isEn() ? mEn : mVi,
+        body: `${mVi} ${mEn}`,
+        titleNorm: normVi(`tinh huong thuong vu deal game ${tVi} ${tEn}`),
+        subNorm: normVi(`${mVi} ${mEn}`),
+        bodyNorm: normVi(`${mVi} ${mEn}`),
+        allLower: `${titleDisp} ${mVi} ${mEn}`.toLowerCase(),
+        open: (rawQ) => {
+          pushRecentSearch(rawQ);
+          nav("labs", { labGroup: "game", labKey: String(gIdx) });
+        }
+      });
+    });
+
+    // 4. Multiple-Choice Bank (1,024 MCQs) + True/False & Short Q&As (37)
+    const LV_SHORT = { 1: "Mức 1", 2: "Mức 2", 3: "Mức 3", 4: "Mức 4" };
+    MCQS.forEach((m) => {
+      const qPlain = stripHtmlPlain(isEn() ? m.q : (m.qVi || m.q));
+      const optsPlain = stripHtmlPlain([...(m.optsVi || []), ...(m.opts || [])].join(" · "));
+      const explPlain = stripHtmlPlain(`${m.explVi || ""} ${m.expl || ""}`);
+      const fullBody = `${optsPlain} · ${explPlain}`;
+      docs.push({
+        cat: "mcq",
+        subCat: "mcq",
+        mcqId: m.id,
+        prio: 8,
+        idNorm: normVi(m.id),
+        ico: I.list,
+        badge: `${m.id} · Ch.0${m.ch} · ${LV_SHORT[m.level] || "MCQ"}`,
+        title: qPlain,
+        sub: stripHtmlPlain(isEn() ? (m.expl || optsPlain) : (m.explVi || optsPlain)),
+        body: fullBody,
+        titleNorm: normVi(`${m.id} ${m.qVi || ""} ${m.q || ""}`),
+        subNorm: normVi(optsPlain),
+        bodyNorm: normVi(explPlain),
+        allLower: `${m.id} ${qPlain} ${fullBody}`.toLowerCase(),
+        open: (rawQ, totalMcqHits) => {
+          pushRecentSearch(rawQ);
+          state.bankExpandQuery = (totalMcqHits > 1 && rawQ && normVi(rawQ) !== normVi(m.id)) ? rawQ : "";
+          nav("bank", { bankCh: 0, bankLv: 0, bankFilter: "all", bankSearch: m.id, bankPage: 0 });
+        }
+      });
+    });
+
+    REVIEWS.forEach((r) => {
+      const qPlain = stripHtmlPlain(isEn() ? r.q : (r.qVi || r.q));
+      const aPlain = stripHtmlPlain(`${r.aVi || ""} ${r.a || ""}`);
+      docs.push({
+        cat: "mcq",
+        subCat: "qa",
+        prio: 9,
+        idNorm: normVi(r.id),
+        ico: I.check,
+        badge: `${r.id} · ${r.type === "tf" ? "Đúng/Sai" : "Hỏi đáp"} · Ch.0${r.ch}`,
+        title: qPlain,
+        sub: stripHtmlPlain(isEn() ? r.a : (r.aVi || r.a)),
+        body: aPlain,
+        titleNorm: normVi(`${r.id} ${r.qVi || ""} ${r.q || ""}`),
+        subNorm: normVi(aPlain),
+        bodyNorm: normVi(aPlain),
+        allLower: `${r.id} ${qPlain} ${aPlain}`.toLowerCase(),
+        open: (rawQ) => {
+          pushRecentSearch(rawQ);
+          state.qaOpen[r.id] = true;
+          nav("revision", { revTab: "qa", qaCh: 0, qaType: "" });
+          setTimeout(() => {
+            const card = document.querySelector(`[data-qacard="${r.id}"]`);
+            if (card) {
+              if (rawQ) highlightDomTextNodes(card, tokenizeVi(rawQ));
+              const y = card.getBoundingClientRect().top + window.scrollY - 88;
+              if (y > 30) smoothScrollToY(y, 420);
+              card.classList.remove("heading-flash");
+              void card.offsetWidth;
+              card.classList.add("heading-flash");
+            }
+          }, 45);
+        }
+      });
+    });
+
+    // 5. Essays, Calculations & Case Problems (204)
+    ESSAYS.forEach((e) => {
+      const qPlain = stripHtmlPlain(isEn() ? e.q : (e.qVi || e.q));
+      const gPlain = stripHtmlPlain(`${e.guideVi || ""} ${e.guide || ""} ${e.rubricVi || ""} ${e.rubric || ""}`);
+      docs.push({
+        cat: "essay",
+        prio: 9,
+        idNorm: normVi(e.id),
+        ico: I.pen,
+        badge: `${e.id} · Ch.0${e.ch} · ${e.marks}đ`,
+        title: qPlain,
+        sub: stripHtmlPlain(isEn() ? e.guide : (e.guideVi || e.guide)),
+        body: gPlain,
+        titleNorm: normVi(`${e.id} ${e.qVi || ""} ${e.q || ""}`),
+        subNorm: normVi(gPlain),
+        bodyNorm: normVi(gPlain),
+        allLower: `${e.id} ${qPlain} ${gPlain}`.toLowerCase(),
+        open: (rawQ, totalEssayHits) => {
+          pushRecentSearch(rawQ);
+          state.essayOpen[e.id] = true;
+          state.essayExpandQuery = (totalEssayHits > 1 && rawQ && normVi(rawQ) !== normVi(e.id)) ? rawQ : "";
+          nav("essays", { essayCh: 0, essayType: "", essayExam: "", essayStarOnly: false, essaySearch: e.id });
+        }
+      });
+    });
+
+    docs.forEach((d) => {
+      d.allNorm = `${d.idNorm} ${d.titleNorm} ${d.subNorm} ${d.bodyNorm}`;
+    });
+
+    cachedSearchCorpus = docs;
+    cachedSearchLang = lg;
+    return docs;
+  }
+
+  function scoreSearchDoc(d, plan) {
+    if (!matchesSearchPlan(d.allNorm, plan)) return 0;
+    const fullNorm = plan.fullNorm;
+    const rawLower = plan.rawLower;
+    let score = d.prio;
+
+    if (d.idNorm && d.idNorm === fullNorm) score += 2200;
+    else if (d.idNorm && fullNorm.length >= 2 && d.idNorm.indexOf(fullNorm) !== -1) score += 680;
+
+    if (indexOfWordTerm(d.titleNorm, fullNorm, 0) !== -1) score += 420;
+    if (d.subNorm && indexOfWordTerm(d.subNorm, fullNorm, 0) !== -1) score += 230;
+    if (d.bodyNorm && indexOfWordTerm(d.bodyNorm, fullNorm, 0) !== -1) score += 110;
+    if (rawLower.length >= 2 && d.allLower.indexOf(rawLower) !== -1) score += 50;
+
+    let allGroupsInTitle = true;
+    for (let g = 0; g < plan.groups.length; g++) {
+      const alts = plan.groups[g];
+      if (alts.some((a) => indexOfWordTerm(d.titleNorm, a, 0) !== -1)) {
+        score += 55;
+      } else {
+        allGroupsInTitle = false;
+        if (d.subNorm && alts.some((a) => indexOfWordTerm(d.subNorm, a, 0) !== -1)) score += 24;
+        else score += 8;
+      }
+    }
+    if (allGroupsInTitle && plan.groups.length > 1) score += 170;
+    return score;
+  }
+
+  const CMD_SCOPES = [
+    { id: "all", vi: "Tất cả", en: "All" },
+    { id: "lecture", vi: "Bài giảng", en: "Lectures" },
+    { id: "term", vi: "Thuật ngữ & CT", en: "Terms & Formulas" },
+    { id: "case", vi: "Mô hình & Case", en: "Models & Cases" },
+    { id: "mcq", vi: "Trắc nghiệm", en: "MCQs" },
+    { id: "essay", vi: "Tự luận", en: "Essays" }
+  ];
+
+  function openCmd(prefillQuery) {
     SFX.tap();
     $("#cmdOverlay").classList.remove("hidden");
     pushOverlayHistory();
-    const inp = $("#cmdInput");
-    inp.value = "";
+    state.cmdScope = "all";
     state.cmdActiveIdx = 0;
-    renderCmdList("");
-    setTimeout(() => inp.focus(), 20);
+    const inp = $("#cmdInput");
+    inp.value = typeof prefillQuery === "string" ? prefillQuery : "";
+    const clr = $("#cmdClearBtn");
+    if (clr) {
+      clr.innerHTML = I.xXs;
+      clr.classList.toggle("hidden", !inp.value);
+    }
+    renderCmdList(inp.value);
+    setTimeout(() => {
+      inp.focus();
+      if (inp.value) inp.select();
+    }, 20);
   }
   function closeCmd() {
     $("#cmdOverlay").classList.add("hidden");
@@ -29529,18 +30474,41 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
   }
 
   function renderCmdList(q) {
-    const rawTrim = q.trim();
+    const t0 = performance.now();
+    const rawTrim = String(q || "").trim();
     const kw = rawTrim.toLowerCase();
-    const res = [];
+    const box = $("#cmdResults");
+    const scopeBar = $("#cmdScopeBar");
+    const statsTxt = $("#cmdStatsTxt");
+    const clrBtn = $("#cmdClearBtn");
+    if (clrBtn) clrBtn.classList.toggle("hidden", rawTrim.length === 0);
 
-    // Stealth Admin Reset Trigger:
-    // 1) Typing "!reset" opens a masked PIN dialog (safe against shoulder-surfing on mobile/desktop)
-    // 2) Typing the exact PIN (or "!reset <PIN>" / "reset <PIN>") unlocks immediate admin actions
+    const bindCmdRows = (items) => {
+      state.cmdActiveIdx = 0;
+      box._items = items;
+      box.querySelectorAll("[data-ci]").forEach((el) => {
+        el.onmouseenter = () => { state.cmdActiveIdx = +el.dataset.ci; updateCmdHighlight(); };
+        el.onclick = () => {
+          const it = items[+el.dataset.ci];
+          if (!it) return;
+          if (it.keepOpen) {
+            it.go();
+          } else {
+            closeCmd();
+            it.go();
+          }
+        };
+      });
+    };
+
+    // 1. Stealth Admin Reset Trigger ("!reset" or PBKDF2-verified PIN)
+    const adminRows = [];
     if (kw === "!reset") {
-      res.push({
+      adminRows.push({
         ico: I.lock,
-        title: ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Yêu cầu mã khoá)", "Factory Reset Study Progress to 0% (PIN Required)"),
-        sub: ui("Nhập mã khoá ẩn (••••) ở bước tiếp theo để đặt lại trình duyệt này mới hoàn toàn", "Enter masked admin PIN on next step to reset all progress safely"),
+        badge: "ADMIN",
+        titleHtml: esc(ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Yêu cầu mã khoá)", "Factory Reset Study Progress to 0% (PIN Required)")),
+        subHtml: esc(ui("Nhập mã khoá ẩn (••••) ở bước tiếp theo để đặt lại trình duyệt này mới hoàn toàn", "Enter masked admin PIN on next step to reset all progress safely")),
         go: () => {
           const inp = $("#cmdInput");
           if (inp) inp.value = "";
@@ -29559,10 +30527,11 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     } else if (/^(?:!?reset\s+)?\d{6,16}$/i.test(rawTrim)) {
       const pinCandidate = rawTrim.replace(/^!?reset\s+/i, "");
       if (verifyAdminPin(pinCandidate)) {
-        res.push({
+        adminRows.push({
           ico: I.unlock,
-          title: ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Mới hoàn toàn)", "Factory Reset All Study Progress to 0%"),
-          sub: ui("Đã xác thực mã khoá · Xoá sạch tiến độ đọc, lịch sử thi thử, câu sai, câu lưu & flashcards", "Admin PIN verified · Clears all personal progress while keeping course materials intact"),
+          badge: "VERIFIED",
+          titleHtml: esc(ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Mới hoàn toàn)", "Factory Reset All Study Progress to 0%")),
+          subHtml: esc(ui("Đã xác thực mã khoá · Xoá sạch tiến độ đọc, lịch sử thi thử, câu sai, câu lưu & flashcards", "Admin PIN verified · Clears all personal progress while keeping course materials intact")),
           go: () => {
             const inp = $("#cmdInput");
             if (inp) inp.value = "";
@@ -29577,10 +30546,11 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
             }, 40);
           }
         });
-        res.push({
+        adminRows.push({
           ico: I.trash,
-          title: ui("Chỉ xoá lịch sử các lượt thi thử (Giữ nguyên tiến độ đọc & câu lưu)", "Clear Exam Attempt History Only"),
-          sub: ui("Đã xác thực mã khoá · Đặt lại thống kê lượt làm đề về 0", "Admin PIN verified · Clears recorded quiz attempts only"),
+          badge: "VERIFIED",
+          titleHtml: esc(ui("Chỉ xoá lịch sử các lượt thi thử (Giữ nguyên tiến độ đọc & câu lưu)", "Clear Exam Attempt History Only")),
+          subHtml: esc(ui("Đã xác thực mã khoá · Đặt lại thống kê lượt làm đề về 0", "Admin PIN verified · Clears recorded quiz attempts only")),
           go: () => {
             const inp = $("#cmdInput");
             if (inp) inp.value = "";
@@ -29593,78 +30563,266 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       }
     }
 
-    CHAPTERS.forEach((ch) => {
-      ch.sections.forEach((s, idx) => {
-        const hay = `${s.id} ${s.title} ${s.titleVi || ""} ${ch.titleVi || ""}`.toLowerCase();
-        if (!kw || hay.includes(kw)) {
-          res.push({
-            ico: I.book,
-            title: `Ch.0${ch.id} · ${s.id} ${Lp(s, "title")}`,
-            sub: Lp(ch, "title"),
-            go: () => nav("chapter", { ch: ch.id, sec: idx })
-          });
-        }
-      });
-    });
-
-    if (kw.length >= 2) {
-      FLASHCARDS.forEach((f, idx) => {
-        if (res.length < 36 && `${f.front} ${f.frontVi || ""} ${f.back} ${f.backVi || ""}`.toLowerCase().includes(kw)) {
-          res.push({
-            ico: I.layers,
-            title: `${f.frontVi || f.front} — ${f.front}`,
-            sub: f.backVi || f.back,
-            go: () => nav("revision", { revTab: "fc", fcCh: 0, fcFilter: "all", fcOrder: null, fcIdx: idx, fcBack: false, fcTable: false })
-          });
-        }
-      });
-      for (const m of MCQS) {
-        if (res.length >= 52) break;
-        if (`${m.id} ${m.q} ${m.qVi || ""}`.toLowerCase().includes(kw)) {
-          res.push({
-            ico: I.list,
-            title: `[${m.id}] ${m.qVi || m.q}`,
-            sub: `${ui("Trắc nghiệm Chương", "MCQ Ch.")} 0${m.ch}`,
-            go: () => nav("bank", { bankCh: 0, bankLv: 0, bankFilter: "all", bankSearch: m.id, bankPage: 0 })
-          });
-        }
-      }
-      for (const e of ESSAYS) {
-        if (res.length >= 64) break;
-        if (`${e.id} ${e.q} ${e.qVi || ""}`.toLowerCase().includes(kw)) {
-          res.push({
-            ico: I.pen,
-            title: `[${e.id}] ${(e.qVi || e.q).replace(/<[^>]+>/g, "").slice(0, 90)}`,
-            sub: `${ui("Tự luận Chương", "Essay Ch.")} 0${e.ch} · ${e.marks}đ`,
-            go: () => nav("essays", { essayCh: 0, essayType: "", essayExam: "", essaySearch: e.id })
-          });
-        }
-      }
+    if (adminRows.length) {
+      if (scopeBar) scopeBar.classList.add("hidden");
+      if (statsTxt) statsTxt.textContent = "";
+      box.innerHTML = adminRows.map((r, i) => `
+        <div class="cmd-row ${i === 0 ? "active" : ""}" data-ci="${i}" data-admin-cmd="1">
+          ${r.ico}
+          <div class="cmd-row-main">
+            <div class="cmd-row-top">
+              <div class="cmd-row-title">${r.titleHtml}</div>
+              <span class="cmd-row-badge">${esc(r.badge)}</span>
+            </div>
+            <div class="cmd-row-sub">${r.subHtml}</div>
+          </div>
+        </div>`).join("");
+      bindCmdRows(adminRows);
+      return;
     }
 
-    const box = $("#cmdResults");
-    const top = res.slice(0, 28);
-    state.cmdActiveIdx = 0;
-    box._items = top;
-    box.innerHTML = top.length
-      ? top.map((r, i) => `
+    const corpus = getSearchCorpus();
+
+    // 2. Zero-State Discovery Hub (Recent Searches + High-Yield Exam Chips + Quick Actions)
+    if (!rawTrim) {
+      if (scopeBar) scopeBar.classList.add("hidden");
+      if (statsTxt) statsTxt.textContent = ui(`Sẵn sàng tra cứu ${corpus.length.toLocaleString("vi-VN")} mục học liệu`, `${corpus.length.toLocaleString()} items indexed`);
+
+      const recents = getRecentSearches();
+      const hotTopics = isEn()
+        ? ["Bookbuilding IPO", "WACC", "DCF", "EPS Dilution", "LBO", "Greenshoe", "Synergy M&A", "Poison Pill", "Bond Duration", "Sabeco"]
+        : ["Dựng sổ IPO", "WACC", "DCF", "Pha loãng EPS", "LBO", "Greenshoe", "M&A cộng hưởng", "Phòng vệ thôn tính", "Trái phiếu", "Sabeco"];
+
+      const nextUnread = nextUnreadTarget();
+      const quickItems = [
+        {
+          ico: I.book,
+          badge: `Ch.0${nextUnread.ch.id} · ${nextUnread.sec.id}`,
+          titleHtml: esc(ui(`Tiếp tục học: ${nextUnread.sec.id} — ${Lp(nextUnread.sec, "title")}`, `Continue Reading: ${nextUnread.sec.id} — ${Lp(nextUnread.sec, "title")}`)),
+          subHtml: esc(Lp(nextUnread.ch, "title")),
+          go: () => nav("chapter", { ch: nextUnread.ch.id, sec: nextUnread.secIdx })
+        },
+        {
+          ico: I.target,
+          badge: "40 câu · 60p",
+          titleHtml: esc(ui("Bắt đầu Đề thi thử Cuối kỳ chuẩn cấu trúc HUB", "Start Official 40-Q Timed Mock Final Exam")),
+          subHtml: esc(ui("Phân tầng 6 chương: Ch.03 & Ch.05 chiếm 50% tổng số câu", "Stratified across all 6 chapters matching official blueprint")),
+          go: () => startMockExam40()
+        },
+        {
+          ico: I.sliders,
+          badge: "13 mô hình",
+          titleHtml: esc(ui("Mở Phòng Mô hình Định giá DCF · LBO · WACC · M&A", "Open Interactive DCF · LBO · WACC Valuation Studio")),
+          subHtml: esc(ui("Thực hành kéo thanh trượt thông số tài chính & 3 tình huống thương vụ", "Interactive sensitivity sliders & 3 deal simulations")),
+          go: () => nav("labs", { labGroup: "tool", labKey: "dcf" })
+        },
+        {
+          ico: I.zap,
+          badge: "6 chương",
+          titleHtml: esc(ui("Tra cứu Sổ tay Hệ thống Công thức 6 chương", "Open 6-Chapter Core Formula Reference Sheet")),
+          subHtml: esc(ui("Tổng hợp toàn bộ công thức định giá, trái phiếu, EPS, WACC, LBO", "Complete quantitative formula sheet for midterm & final exams")),
+          go: () => nav("revision", { revTab: "formula" })
+        }
+      ];
+
+      box.innerHTML = `
+        ${recents.length ? `
+          <div class="cmd-zero-sec">
+            <div class="cmd-zero-lbl">
+              <span>${ui("Tìm kiếm gần đây", "Recent Searches")}</span>
+              <button type="button" class="btn btn-ghost btn-sm" id="btnClearRecentSearch" style="height:20px;padding:0 6px;font-size:0.68rem">${ui("Xoá", "Clear")}</button>
+            </div>
+            <div class="cmd-chip-wrap">
+              ${recents.map((r) => `<button type="button" class="cmd-chip" data-qchip="${esc(r)}">${I.clock} <span>${esc(r)}</span></button>`).join("")}
+            </div>
+          </div>` : ""}
+        <div class="cmd-zero-sec">
+          <div class="cmd-zero-lbl"><span>${ui("Chủ đề trọng tâm hay thi (gõ không dấu vẫn hiểu)", "High-Yield Exam Topics")}</span></div>
+          <div class="cmd-chip-wrap">
+            ${hotTopics.map((t) => `<button type="button" class="cmd-chip" data-qchip="${esc(t)}">${I.search} <span>${esc(t)}</span></button>`).join("")}
+          </div>
+        </div>
+        <div class="cmd-group-head"><span>${ui("Lối tắt không gian học", "Quick Actions")}</span></div>
+        ${quickItems.map((r, i) => `
           <div class="cmd-row ${i === 0 ? "active" : ""}" data-ci="${i}">
             ${r.ico}
             <div class="cmd-row-main">
-              <div class="cmd-row-title">${esc(r.title)}</div>
-              <div class="cmd-row-sub">${esc(String(r.sub || "").replace(/<[^>]+>/g, ""))}</div>
+              <div class="cmd-row-top">
+                <div class="cmd-row-title">${r.titleHtml}</div>
+                <span class="cmd-row-badge">${esc(r.badge)}</span>
+              </div>
+              <div class="cmd-row-sub">${r.subHtml}</div>
             </div>
-          </div>`).join("")
-      : `<div class="muted small" style="padding:22px;text-align:center">${ui("Không tìm thấy mục nào khớp từ khoá.", "No matching entries.")}</div>`;
+          </div>`).join("")}
+      `;
 
-    box.querySelectorAll("[data-ci]").forEach((el) => {
-      el.onmouseenter = () => { state.cmdActiveIdx = +el.dataset.ci; updateCmdHighlight(); };
-      el.onclick = () => {
-        const it = top[+el.dataset.ci];
-        closeCmd();
-        if (it) it.go();
+      box.querySelectorAll("[data-qchip]").forEach((chBtn) => {
+        chBtn.onclick = () => {
+          SFX.tap();
+          const inp = $("#cmdInput");
+          if (inp) {
+            inp.value = chBtn.dataset.qchip;
+            inp.focus();
+            renderCmdList(inp.value);
+          }
+        };
+      });
+      const clrRec = $("#btnClearRecentSearch");
+      if (clrRec) clrRec.onclick = (ev) => {
+        ev.stopPropagation();
+        SFX.tap();
+        store.set("recent_searches", []);
+        renderCmdList("");
       };
+      bindCmdRows(quickItems);
+      return;
+    }
+
+    // 3. Full-Corpus Ranked Search (Vietnamese Diacritic-Insensitive + Proximity + Synonym Bridge)
+    const plan = buildSearchPlan(rawTrim);
+    const hlTerms = plan.hlTerms;
+    const byCat = { lecture: [], term: [], case: [], mcq: [], essay: [] };
+    let totalMatches = 0;
+
+    for (let i = 0; i < corpus.length; i++) {
+      const d = corpus[i];
+      const sc = scoreSearchDoc(d, plan);
+      if (sc > 0) {
+        byCat[d.cat].push({ doc: d, score: sc });
+        totalMatches++;
+      }
+    }
+    Object.keys(byCat).forEach((k) => byCat[k].sort((a, b) => b.score - a.score));
+
+    // Render Category Scope Filter Bar with live counts
+    if (scopeBar) {
+      if (state.cmdScope !== "all" && (!byCat[state.cmdScope] || !byCat[state.cmdScope].length)) {
+        state.cmdScope = "all";
+      }
+      scopeBar.classList.remove("hidden");
+      scopeBar.innerHTML = CMD_SCOPES.map((s) => {
+        const cnt = s.id === "all" ? totalMatches : (byCat[s.id] ? byCat[s.id].length : 0);
+        if (s.id !== "all" && cnt === 0) return "";
+        return `<button type="button" class="cmd-scope-pill ${state.cmdScope === s.id ? "active" : ""}" data-cscope="${s.id}">
+          <span>${ui(s.vi, s.en)}</span>
+          <span class="cmd-scope-cnt">${cnt}</span>
+        </button>`;
+      }).join("");
+      scopeBar.querySelectorAll("[data-cscope]").forEach((b) => {
+        b.onclick = () => {
+          SFX.tap();
+          state.cmdScope = b.dataset.cscope;
+          renderCmdList(rawTrim);
+          const inp = $("#cmdInput");
+          if (inp) inp.focus();
+        };
+      });
+    }
+
+    const elapsedMs = Math.max(1, Math.round(performance.now() - t0));
+    if (statsTxt) {
+      statsTxt.textContent = ui(`${totalMatches} kết quả · ${elapsedMs}ms`, `${totalMatches} matches · ${elapsedMs}ms`);
+    }
+
+    if (totalMatches === 0) {
+      box.innerHTML = `
+        <div style="padding:28px 18px;text-align:center">
+          <div style="font-weight:620;color:var(--ink);margin-bottom:6px">${ui(`Không tìm thấy kết quả cho "${rawTrim}"`, `No matches found for "${rawTrim}"`)}</div>
+          <div class="small muted" style="margin-bottom:14px">${ui("Thử gõ từ khoá ngắn hơn, viết tắt tiếng Anh (DCF, WACC, IPO, LBO) hoặc chọn gợi ý dưới đây:", "Try a shorter keyword, financial acronym, or pick a topic below:")}</div>
+          <div class="cmd-chip-wrap" style="justify-content:center">
+            ${["WACC", "DCF", "Dựng sổ", "M&A", "LBO", "Greenshoe", "EPS"].map((t) => `<button type="button" class="cmd-chip" data-qchip="${t}">${I.search} <span>${t}</span></button>`).join("")}
+          </div>
+        </div>`;
+      box.querySelectorAll("[data-qchip]").forEach((chBtn) => {
+        chBtn.onclick = () => {
+          SFX.tap();
+          const inp = $("#cmdInput");
+          if (inp) { inp.value = chBtn.dataset.qchip; inp.focus(); renderCmdList(inp.value); }
+        };
+      });
+      bindCmdRows([]);
+      return;
+    }
+
+    const GROUP_META = {
+      lecture: { vi: "Bài giảng & Đào sâu giáo trình", en: "Lectures & Textbook Deep-Dive", quota: 5 },
+      term: { vi: "Thuật ngữ & Hệ thống Công thức", en: "Terminology & Formula Sheets", quota: 4 },
+      case: { vi: "Mô hình Định giá & Hồ sơ Thương vụ", en: "Valuation Models & Case Dossiers", quota: 4 },
+      mcq: { vi: "Ngân hàng Trắc nghiệm & Đúng/Sai", en: "MCQ Bank & Conceptual Checks", quota: 6 },
+      essay: { vi: "Tự luận, Bài tập & Biểu điểm", en: "Essays, Calculations & Rubrics", quota: 5 }
+    };
+
+    const flatItems = [];
+    let htmlOut = "";
+    const catsToRender = state.cmdScope === "all" ? ["lecture", "term", "case", "mcq", "essay"] : [state.cmdScope];
+    const totalMcqPure = byCat.mcq.filter((x) => x.doc.subCat === "mcq").length;
+    const totalEssayPure = byCat.essay.length;
+
+    catsToRender.forEach((catKey) => {
+      const list = byCat[catKey] || [];
+      if (!list.length) return;
+      const meta = GROUP_META[catKey];
+      const limit = state.cmdScope === "all" ? meta.quota : 45;
+      const shown = list.slice(0, limit);
+
+      htmlOut += `<div class="cmd-group-head"><span>${ui(meta.vi, meta.en)}</span><span>${list.length}</span></div>`;
+      shown.forEach(({ doc }) => {
+        const idx = flatItems.length;
+        const titleHtml = highlightPlainToHtml(doc.title, hlTerms);
+        const subHtml = extractContextSnippet(doc.body, doc.sub, hlTerms, 130);
+        flatItems.push({
+          go: () => doc.open(rawTrim, catKey === "mcq" ? totalMcqPure : totalEssayPure)
+        });
+        htmlOut += `
+          <div class="cmd-row ${idx === 0 ? "active" : ""}" data-ci="${idx}">
+            ${doc.ico}
+            <div class="cmd-row-main">
+              <div class="cmd-row-top">
+                <div class="cmd-row-title">${titleHtml}</div>
+                <span class="cmd-row-badge">${esc(doc.badge)}</span>
+              </div>
+              <div class="cmd-row-sub">${subHtml}</div>
+            </div>
+          </div>`;
+      });
+
+      if (state.cmdScope === "all" && list.length > limit) {
+        const idx = flatItems.length;
+        if (catKey === "mcq" && totalMcqPure > 1) {
+          flatItems.push({
+            go: () => {
+              pushRecentSearch(rawTrim);
+              state.bankExpandQuery = "";
+              nav("bank", { bankCh: 0, bankLv: 0, bankFilter: "all", bankSearch: rawTrim, bankPage: 0 });
+            }
+          });
+          htmlOut += `<div class="cmd-row cmd-more-row ${idx === 0 ? "active" : ""}" data-ci="${idx}">${I.arrowR} <span>${ui(`Mở toàn bộ ${totalMcqPure} câu trắc nghiệm khớp "${rawTrim}" trong Ngân hàng đề`, `Open all ${totalMcqPure} matching MCQs in Question Bank`)}</span></div>`;
+        } else if (catKey === "essay" && totalEssayPure > 1) {
+          flatItems.push({
+            go: () => {
+              pushRecentSearch(rawTrim);
+              state.essayExpandQuery = "";
+              nav("essays", { essayCh: 0, essayType: "", essayExam: "", essayStarOnly: false, essaySearch: rawTrim });
+            }
+          });
+          htmlOut += `<div class="cmd-row cmd-more-row ${idx === 0 ? "active" : ""}" data-ci="${idx}">${I.arrowR} <span>${ui(`Mở toàn bộ ${totalEssayPure} bài tự luận khớp "${rawTrim}" trong Kho tự luận`, `Open all ${totalEssayPure} matching problems in Essay Bank`)}</span></div>`;
+        } else {
+          flatItems.push({
+            keepOpen: true,
+            go: () => {
+              SFX.tap();
+              state.cmdScope = catKey;
+              renderCmdList(rawTrim);
+            }
+          });
+          htmlOut += `<div class="cmd-row cmd-more-row ${idx === 0 ? "active" : ""}" data-ci="${idx}">${I.arrowR} <span>${ui(`Xem thêm ${list.length - limit} kết quả trong nhóm ${meta.vi}`, `View ${list.length - limit} more in ${meta.en}`)}</span></div>`;
+        }
+      }
     });
+
+    box.innerHTML = htmlOut;
+    box.scrollTop = 0;
+    bindCmdRows(flatItems);
   }
 
   /* ======================================================================
@@ -30759,12 +31917,38 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
 
     let cmdComposing = false;
     const cmdInp = $("#cmdInput");
+    const cmdClr = $("#cmdClearBtn");
+    if (cmdClr) {
+      cmdClr.innerHTML = I.xXs;
+      cmdClr.onclick = () => {
+        SFX.tap();
+        cmdInp.value = "";
+        state.cmdScope = "all";
+        renderCmdList("");
+        cmdInp.focus();
+      };
+    }
     cmdInp.addEventListener("compositionstart", () => { cmdComposing = true; });
     cmdInp.addEventListener("compositionend", (e) => { cmdComposing = false; renderCmdList(e.target.value); });
     cmdInp.addEventListener("input", (e) => { if (!cmdComposing) renderCmdList(e.target.value); });
     cmdInp.addEventListener("keydown", (e) => {
       const items = ($("#cmdResults") || {})._items || [];
       if (e.key === "Escape") { closeCmd(); return; }
+      if (e.key === "Tab") {
+        const scopeBar = $("#cmdScopeBar");
+        if (scopeBar && !scopeBar.classList.contains("hidden")) {
+          const pills = [...scopeBar.querySelectorAll("[data-cscope]")];
+          if (pills.length > 1) {
+            e.preventDefault();
+            SFX.tap();
+            const curI = Math.max(0, pills.findIndex((p) => p.dataset.cscope === state.cmdScope));
+            const nextI = e.shiftKey ? (curI - 1 + pills.length) % pills.length : (curI + 1) % pills.length;
+            state.cmdScope = pills[nextI].dataset.cscope;
+            renderCmdList(cmdInp.value);
+          }
+        }
+        return;
+      }
       if (e.key === "ArrowDown") {
         e.preventDefault();
         if (items.length) { SFX.tap(); state.cmdActiveIdx = (state.cmdActiveIdx + 1) % items.length; updateCmdHighlight(); }
@@ -30773,7 +31957,11 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         if (items.length) { SFX.tap(); state.cmdActiveIdx = (state.cmdActiveIdx - 1 + items.length) % items.length; updateCmdHighlight(); }
       } else if (e.key === "Enter") {
         e.preventDefault();
-        if (items[state.cmdActiveIdx]) { closeCmd(); items[state.cmdActiveIdx].go(); }
+        const chosen = items[state.cmdActiveIdx];
+        if (chosen) {
+          if (chosen.keepOpen) chosen.go();
+          else { closeCmd(); chosen.go(); }
+        }
       }
     });
 

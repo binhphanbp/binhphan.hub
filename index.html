@@ -153,16 +153,26 @@
   <button type="button" class="btn btn-sm btn-icon btn-danger" id="ttsStopBtn" aria-label="Dừng đọc"></button>
 </div>
 
-<!-- Command Palette (Ctrl + K) -->
+<!-- Global Academic Search & Command Studio (Ctrl + K) -->
 <div class="overlay hidden" id="cmdOverlay">
-  <div class="cmd-dialog">
+  <div class="cmd-dialog" role="dialog" aria-modal="true" aria-label="Tìm kiếm toàn cục học phần BAF736">
     <div class="cmd-bar">
-      <span id="cmdBarIcon" class="muted"></span>
-      <input type="search" id="cmdInput" placeholder="Tìm chương mục, câu hỏi trắc nghiệm, tự luận, thuật ngữ..." autocomplete="off">
+      <span id="cmdBarIcon" class="muted" style="display:inline-flex"></span>
+      <input type="search" id="cmdInput" placeholder="Tìm bài giảng, công thức, câu hỏi (có dấu hoặc không dấu: dung so, WACC, LBO...)" autocomplete="off">
+      <button type="button" class="cmd-clear-btn hidden" id="cmdClearBtn" aria-label="Xoá từ khoá"></button>
       <span class="kbd desk-kbd-hint">ESC</span>
       <button type="button" class="btn btn-ghost btn-sm mob-only-btn" id="cmdCloseBtn">Đóng</button>
     </div>
+    <div class="cmd-scope-bar hidden" id="cmdScopeBar"></div>
     <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-foot desk-kbd-hint" id="cmdFoot">
+      <div class="cmd-foot-hints">
+        <span><span class="kbd">↑</span> <span class="kbd">↓</span> Di chuyển</span>
+        <span><span class="kbd">Tab</span> Lọc nhóm</span>
+        <span><span class="kbd">Enter</span> Mở ngay</span>
+      </div>
+      <span class="mono" id="cmdStatsTxt"></span>
+    </div>
   </div>
 </div>
 
