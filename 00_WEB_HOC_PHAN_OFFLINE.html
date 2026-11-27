@@ -1611,7 +1611,7 @@ mark.user-hl {
   pointer-events: none;
 }
 
-.tb-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tb-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
 .tb-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 .crumb {
@@ -1620,12 +1620,13 @@ mark.user-hl {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.crumb b { color: var(--ink); font-weight: 620; overflow: hidden; text-overflow: ellipsis; }
-.crumb-link { cursor: pointer; transition: color 0.14s; }
+.crumb b { color: var(--ink); font-weight: 620; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.crumb-link { cursor: pointer; flex-shrink: 0; transition: color 0.14s; }
 .crumb-link:hover { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Streak & Live Score Badges */
@@ -1666,6 +1667,8 @@ mark.user-hl {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  flex-shrink: 0;
+  max-width: 100%;
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
@@ -1796,6 +1799,7 @@ mark.user-hl {
 }
 
 /* Smooth Icon Micro-Motion (Zero Positional Shift) */
+.btn > svg.ico { flex-shrink: 0; }
 .btn:hover:not(:disabled) > svg.ico { color: var(--brand); }
 [data-theme="dark"] .btn:hover:not(:disabled) > svg.ico { color: var(--brand-2); }
 .btn:hover:not(:disabled) .arrow-nudge-r { transform: translateX(3px); }
@@ -3606,6 +3610,69 @@ mark.search-hl {
   background: var(--brand-soft);
   border-color: var(--brand-border);
   color: var(--brand-ink);
+}
+
+/* Related Case Study Cards Inside Lecture Reader */
+.related-cases-box {
+  margin: 26px 0;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+}
+.related-cases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.related-case-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 15px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.24s ease, background-color 0.24s ease;
+}
+[data-theme="dark"] .related-case-card {
+  background: var(--surface-elevated);
+}
+.related-case-card:hover {
+  border-color: var(--brand-border);
+}
+.related-case-main {
+  flex: 1;
+  min-width: 0;
+}
+.related-case-title {
+  font-size: 0.94rem;
+  font-weight: 650;
+  line-height: 1.45;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+.related-case-sub {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.related-case-cta {
+  flex-shrink: 0;
+  height: 31px;
+  padding: 0 12px;
+}
+@media (max-width: 600px) {
+  .related-cases-box { padding: 14px; }
+  .related-case-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 12px 13px;
+  }
 }
 
 .tts-bar { position: fixed; right: 68px; bottom: 20px; z-index: 95; background: var(--surface-elevated); border: 1px solid var(--brand-border); border-radius: var(--r-md); padding: 7px 11px; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-modal); }
@@ -26288,6 +26355,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     if (!ov) return;
     stopWheelInertia();
     autoScrollVel = 0;
+    try { window.scrollTo({ top: window.scrollY, behavior: "instant" }); } catch (e) {}
     if (hint) {
       const isTouch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
       hint.textContent = isTouch
@@ -27858,16 +27926,18 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     const nguonHTML = window.IBNguon ? cleanEmoji(window.IBNguon.hopMuc(ch.id, sec.id, isEn() ? "en" : "vi")) : "";
 
     const majorCasesBlock = linkedMajorCases.length ? `
-      <div class="panel panel-pad" style="margin:24px 0;background:var(--bg-subtle)">
+      <div class="related-cases-box">
         <div class="kicker">${ui("Hồ sơ thương vụ liên quan", "Related Case Studies")}</div>
-        ${linkedMajorCases.map((c) => `
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border)">
-            <div>
-              <div style="font-weight:650;color:var(--ink)">${esc(isEn() ? c.tieuDe.en : c.tieuDe.vi)}</div>
-              <div class="small muted">${esc(isEn() ? c.phu.en : c.phu.vi)}</div>
-            </div>
-            <button class="btn btn-sm" data-open-case="${esc(c.id)}">${ui("Đọc hồ sơ", "Open Case")} ${I.arrowR}</button>
-          </div>`).join("")}
+        <div class="related-cases-list">
+          ${linkedMajorCases.map((c) => `
+            <div class="related-case-card spot-surface" data-open-case="${esc(c.id)}">
+              <div class="related-case-main">
+                <div class="related-case-title">${esc(isEn() ? c.tieuDe.en : c.tieuDe.vi)}</div>
+                <div class="related-case-sub">${esc(isEn() ? c.phu.en : c.phu.vi)}</div>
+              </div>
+              <button type="button" class="btn btn-sm btn-primary related-case-cta" data-open-case="${esc(c.id)}"><span>${ui("Đọc hồ sơ", "Open Case")}</span> ${I.arrowR}</button>
+            </div>`).join("")}
+        </div>
       </div>` : "";
 
     const computeTabHTML = (tab) => {
@@ -28092,7 +28162,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       });
 
       bindDiagramCards(lb);
-      lb.querySelectorAll("[data-open-case]").forEach((b) => (b.onclick = () => nav("caseRead", { caseId: b.dataset.openCase })));
+      lb.querySelectorAll("[data-open-case]").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); nav("caseRead", { caseId: b.dataset.openCase }); }));
     };
 
     mountLectureTab(state.chTab, false);

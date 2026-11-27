@@ -1116,6 +1116,7 @@
     if (!ov) return;
     stopWheelInertia();
     autoScrollVel = 0;
+    try { window.scrollTo({ top: window.scrollY, behavior: "instant" }); } catch (e) {}
     if (hint) {
       const isTouch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
       hint.textContent = isTouch
@@ -2686,16 +2687,18 @@
     const nguonHTML = window.IBNguon ? cleanEmoji(window.IBNguon.hopMuc(ch.id, sec.id, isEn() ? "en" : "vi")) : "";
 
     const majorCasesBlock = linkedMajorCases.length ? `
-      <div class="panel panel-pad" style="margin:24px 0;background:var(--bg-subtle)">
+      <div class="related-cases-box">
         <div class="kicker">${ui("Hồ sơ thương vụ liên quan", "Related Case Studies")}</div>
-        ${linkedMajorCases.map((c) => `
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border)">
-            <div>
-              <div style="font-weight:650;color:var(--ink)">${esc(isEn() ? c.tieuDe.en : c.tieuDe.vi)}</div>
-              <div class="small muted">${esc(isEn() ? c.phu.en : c.phu.vi)}</div>
-            </div>
-            <button class="btn btn-sm" data-open-case="${esc(c.id)}">${ui("Đọc hồ sơ", "Open Case")} ${I.arrowR}</button>
-          </div>`).join("")}
+        <div class="related-cases-list">
+          ${linkedMajorCases.map((c) => `
+            <div class="related-case-card spot-surface" data-open-case="${esc(c.id)}">
+              <div class="related-case-main">
+                <div class="related-case-title">${esc(isEn() ? c.tieuDe.en : c.tieuDe.vi)}</div>
+                <div class="related-case-sub">${esc(isEn() ? c.phu.en : c.phu.vi)}</div>
+              </div>
+              <button type="button" class="btn btn-sm btn-primary related-case-cta" data-open-case="${esc(c.id)}"><span>${ui("Đọc hồ sơ", "Open Case")}</span> ${I.arrowR}</button>
+            </div>`).join("")}
+        </div>
       </div>` : "";
 
     const computeTabHTML = (tab) => {
@@ -2920,7 +2923,7 @@
       });
 
       bindDiagramCards(lb);
-      lb.querySelectorAll("[data-open-case]").forEach((b) => (b.onclick = () => nav("caseRead", { caseId: b.dataset.openCase })));
+      lb.querySelectorAll("[data-open-case]").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); nav("caseRead", { caseId: b.dataset.openCase }); }));
     };
 
     mountLectureTab(state.chTab, false);
