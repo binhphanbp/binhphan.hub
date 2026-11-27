@@ -60,6 +60,8 @@
     highlight: svgWrap(`<path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>`, "ico-xs"),
     maximize: svgWrap(`<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>`),
     minimize: svgWrap(`<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>`),
+    autoScrollOff: svgWrap(`<rect x="6" y="2.5" width="12" height="19" rx="6"/><line x1="12" y1="6.5" x2="12" y2="10.5"/><polyline points="9.5 13.5 12 16 14.5 13.5"/>`),
+    autoScrollOn: svgWrap(`<polyline points="7 6 12 11 17 6"/><polyline points="7 13 12 18 17 13"/>`),
     filter: svgWrap(`<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>`, "ico-sm"),
     download: svgWrap(`<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`, "ico-sm"),
     toc: svgWrap(`<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`, "ico-sm"),
@@ -875,6 +877,206 @@
       sndMob.innerHTML = soundOn ? I.volume : I.volumeMute;
       sndMob.classList.toggle("btn-sound-on", soundOn);
     }
+    syncAutoScrollButtons();
+  }
+
+  /* ---------------- 120fps Liquid-Silk Scroll & Ambient Auto-Scroll Engine ---------------- */
+  const AUTO_SPEEDS = [
+    { px: 26, vi: "Chậm · Đọc kỹ", en: "Slow · Deep Read" },
+    { px: 40, vi: "Vừa · Mượt mà", en: "Medium · Smooth" },
+    { px: 62, vi: "Nhanh · Xem lướt", en: "Fast · Skim" }
+  ];
+  let autoScrollSpeedIdx = 1;
+  let autoScrollActive = false;
+  let autoScrollPinned = false; // true when user explicitly toggled ON via button
+  let autoScrollSoftHold = false; // soft-hold while hovering an interactive button/option
+  let autoScrollPos = 0;
+  let autoScrollVel = 0;
+  let autoScrollLastTs = 0;
+  let autoScrollRaf = 0;
+  let autoScrollBootTimer = 0;
+
+  // Silky inertial mouse-wheel state (desktop notched wheel only)
+  let wheelRaf = 0;
+  let wheelTargetY = 0;
+  let wheelCurY = 0;
+  let wheelLastTs = 0;
+  let programmaticScrollAnim = 0;
+  let cachedMaxScroll = -1;
+  let scrollSyncRaf = 0;
+  let scrollIdleTimer = 0;
+  let isPageScrolling = false;
+  let lastFabPct = -10;
+  let onScrollSettledHook = null;
+
+  function invalidateScrollMetrics() {
+    cachedMaxScroll = -1;
+  }
+  function getMaxScrollY() {
+    if (cachedMaxScroll < 0) {
+      cachedMaxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    }
+    return cachedMaxScroll;
+  }
+
+  function syncAutoScrollButtons() {
+    const sp = AUTO_SPEEDS[autoScrollSpeedIdx] || AUTO_SPEEDS[1];
+    const b1 = $("#btnAutoScroll");
+    if (b1) {
+      b1.innerHTML = autoScrollActive ? I.autoScrollOn : I.autoScrollOff;
+      b1.classList.toggle("btn-autoscroll-on", autoScrollActive);
+      b1.setAttribute(
+        "data-tip",
+        autoScrollActive
+          ? ui(`Đang tự động cuộn (${sp.vi}) · Bấm hoặc lăn chuột để dừng · Shift+Click đổi tốc độ`, `Auto-scrolling (${sp.en}) · Click or scroll to pause · Shift+Click for speed`)
+          : ui("Bật tự động cuộn trang êm ái (Phím A · Shift+Click đổi tốc độ)", "Enable smooth auto-scroll (Key A · Shift+Click for speed)")
+      );
+    }
+    const b2 = $("#btnAutoScrollMob");
+    if (b2) {
+      b2.innerHTML = autoScrollActive ? I.autoScrollOn : I.autoScrollOff;
+      b2.classList.toggle("btn-autoscroll-on", autoScrollActive);
+    }
+  }
+
+  function stopWheelInertia() {
+    if (wheelRaf) {
+      cancelAnimationFrame(wheelRaf);
+      wheelRaf = 0;
+    }
+    if (programmaticScrollAnim) {
+      cancelAnimationFrame(programmaticScrollAnim);
+      programmaticScrollAnim = 0;
+    }
+    wheelTargetY = window.scrollY;
+    wheelCurY = window.scrollY;
+  }
+
+  function smoothScrollToY(destY, durationMs) {
+    stopAutoScroll(false);
+    stopWheelInertia();
+    invalidateScrollMetrics();
+    const startY = window.scrollY;
+    const clampedY = Math.max(0, Math.min(getMaxScrollY(), destY));
+    const dist = clampedY - startY;
+    if (Math.abs(dist) < 2) {
+      window.scrollTo(0, clampedY);
+      return;
+    }
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      window.scrollTo(0, clampedY);
+      return;
+    }
+    const dur = durationMs || Math.min(680, Math.max(320, Math.abs(dist) * 0.35));
+    const t0 = performance.now();
+    function step(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      // Quintic ease-out silk curve
+      const ease = 1 - Math.pow(1 - p, 4);
+      window.scrollTo(0, startY + dist * ease);
+      if (p < 1) {
+        programmaticScrollAnim = requestAnimationFrame(step);
+      } else {
+        programmaticScrollAnim = 0;
+        wheelTargetY = window.scrollY;
+        wheelCurY = window.scrollY;
+      }
+    }
+    programmaticScrollAnim = requestAnimationFrame(step);
+  }
+
+  function stepAutoScroll(now) {
+    if (!autoScrollActive) {
+      autoScrollRaf = 0;
+      return;
+    }
+    const dt = autoScrollLastTs ? Math.min(0.05, Math.max(0.001, (now - autoScrollLastTs) / 1000)) : 0.016;
+    autoScrollLastTs = now;
+
+    // Pause cleanly if a modal/drawer is open or during active timed exam (unless pinned manually)
+    const blocked = hasOpenOverlay() || (state.view === "examRun" && !autoScrollPinned);
+    const targetSpeed = (blocked || autoScrollSoftHold) ? 0 : (AUTO_SPEEDS[autoScrollSpeedIdx] || AUTO_SPEEDS[1]).px;
+    // Smooth viscous velocity ramp (accelerates & decelerates like silk, zero sudden jerk!)
+    const accelRate = 1 - Math.pow(0.02, dt);
+    autoScrollVel += (targetSpeed - autoScrollVel) * accelRate;
+
+    if (autoScrollVel > 0.15) {
+      const maxY = getMaxScrollY();
+      if (maxY <= 4) {
+        autoScrollRaf = requestAnimationFrame(stepAutoScroll);
+        return;
+      }
+      // Sync if external layout changed scrollY significantly
+      if (Math.abs(window.scrollY - autoScrollPos) > 6) {
+        autoScrollPos = window.scrollY;
+      }
+      autoScrollPos = Math.min(maxY, autoScrollPos + autoScrollVel * dt);
+      window.scrollTo(0, autoScrollPos);
+      if (autoScrollPos >= maxY - 1) {
+        stopAutoScroll(false);
+        return;
+      }
+    }
+    autoScrollRaf = requestAnimationFrame(stepAutoScroll);
+  }
+
+  function startAutoScroll(isManualToggle) {
+    clearTimeout(autoScrollBootTimer);
+    stopWheelInertia();
+    invalidateScrollMetrics();
+    const maxY = getMaxScrollY();
+    if (isManualToggle && maxY > 20 && window.scrollY >= maxY - 8) {
+      window.scrollTo(0, 0);
+      autoScrollPos = 0;
+    } else {
+      autoScrollPos = window.scrollY;
+    }
+    if (isManualToggle) autoScrollPinned = true;
+    autoScrollActive = true;
+    autoScrollVel = 0;
+    autoScrollLastTs = 0;
+    syncAutoScrollButtons();
+    if (!autoScrollRaf) autoScrollRaf = requestAnimationFrame(stepAutoScroll);
+  }
+
+  function stopAutoScroll(clearPin) {
+    clearTimeout(autoScrollBootTimer);
+    if (clearPin) autoScrollPinned = false;
+    if (!autoScrollActive && !autoScrollRaf) {
+      syncAutoScrollButtons();
+      return;
+    }
+    autoScrollActive = false;
+    autoScrollVel = 0;
+    autoScrollLastTs = 0;
+    if (autoScrollRaf) {
+      cancelAnimationFrame(autoScrollRaf);
+      autoScrollRaf = 0;
+    }
+    syncAutoScrollButtons();
+  }
+
+  function toggleAutoScroll(ev) {
+    SFX.tap();
+    if (ev && ev.shiftKey) {
+      autoScrollSpeedIdx = (autoScrollSpeedIdx + 1) % AUTO_SPEEDS.length;
+      const sp = AUTO_SPEEDS[autoScrollSpeedIdx];
+      if (!autoScrollActive) startAutoScroll(true);
+      else syncAutoScrollButtons();
+      showToast(ui(`Tốc độ tự cuộn: ${sp.vi}`, `Auto-scroll speed: ${sp.en}`));
+      return;
+    }
+    if (autoScrollActive) {
+      stopAutoScroll(true);
+      try { sessionStorage.setItem("ibc_autoscroll_off", "1"); } catch (e) {}
+      showToast(ui("Đã tạm dừng tự động cuộn trang", "Auto-scroll paused"));
+    } else {
+      try { sessionStorage.removeItem("ibc_autoscroll_off"); } catch (e) {}
+      startAutoScroll(true);
+      const sp = AUTO_SPEEDS[autoScrollSpeedIdx];
+      showToast(ui(`Đã bật tự động cuộn êm (${sp.vi} · Lăn chuột để dừng)`, `Smooth auto-scroll enabled (${sp.en} · Scroll to pause)`));
+    }
   }
 
   let activeVt = null;
@@ -1224,7 +1426,14 @@
     }
 
     render(true);
-    window.scrollTo({ top: 0, behavior: "instant" });
+    stopWheelInertia();
+    window.scrollTo(0, 0);
+    invalidateScrollMetrics();
+    if (autoScrollActive) {
+      autoScrollPos = 0;
+      autoScrollVel = 0;
+      if (view === "examRun" && !autoScrollPinned) stopAutoScroll(false);
+    }
   }
 
   let railBuiltLang = null;
@@ -2124,7 +2333,7 @@
             anc.setAttribute("data-tip", ui("Đầu mục neo — bấm để cuộn tới", "Section anchor"));
             anc.onclick = () => {
               SFX.tap();
-              hEl.scrollIntoView({ behavior: "smooth", block: "start" });
+              smoothScrollToY(hEl.getBoundingClientRect().top + window.scrollY - 76);
               hEl.classList.remove("heading-flash");
               void hEl.offsetWidth;
               hEl.classList.add("heading-flash");
@@ -2144,7 +2353,7 @@
               if (mAcc) mAcc.classList.remove("is-open");
               const t = document.getElementById(a.dataset.scrollId);
               if (t) {
-                t.scrollIntoView({ behavior: "smooth", block: "start" });
+                smoothScrollToY(t.getBoundingClientRect().top + window.scrollY - 76);
                 t.classList.remove("heading-flash");
                 void t.offsetWidth;
                 t.classList.add("heading-flash");
@@ -2886,7 +3095,7 @@
     `;
 
     const scrollQuestionIntoView = () => {
-      if (window.scrollY > 96) window.scrollTo({ top: 0, behavior: "smooth" });
+      if (window.scrollY > 96) smoothScrollToY(0, 340);
     };
     const bindExamLeft = () => {
       const col = $("#examQuestionsCol");
@@ -4498,36 +4707,40 @@
     }
   }
 
-  function onWindowScroll() {
-    hideFloatTip(true);
-    const selPop = $("#selPopover");
-    if (selPop && selPop.classList.contains("show")) selPop.classList.remove("show");
-    const docH = document.documentElement.scrollHeight - window.innerHeight;
-    const pct = docH > 20 ? Math.min(100, Math.max(0, (window.scrollY / docH) * 100)) : 0;
+  function flushWindowScrollUi() {
+    scrollSyncRaf = 0;
+    const sy = window.scrollY;
+    const docH = getMaxScrollY();
+    const pct = docH > 20 ? Math.min(100, Math.max(0, (sy / docH) * 100)) : 0;
 
+    // 100% GPU Compositor scaleX progress bar (zero layout/blur invalidation!)
     const bar = $("#scrollProgress");
     if (bar) {
-      bar.style.width = (state.view === "chapter" || state.view === "caseRead") ? pct + "%" : "0%";
+      const ratio = (state.view === "chapter" || state.view === "caseRead") ? (pct / 100) : 0;
+      bar.style.transform = `scaleX(${ratio.toFixed(4)})`;
     }
 
-    // Floating Scroll-to-Top Ring Button
+    // Floating Scroll-to-Top Ring Button (only mutates SVG dashoffset when visible & delta >= 0.35%)
     const fab = $("#scrollFab");
-    const fabArc = $("#scrollFabArc");
     if (fab) {
-      fab.classList.toggle("visible", window.scrollY > 360);
-      if (fabArc) {
-        const c = 2 * Math.PI * 17;
-        const off = (c * (1 - pct / 100)).toFixed(1);
-        fabArc.style.strokeDashoffset = off;
-        fabArc.setAttribute("stroke-dashoffset", off);
+      const showFab = sy > 360;
+      fab.classList.toggle("visible", showFab);
+      if (showFab && Math.abs(pct - lastFabPct) >= 0.35) {
+        lastFabPct = pct;
+        const fabArc = $("#scrollFabArc");
+        if (fabArc) {
+          const c = 106.814;
+          fabArc.style.strokeDashoffset = (c * (1 - pct / 100)).toFixed(1);
+        }
       }
     }
 
-    // Live scroll-spy for "On this page" TOC + gliding vertical ink
+    // Live scroll-spy for "On this page" TOC (coalesced to max 1 check per display frame)
     if (state.view === "chapter" && activeHeadings.length) {
       let curId = activeHeadings[0].id;
-      for (const h of activeHeadings) {
-        if (h.getBoundingClientRect().top <= 120) curId = h.id;
+      for (let i = 0; i < activeHeadings.length; i++) {
+        const h = activeHeadings[i];
+        if (h.getBoundingClientRect().top <= 128) curId = h.id;
       }
       const tocEl = $("#onPageToc");
       if (tocEl) {
@@ -4541,6 +4754,26 @@
         });
         if (changed) syncTocInk(false);
       }
+    }
+  }
+
+  function onWindowScroll() {
+    if (!isPageScrolling) {
+      isPageScrolling = true;
+      document.documentElement.classList.add("is-scrolling");
+      hideFloatTip(true);
+      const selPop = $("#selPopover");
+      if (selPop && selPop.classList.contains("show")) selPop.classList.remove("show");
+    }
+    clearTimeout(scrollIdleTimer);
+    scrollIdleTimer = setTimeout(() => {
+      isPageScrolling = false;
+      document.documentElement.classList.remove("is-scrolling");
+      if (onScrollSettledHook) onScrollSettledHook();
+    }, 130);
+
+    if (!scrollSyncRaf) {
+      scrollSyncRaf = requestAnimationFrame(flushWindowScrollUi);
     }
   }
 
@@ -4796,6 +5029,9 @@
     function scheduleRadarUpdate() {
       if (!radarRaf) radarRaf = requestAnimationFrame(updateRadarField);
     }
+    onScrollSettledHook = () => {
+      if (lastPtrX > -1000) scheduleRadarUpdate();
+    };
 
     document.addEventListener("pointermove", (e) => {
       if (e.pointerType === "touch") return;
@@ -4808,17 +5044,97 @@
         flair.style.left = x.toFixed(1) + "px";
         flair.style.top = y.toFixed(1) + "px";
       }
+      autoScrollSoftHold = !!(e.target && e.target.closest && e.target.closest(".btn, .opt-row, .sec-mini, .csel-btn, input, select, textarea"));
       lastPtrX = e.clientX;
       lastPtrY = e.clientY;
       lastPtrTarget = e.target;
-      scheduleRadarUpdate();
+      // Skip expensive card spotlight rasterization during fast manual scrolling, while keeping pointer hover responsive during gentle auto-scroll
+      if (!isPageScrolling || autoScrollActive) scheduleRadarUpdate();
     }, { passive: true });
 
-    window.addEventListener("scroll", () => {
-      if (lastPtrX > -1000) scheduleRadarUpdate();
+    // Lenis-Grade Silky Mouse-Wheel Inertia (for notched desktop mouse wheels) + Instant Auto-Scroll Pause
+    const fineDesktopMedia = window.matchMedia ? window.matchMedia("(hover: hover) and (pointer: fine)") : { matches: false };
+    const reduceMotionMedia = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+
+    function isInsideInnerScrollable(target, deltaY) {
+      let el = target && target.nodeType === 1 ? target : (target && target.parentElement);
+      while (el && el !== document.body && el !== document.documentElement) {
+        if (el.tagName === "TEXTAREA") return true;
+        const st = getComputedStyle(el);
+        const oy = st.overflowY;
+        if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 1) {
+          if (deltaY < 0 && el.scrollTop > 0) return true;
+          if (deltaY > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+        }
+        el = el.parentElement;
+      }
+      return false;
+    }
+
+    function runWheelGlide(now) {
+      const dt = wheelLastTs ? Math.min(0.05, Math.max(0.001, (now - wheelLastTs) / 1000)) : 0.016;
+      wheelLastTs = now;
+      const diff = wheelTargetY - wheelCurY;
+      if (Math.abs(diff) < 0.45) {
+        window.scrollTo(0, wheelTargetY);
+        wheelCurY = wheelTargetY;
+        wheelRaf = 0;
+        wheelLastTs = 0;
+        return;
+      }
+      // Frame-rate independent exponential silk damping (identical feel on 60Hz, 120Hz, 144Hz, 240Hz!)
+      const alpha = 1 - Math.pow(0.00045, dt);
+      wheelCurY += diff * alpha;
+      window.scrollTo(0, wheelCurY);
+      wheelRaf = requestAnimationFrame(runWheelGlide);
+    }
+
+    window.addEventListener("wheel", (e) => {
+      if (autoScrollActive) stopAutoScroll(true);
+      if (programmaticScrollAnim) {
+        cancelAnimationFrame(programmaticScrollAnim);
+        programmaticScrollAnim = 0;
+      }
+      if (!fineDesktopMedia.matches || reduceMotionMedia.matches) return;
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.defaultPrevented) return;
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 0.45) return;
+
+      // Normalize line/page wheel modes; leave continuous sub-36px precision touchpad gestures 100% native!
+      let dy = e.deltaY;
+      if (e.deltaMode === 1) dy *= 36;
+      else if (e.deltaMode === 2) dy *= window.innerHeight * 0.85;
+      else if (Math.abs(dy) < 38 && Number.isInteger(dy)) return;
+      else if (!Number.isInteger(dy) && Math.abs(dy) < 42) return;
+
+      if (isInsideInnerScrollable(e.target, dy)) return;
+
+      e.preventDefault();
+      invalidateScrollMetrics();
+      const maxY = getMaxScrollY();
+      if (!wheelRaf) {
+        wheelCurY = window.scrollY;
+        wheelTargetY = window.scrollY;
+        wheelLastTs = 0;
+      }
+      wheelTargetY = Math.max(0, Math.min(maxY, wheelTargetY + dy * 0.96));
+      if (!wheelRaf) wheelRaf = requestAnimationFrame(runWheelGlide);
+    }, { passive: false });
+
+    window.addEventListener("touchstart", () => {
+      if (autoScrollActive) stopAutoScroll(true);
+      stopWheelInertia();
+    }, { passive: true });
+
+    window.addEventListener("mousedown", (e) => {
+      // Clicking native scrollbar thumb/track immediately yields control
+      if (e.clientX >= document.documentElement.clientWidth - 16) {
+        if (autoScrollActive) stopAutoScroll(true);
+        stopWheelInertia();
+      }
     }, { passive: true });
 
     document.addEventListener("pointerleave", () => {
+      autoScrollSoftHold = false;
       lastPtrX = -9999;
       lastPtrY = -9999;
       clearAllRadarCards();
@@ -5111,7 +5427,7 @@
         if (state.view === targetView && !document.body.classList.contains("mob-rail-open")) {
           if (window.scrollY > 40) {
             SFX.tap();
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            smoothScrollToY(0, 480);
           }
           return;
         }
@@ -5178,15 +5494,29 @@
     };
     if ($("#btnSound")) $("#btnSound").onclick = toggleSoundPref;
     if ($("#btnSoundMob")) $("#btnSoundMob").onclick = toggleSoundPref;
+    if ($("#btnAutoScroll")) {
+      $("#btnAutoScroll").onclick = toggleAutoScroll;
+      $("#btnAutoScroll").oncontextmenu = (ev) => {
+        ev.preventDefault();
+        toggleAutoScroll({ shiftKey: true });
+      };
+    }
+    if ($("#btnAutoScrollMob")) {
+      $("#btnAutoScrollMob").onclick = (ev) => {
+        toggleAutoScroll(ev);
+        setMobRail(false);
+      };
+    }
 
     if ($("#scrollFab")) {
       $("#scrollFab").onclick = () => {
         SFX.tap();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        smoothScrollToY(0, 520);
       };
     }
 
     window.addEventListener("resize", () => {
+      invalidateScrollMetrics();
       closeCustomSelect();
       if (window.innerWidth > 900) document.body.classList.remove("mob-rail-open");
       if (window.innerWidth > 960) document.body.classList.remove("mob-exam-sheet-open");
@@ -5339,6 +5669,17 @@
       }
       if (typing) return;
 
+      // Pause auto-scroll immediately on manual scroll keys
+      if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End"].includes(e.key) || (e.code === "Space" && state.view !== "revision")) {
+        if (autoScrollActive) stopAutoScroll(true);
+        stopWheelInertia();
+      }
+
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === "a" && state.view !== "examRun") {
+        toggleAutoScroll(e);
+        return;
+      }
+
       if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === "z") {
         toggleZenMode();
         return;
@@ -5382,8 +5723,24 @@
 
     enhanceSelects(document);
     render();
+    flushWindowScrollUi();
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => syncSlidingControls(document));
+      document.fonts.ready.then(() => {
+        invalidateScrollMetrics();
+        syncSlidingControls(document);
+      });
+    }
+    // Start gentle initial ambient auto-scroll on entry (unless reduced-motion or manually paused in session)
+    const userPausedSession = (() => { try { return sessionStorage.getItem("ibc_autoscroll_off") === "1"; } catch (e) { return false; } })();
+    if (!reduceMotionMedia.matches && !userPausedSession && state.view !== "examRun") {
+      syncAutoScrollButtons();
+      autoScrollBootTimer = setTimeout(() => {
+        if (!userPausedSession && state.view !== "examRun" && !hasOpenOverlay()) {
+          startAutoScroll(false);
+        }
+      }, 950);
+    } else {
+      syncAutoScrollButtons();
     }
   }
 
