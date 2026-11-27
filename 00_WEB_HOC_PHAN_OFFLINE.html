@@ -3612,6 +3612,70 @@ mark.search-hl {
   color: var(--brand-ink);
 }
 
+/* End-of-Lecture Intentional Completion Card */
+.sec-complete-card {
+  margin: 26px 0 6px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.sec-complete-card.is-done {
+  background: color-mix(in srgb, var(--ok-soft) 55%, var(--surface));
+  border-color: var(--ok-border);
+}
+[data-theme="dark"] .sec-complete-card.is-done {
+  background: color-mix(in srgb, var(--ok-soft) 38%, var(--surface-elevated));
+}
+.sec-complete-info {
+  flex: 1;
+  min-width: 0;
+}
+.sec-complete-title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--ink);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sec-complete-sub {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.sec-complete-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.toc-rsec-chk {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ok);
+  margin-left: 5px;
+  vertical-align: middle;
+}
+@media (max-width: 640px) {
+  .sec-complete-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 15px;
+    gap: 12px;
+  }
+  .sec-complete-actions {
+    width: 100%;
+  }
+}
+
 /* Related Case Study Cards Inside Lecture Reader */
 .related-cases-box {
   margin: 26px 0;
@@ -27897,12 +27961,9 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     const ch = CHAPTERS.find((c) => c.id === state.ch) || CHAPTERS[0];
     if (state.sec >= ch.sections.length) state.sec = 0;
     const sec = ch.sections[state.sec];
-
-    if (!isSecRead(ch.id, sec.id)) {
-      setSecRead(ch.id, sec.id, true);
-      renderRail();
-    }
     const readNow = isSecRead(ch.id, sec.id);
+    const countTotalRead = () => CHAPTERS.reduce((sum, c) => sum + chProgress(c).done, 0);
+    const totalCourseSecs = CHAPTERS.reduce((sum, c) => sum + c.sections.length, 0);
 
     const deepVi = window.renderDeepDive ? window.renderDeepDive(ch.id, sec.id, "vi") : "";
     const deepEn = window.renderDeepDive ? window.renderDeepDive(ch.id, sec.id, "en") : "";
@@ -27987,6 +28048,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
             <span>${ui("Chương", "Chapter")} 0${ch.id} · ${ui("Mục", "Section")} ${esc(sec.id)}</span>
             <span>·</span>
             <span style="display:inline-flex;align-items:center;gap:4px">${I.clock} ~${readMins} ${ui("phút đọc", "min read")}</span>
+            <span class="tag ${readNow ? "tag-ok" : ""}" id="secStatusPill" style="text-transform:none;letter-spacing:0;font-weight:600">${readNow ? `${I.checkXs} ${ui("Đã hoàn thành", "Completed")}` : ui("Chưa hoàn thành", "Unread")}</span>
           </div>
           <h1 class="h1 stagger" style="--i:1;margin-bottom:14px">${h1Bi(sec, "title", sec.id + " — ")}</h1>
 
@@ -28003,7 +28065,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
             <div class="mob-ch-actions">
               <button type="button" class="btn btn-sm" id="btnMobTocToggle">${I.toc} ${ui("Mục lục", "Outline")}</button>
               <button type="button" class="btn btn-sm" id="btnListenSecMob">${I.volume} ${ui("Nghe", "Listen")}</button>
-              <button type="button" class="btn btn-sm ${readNow ? "btn-ok" : ""}" id="btnMarkSecMob"><span id="icMarkSecMob">${readNow ? I.checkDraw : I.check}</span> <span id="lblMarkSecMob">${readNow ? ui("Đã học", "Done") : ui("Đánh dấu", "Mark")}</span></button>
+              <button type="button" class="btn btn-sm ${readNow ? "btn-ok" : ""}" id="btnMarkSecMob"><span id="icMarkSecMob">${readNow ? I.checkDraw : I.check}</span> <span id="lblMarkSecMob">${readNow ? ui("Đã học", "Done") : ui("Đánh dấu học", "Mark Read")}</span></button>
               <button type="button" class="btn btn-sm" id="btnPracticeChMob">${I.target} ${ui(`Đề Ch.0${ch.id}`, `Ch.0${ch.id} Quiz`)}</button>
               <button type="button" class="btn btn-sm" id="btnLabChMob">${I.sliders} ${ui("Mô hình", "Model")}</button>
             </div>
@@ -28025,6 +28087,20 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
           <article class="prose stagger" style="--i:2" id="lectureBody"></article>
 
           ${nguonHTML}
+
+          <div class="sec-complete-card spot-surface ${readNow ? "is-done" : ""}" id="secCompleteCard">
+            <div class="sec-complete-info">
+              <div class="sec-complete-title" id="secCompleteTitle"></div>
+              <div class="sec-complete-sub" id="secCompleteSub"></div>
+            </div>
+            <div class="sec-complete-actions">
+              <button type="button" class="btn ${readNow ? "btn-ok" : "btn-primary"}" id="btnMarkSecEnd">
+                <span id="icMarkSecEnd">${readNow ? I.checkDraw : I.check}</span>
+                <span id="lblMarkSecEnd"></span>
+              </button>
+              <button type="button" class="btn ${readNow ? "" : "btn-ghost"}" id="btnMarkAndNext"></button>
+            </div>
+          </div>
 
           <div class="doc-pager">
             ${prevTarget ? `
@@ -28049,15 +28125,16 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
           <ul class="toc-list" id="onPageToc"></ul>
 
           <div class="toc-title">${ui("Các mục Chương", "Sections in Ch.")} 0${ch.id}</div>
-          <ul class="toc-list">
-            ${ch.sections.map((s, idx) => `
-              <li><span class="toc-link ${idx === state.sec ? "active" : ""}" data-rsec="${idx}">${esc(s.id)} ${esc(Lp(s, "title"))}</span></li>
-            `).join("")}
+          <ul class="toc-list" id="chSecsToc">
+            ${ch.sections.map((s, idx) => {
+              const sDone = isSecRead(ch.id, s.id);
+              return `<li><span class="toc-link ${idx === state.sec ? "active" : ""}" data-rsec="${idx}">${esc(s.id)} ${esc(Lp(s, "title"))}${sDone ? `<span class="toc-rsec-chk">${I.checkXs}</span>` : ""}</span></li>`;
+            }).join("")}
           </ul>
 
           <div style="display:flex;flex-direction:column;gap:6px;margin-top:14px">
             <button class="btn btn-sm" id="btnListenSec" style="justify-content:flex-start">${I.volume} ${ui("Nghe đọc bài giảng", "Listen to section")}</button>
-            <button class="btn btn-sm ${readNow ? "btn-ok" : ""}" id="btnMarkSec" style="justify-content:flex-start"><span id="icMarkSec">${readNow ? I.checkDraw : I.check}</span> <span id="lblMarkSec">${readNow ? ui("Đã đánh dấu hoàn thành", "Completed") : ui("Đánh dấu đã học", "Mark as completed")}</span></button>
+            <button class="btn btn-sm ${readNow ? "btn-ok" : ""}" id="btnMarkSec" style="justify-content:flex-start" data-tip="${readNow ? ui("Đã hoàn thành · Bấm để bỏ đánh dấu (Phím M)", "Completed · Click to unmark (Key M)") : ui("Đánh dấu hoàn thành mục này (Phím M)", "Mark section completed (Key M)")}" data-tip-pos="left"><span id="icMarkSec">${readNow ? I.checkDraw : I.check}</span> <span id="lblMarkSec">${readNow ? ui("Đã hoàn thành", "Completed") : ui("Đánh dấu đã học", "Mark as completed")}</span></button>
             <button class="btn btn-sm" id="btnPracticeCh" style="justify-content:flex-start">${I.target} ${ui(`Luyện đề Chương 0${ch.id}`, `Practice Ch.0${ch.id} MCQs`)}</button>
             <button class="btn btn-sm" id="btnLabCh" style="justify-content:flex-start">${I.sliders} ${ui(`Mô hình Chương 0${ch.id}`, `Open Ch.0${ch.id} Model`)}</button>
           </div>
@@ -28199,24 +28276,112 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       lb.classList.remove("tts-an-trich");
       startTTS(`Ch.0${ch.id} · ${sec.id}`, txt);
     };
+    const syncSecReadUi = (doneState) => {
+      const doneTotal = countTotalRead();
+      const pctTotal = Math.round((doneTotal / Math.max(1, totalCourseSecs)) * 100);
+
+      const pill = $("#secStatusPill");
+      if (pill) {
+        pill.className = "tag " + (doneState ? "tag-ok" : "");
+        pill.innerHTML = doneState ? `${I.checkXs} ${ui("Đã hoàn thành", "Completed")}` : ui("Chưa hoàn thành", "Unread");
+      }
+
+      const bSide = $("#btnMarkSec");
+      if (bSide) {
+        bSide.classList.toggle("btn-ok", doneState);
+        bSide.setAttribute("data-tip", doneState
+          ? ui("Đã hoàn thành · Bấm để bỏ đánh dấu (Phím M)", "Completed · Click to unmark (Key M)")
+          : ui("Đánh dấu hoàn thành mục này (Phím M)", "Mark section completed (Key M)")
+        );
+      }
+      if ($("#icMarkSec")) $("#icMarkSec").innerHTML = doneState ? I.checkDraw : I.check;
+      if ($("#lblMarkSec")) $("#lblMarkSec").textContent = doneState ? ui("Đã hoàn thành", "Completed") : ui("Đánh dấu đã học", "Mark as completed");
+
+      if ($("#btnMarkSecMob")) $("#btnMarkSecMob").classList.toggle("btn-ok", doneState);
+      if ($("#icMarkSecMob")) $("#icMarkSecMob").innerHTML = doneState ? I.checkDraw : I.check;
+      if ($("#lblMarkSecMob")) $("#lblMarkSecMob").textContent = doneState ? ui("Đã học", "Done") : ui("Đánh dấu học", "Mark Read");
+
+      const endCard = $("#secCompleteCard");
+      if (endCard) endCard.classList.toggle("is-done", doneState);
+      const endTitle = $("#secCompleteTitle");
+      if (endTitle) {
+        endTitle.textContent = doneState
+          ? ui(`Đã hoàn thành mục ${sec.id}`, `Completed section ${sec.id}`)
+          : ui(`Bạn đã đọc xong mục ${sec.id}?`, `Finished reading section ${sec.id}?`);
+      }
+      const endSub = $("#secCompleteSub");
+      if (endSub) {
+        endSub.textContent = doneState
+          ? ui(`Đã ghi nhận vào tiến độ học tập (${doneTotal}/${totalCourseSecs} mục · ${pctTotal}%). Bấm lại nếu muốn đặt về chưa học.`, `Recorded in your study progress (${doneTotal}/${totalCourseSecs} sections · ${pctTotal}%). Click again to unmark.`)
+          : ui(`Chỉ đánh dấu khi bạn thực sự đọc xong để theo dõi tiến độ chính xác (hiện tại: ${doneTotal}/${totalCourseSecs} mục).`, `Mark as completed once you finish reading to keep accurate progress (${doneTotal}/${totalCourseSecs} sections).`);
+      }
+      const bEnd = $("#btnMarkSecEnd");
+      if (bEnd) {
+        bEnd.classList.toggle("btn-ok", doneState);
+        bEnd.classList.toggle("btn-primary", !doneState);
+      }
+      if ($("#icMarkSecEnd")) $("#icMarkSecEnd").innerHTML = doneState ? I.checkDraw : I.check;
+      if ($("#lblMarkSecEnd")) $("#lblMarkSecEnd").textContent = doneState ? ui("Đã hoàn thành", "Completed") : ui("Đánh dấu đã học", "Mark as completed");
+
+      const bNext = $("#btnMarkAndNext");
+      if (bNext) {
+        bNext.classList.toggle("btn-ghost", !doneState);
+        if (nextTarget) {
+          mutateBtn(bNext, (el) => {
+            el.innerHTML = doneState
+              ? `<span>${ui("Qua mục tiếp theo", "Next section")}</span> ${I.arrowR}`
+              : `<span>${ui("Hoàn thành & Qua mục tiếp", "Complete & Next")}</span> ${I.arrowR}`;
+          });
+        } else {
+          mutateBtn(bNext, (el) => {
+            el.innerHTML = doneState
+              ? `<span>${ui("Vào phòng thi thử", "Open Exam Studio")}</span> ${I.arrowR}`
+              : `<span>${ui("Hoàn thành & Thi thử", "Complete & Exam")}</span> ${I.arrowR}`;
+          });
+        }
+      }
+
+      const curRsec = $(`#chSecsToc [data-rsec="${state.sec}"]`);
+      if (curRsec) {
+        const oldChk = curRsec.querySelector(".toc-rsec-chk");
+        if (doneState && !oldChk) {
+          const sp = document.createElement("span");
+          sp.className = "toc-rsec-chk";
+          sp.innerHTML = I.checkXs;
+          curRsec.appendChild(sp);
+        } else if (!doneState && oldChk) {
+          oldChk.remove();
+        }
+      }
+    };
+
+    syncSecReadUi(readNow);
+
     const triggerMarkSec = (srcBtn) => {
       const nextState = !isSecRead(ch.id, sec.id);
       if (nextState) { SFX.correct(1); spawnMicroBurst(srcBtn, "var(--ok)"); }
       else SFX.tap();
       setSecRead(ch.id, sec.id, nextState);
-      if ($("#btnMarkSec")) $("#btnMarkSec").classList.toggle("btn-ok", nextState);
-      if ($("#icMarkSec")) $("#icMarkSec").innerHTML = nextState ? I.checkDraw : I.check;
-      if ($("#lblMarkSec")) $("#lblMarkSec").textContent = nextState ? ui("Đã đánh dấu hoàn thành", "Completed") : ui("Đánh dấu đã học", "Mark as completed");
-      if ($("#btnMarkSecMob")) $("#btnMarkSecMob").classList.toggle("btn-ok", nextState);
-      if ($("#icMarkSecMob")) $("#icMarkSecMob").innerHTML = nextState ? I.checkDraw : I.check;
-      if ($("#lblMarkSecMob")) $("#lblMarkSecMob").textContent = nextState ? ui("Đã học", "Done") : ui("Đánh dấu", "Mark");
-      showToast(nextState ? ui(`Đã hoàn thành mục ${sec.id}`, `Marked ${sec.id} completed`) : ui(`Đã bỏ đánh dấu mục ${sec.id}`, `Unmarked ${sec.id}`));
+      syncSecReadUi(nextState);
+      showToast(nextState ? ui(`Đã đánh dấu hoàn thành mục ${sec.id}`, `Marked ${sec.id} completed`) : ui(`Đã bỏ đánh dấu mục ${sec.id}`, `Unmarked ${sec.id}`));
       renderRail();
     };
     $("#btnListenSec").onclick = triggerListen;
     if ($("#btnListenSecMob")) $("#btnListenSecMob").onclick = triggerListen;
     $("#btnMarkSec").onclick = function () { triggerMarkSec(this); };
     if ($("#btnMarkSecMob")) $("#btnMarkSecMob").onclick = function () { triggerMarkSec(this); };
+    if ($("#btnMarkSecEnd")) $("#btnMarkSecEnd").onclick = function () { triggerMarkSec(this); };
+    if ($("#btnMarkAndNext")) $("#btnMarkAndNext").onclick = function () {
+      if (!isSecRead(ch.id, sec.id)) {
+        SFX.correct(1);
+        spawnMicroBurst(this, "var(--ok)");
+        setSecRead(ch.id, sec.id, true);
+        renderRail();
+        showToast(ui(`Đã hoàn thành mục ${sec.id}`, `Marked ${sec.id} completed`));
+      }
+      if (nextTarget) nav("chapter", { ch: nextTarget.ch, sec: nextTarget.sec });
+      else nav("exam");
+    };
     if ($("#btnMobTocToggle")) $("#btnMobTocToggle").onclick = () => {
       SFX.tap();
       const acc = $("#mobTocAcc");
@@ -32701,6 +32866,11 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
 
       if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === "z") {
         toggleZenMode();
+        return;
+      }
+
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === "m" && state.view === "chapter" && $("#btnMarkSec")) {
+        $("#btnMarkSec").click();
         return;
       }
 

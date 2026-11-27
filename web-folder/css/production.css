@@ -3598,6 +3598,70 @@ mark.search-hl {
   color: var(--brand-ink);
 }
 
+/* End-of-Lecture Intentional Completion Card */
+.sec-complete-card {
+  margin: 26px 0 6px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.sec-complete-card.is-done {
+  background: color-mix(in srgb, var(--ok-soft) 55%, var(--surface));
+  border-color: var(--ok-border);
+}
+[data-theme="dark"] .sec-complete-card.is-done {
+  background: color-mix(in srgb, var(--ok-soft) 38%, var(--surface-elevated));
+}
+.sec-complete-info {
+  flex: 1;
+  min-width: 0;
+}
+.sec-complete-title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--ink);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sec-complete-sub {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.sec-complete-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.toc-rsec-chk {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ok);
+  margin-left: 5px;
+  vertical-align: middle;
+}
+@media (max-width: 640px) {
+  .sec-complete-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 15px;
+    gap: 12px;
+  }
+  .sec-complete-actions {
+    width: 100%;
+  }
+}
+
 /* Related Case Study Cards Inside Lecture Reader */
 .related-cases-box {
   margin: 26px 0;

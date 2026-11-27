@@ -3,7 +3,7 @@
    Offline-First Architecture: Fresh-Reload App Shell + Guaranteed Batched
    Warm-Cache of all 62 Course Data Modules (1,024 MCQs, 204 Essays, 8 Cases)
    ========================================================================== */
-const CACHE_NAME = 'baf736-hub-pwa-v15';
+const CACHE_NAME = 'baf736-hub-pwa-v16';
 
 const SHELL_ASSETS = [
   '/',
