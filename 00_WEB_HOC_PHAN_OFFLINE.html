@@ -3357,13 +3357,256 @@ mark.search-hl {
 }
 .cmd-foot-hints { display: flex; align-items: center; gap: 14px; }
 
-.lightbox-card { width: min(1040px, 96vw); max-height: 90vh; background: var(--surface-elevated); color: var(--ink); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-modal); display: flex; flex-direction: column; overflow: hidden; }
-.lightbox-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface-elevated); color: var(--ink); }
-.lightbox-body { padding: 24px; overflow: auto; flex: 1; background: #ffffff; color: #2a1823; }
+/* Interactive Diagram Studio Lightbox (Focal Wheel/Pinch Zoom + Pan + Gallery) */
+.lightbox-card {
+  width: min(1220px, 95vw);
+  height: min(86vh, 830px);
+  max-height: 90vh;
+  background: var(--surface-elevated);
+  color: var(--ink);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.lightbox-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-elevated);
+  color: var(--ink);
+  flex-shrink: 0;
+  z-index: 4;
+}
+.lightbox-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  flex: 1;
+}
+.lightbox-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-border);
+  color: var(--brand-ink);
+  font-size: 0.72rem;
+  font-weight: 650;
+  flex-shrink: 0;
+}
+.lightbox-title-txt {
+  font-size: 0.91rem;
+  font-weight: 650;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lightbox-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.lightbox-nav-grp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.lightbox-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-subtle);
+  background-image: radial-gradient(color-mix(in srgb, var(--ink-3) 22%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+[data-theme="dark"] .lightbox-viewport {
+  background-color: #0e1320;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+}
+.lightbox-viewport.is-dragging {
+  cursor: grabbing;
+}
+.lightbox-body {
+  width: min(960px, calc(100% - 56px));
+  padding: 24px 28px;
+  margin-bottom: 34px;
+  background: #ffffff;
+  color: #2a1823;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.07);
+  transform-origin: 50% 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-viewport.is-gesturing .lightbox-body {
+  will-change: transform;
+}
+.lightbox-body.is-animating {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
 [data-theme="dark"] .lightbox-body {
   filter: invert(0.9) hue-rotate(180deg) contrast(1.04);
+  box-shadow: none;
 }
-.lightbox-body svg { max-width: 100% !important; width: 100%; height: auto; }
+.lightbox-body svg {
+  max-width: 100% !important;
+  width: 100%;
+  max-height: calc(82vh - 165px);
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+.lightbox-dock {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.14);
+}
+[data-theme="dark"] .lightbox-dock {
+  background: color-mix(in srgb, var(--surface-elevated) 84%, #080c14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.lb-dock-btn,
+.lb-dock-pct {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  border-radius: 999px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+}
+.lb-dock-btn { width: 30px; padding: 0; }
+.lb-dock-pct { min-width: 52px; padding: 0 8px; font-size: 0.78rem; font-weight: 650; }
+.lb-dock-btn:hover:not(:disabled),
+.lb-dock-pct:hover {
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+}
+.lb-dock-btn:active:not(:disabled),
+.lb-dock-pct:active {
+  transform: scale(0.93);
+}
+.lb-dock-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.lb-dock-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border-strong);
+  margin: 0 2px;
+}
+.lb-zoom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 108px;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand) var(--range-pct, 16.7%), var(--border-strong) var(--range-pct, 16.7%));
+  outline: none;
+  cursor: pointer;
+  margin: 0 3px;
+}
+.lb-zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+.lb-zoom-slider::-webkit-slider-thumb:hover { transform: scale(1.16); }
+.lb-zoom-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 2px solid #ffffff;
+}
+.lightbox-hint {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  font-size: 0.73rem;
+  color: var(--ink-2);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.92;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.lightbox-hint.is-faded {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-4px);
+}
+.fig-zoom-pill {
+  font-weight: 550;
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.fig-card:hover .fig-zoom-pill {
+  background: var(--brand-soft);
+  border-color: var(--brand-border);
+  color: var(--brand-ink);
+}
 
 .tts-bar { position: fixed; right: 68px; bottom: 20px; z-index: 95; background: var(--surface-elevated); border: 1px solid var(--brand-border); border-radius: var(--r-md); padding: 7px 11px; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-modal); }
 @media (max-width: 560px) {
@@ -4192,9 +4435,13 @@ mark.search-hl {
   .fc-ctrl-row .btn { padding: 0 10px; font-size: 0.79rem; }
 
   /* Lightbox Mobile Fit */
-  .lightbox-card { width: 96vw; max-height: 86dvh; }
-  .lightbox-head { padding: 10px 12px; gap: 8px; }
-  .lightbox-body { padding: 12px; }
+  .lightbox-card { width: 96vw; height: 84dvh; max-height: 86dvh; }
+  .lightbox-head { padding: 9px 12px; gap: 8px; }
+  .lightbox-body { width: calc(100% - 20px); padding: 14px 12px; margin-bottom: 42px; border-radius: 10px; }
+  .lightbox-body svg { max-height: calc(78dvh - 150px); }
+  .lightbox-dock { bottom: 10px; padding: 4px 7px; gap: 3px; max-width: calc(100% - 16px); }
+  .lb-zoom-slider { width: 76px; }
+  .lightbox-hint { font-size: 0.68rem; padding: 3px 9px; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; }
 
   /* Selection Popover Compact Fit on Narrow Screens */
   .sel-act { padding: 0 7px; font-size: 0.72rem; }
@@ -4248,16 +4495,16 @@ mark.search-hl {
 <div class="exam-sheet-backdrop" id="examSheetBackdrop"></div>
 <div class="shell">
   <aside class="rail" id="appRail">
-    <div class="rail-head" id="railHead" data-tip="Về trang Tổng quan học phần · Trường ĐH Ngân hàng TP.HCM (HUB)" data-tip-pos="bottom">
+    <div class="rail-head" id="railHead" data-tip="Về trang Tổng quan học phần" data-tip-pos="bottom">
       <div class="brand-mark" id="brandMark"><svg class="hub-shield-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 820" fill="none" aria-label="HUB Official Emblem"><path class="hub-navy" d="M149.4 745.4C120.9 731.9 83.5 705.6 61.1 683.3C30.2 652.6 12.5 622.6 3.2 585.3L0.5 574.8L0.3 321.7L0 68.5L9.2 67.8C43.6 65.4 52.1 61.3 98.2 25.1C118.3 9.4 134.8 1.5 149.8 0.5L157 0V230.7V461.3H139.6C123.3 461.3 122.1 461.2 121.5 459.4C120.5 456.2 112.5 449.5 108.1 448.2L104 447V438.1V429.3H112.8C121.3 429.3 121.7 429.4 123 431.9C124.7 434.9 128.8 437.3 132.5 437.3C138.3 437.3 144 431.8 144 426.3C144 419.5 137 413.5 130.7 414.7C127.3 415.4 122 419.9 122 422C122 423 119.8 423.3 113 423.3H104V399.1V374.8L107.5 372C113.6 367.1 113.2 358.2 106.6 354.2C94.6 346.9 82.6 363.3 93.5 372L97 374.8V411V447.1L94 447.8C92.4 448.2 89.5 449.5 87.5 450.9C85.5 452.2 83.6 453.3 83.2 453.3C82.8 453.3 76.4 447.2 69 439.8L55.6 426.3L60.4 421.4C64.9 416.8 65.4 416.6 69.4 417C75 417.7 79.2 415.4 81.4 410.8C85.7 401.8 76.6 391.9 67.5 395.7C62.3 397.9 59.7 402 60.2 407.4C60.7 411.8 60.4 412.4 56.1 417.2L51.5 422.3L42.6 413.4C34.8 405.5 33.9 404.3 34.9 402.5C36.4 399.7 36.3 394.7 34.6 391.5C32.8 388 28.9 385.9 24.4 386C9.8 386.4 10.5 408.3 25.2 408.3C28.2 408.3 30.8 410.6 53.8 433.6L79.1 458.9L77.8 463.1L76.5 467.3H54H31.5L29.8 464.3C25.4 456.5 12.6 458.3 10 467.1C7.7 474.7 13.3 481.9 21.4 481.7C24.8 481.6 26 480.9 29.1 477.4L32.8 473.3L54.5 473.5L76.1 473.8L78 479.3L79.9 484.8L61.4 503.4L42.8 522L36.8 521.9C31.3 521.8 30.6 522 27.9 525.1C19.9 534.1 29.1 547.6 40.2 543C45.4 540.8 47.4 537.4 46.8 531.3C46.4 527 46.6 526.1 48.9 524C54.9 518.6 54 518.3 64.4 529C73.7 538.5 74 538.9 73.4 542.5C72.3 549.6 77.7 556.3 84.5 556.3C90.3 556.3 96 550.8 96 545.3C96 538.3 89 532.5 82.2 533.8C78.8 534.4 78.4 534.2 68.8 524.6L59 514.8L71.5 502.3L84 489.7L90.5 492.8L97 495.8V502.9C97 509.9 96.9 510.1 93 514.1C90 517 89 518.9 89 521.2C89 527.8 94.2 533.3 100.5 533.3C110.6 533.3 115.6 520.3 107.9 513.9C106.2 512.5 104.4 511.3 103.9 511.3C103.4 511.3 103 507.8 103 503.5V495.8L108 494C113.9 491.9 118.9 487.8 121.5 482.9L123.5 479.3H140.2H157V613.8C157 687.8 156.7 748.3 156.3 748.3C155.8 748.3 152.8 747 149.4 745.4ZM56 237.3V219.3H76H96V237.3V255.3H106.5H117V210.3V165.3H106.5H96V182.8V200.3H76H56V182.8V165.3H45.5H35V210.3V255.3H45.5H56V237.3Z" fill="#1F3368"/><path class="hub-navy" d="M355 613.8V479.3H367.8H380.7L381.8 483.1C383.6 489.2 389.2 495.6 395.3 498.8C399.4 501 401 502.4 401.4 504.4C401.7 505.8 403.1 508.5 404.6 510.3C417.6 525.7 452.9 526.2 466.4 511.2C468.4 509 470.3 505.9 470.7 504.3C471.1 502.1 472.1 501.1 474.5 500.3C479.3 498.7 486.1 492.3 489 486.7C491.5 481.9 491.5 481.3 491.8 454.5L492.1 427.2L488.6 423.7C484.9 420 480.5 419.2 475.6 421.5C470.2 423.9 469.5 426.4 469.2 444.6L468.8 461.3H457.9H447V435.8C447 408 446.7 406.1 441.5 403.3C437.9 401.4 432.3 401.7 429.1 404C424.7 407.4 424.1 410.9 424.1 437.1L424 461.3H413.1H402.2L401.8 444.6C401.5 426.4 400.8 423.9 395.4 421.5C390.6 419.2 386.1 420 382.4 423.7L379 427.1V444.2V461.3H367H355V230.8V0.300049H359.8C370.7 0.300049 386.7 6.40005 400.5 15.6C403.8 17.8 413.5 25.1 422 31.8C457.6 59.8 468.7 65 498.1 67.5L512 68.6V314.7C512 562.6 511.9 567.9 508.4 584.9C497.5 638.1 453.6 691.7 389 730.5C378 737.1 357 748.3 355.5 748.3C355.2 748.3 355 687.8 355 613.8ZM397.1 414.3C400.6 411.7 402.2 406.6 400.9 401.8C399.6 397.3 395.3 394.3 390 394.3C386.6 394.3 385.2 394.9 382.4 397.7C379.6 400.5 379 401.9 379 405.3C379 408.7 379.6 410.1 382.4 412.9C385.2 415.7 386.6 416.3 390 416.3C392.6 416.3 395.3 415.5 397.1 414.3ZM486.9 414.9C491.9 412.3 493.5 404.7 490.3 399.3C488.3 395.8 485.1 394.3 480 394.3C473.5 394.3 468.4 400.9 469.8 407.8C470 409.3 471.6 411.7 473.2 413.3C476.6 416.7 482.1 417.3 486.9 414.9ZM441.9 396.9C445.2 395.2 447 391.5 447 386.7C447 381.6 441.7 376.3 436.6 376.3C430.1 376.3 425.3 380.2 424.8 385.8C424.5 390.3 425.2 392.3 428.1 395.2C431.6 398.7 437 399.4 441.9 396.9ZM463.3 252.7C474.1 248.2 478.9 241.4 479 231C479 221.7 476.1 216.3 468.3 211.3L464.1 208.6L467 206.4C468.7 205.2 470.8 202.6 471.9 200.5C478.9 186.9 472.6 173.1 457.5 168.4C451.4 166.5 448.3 166.3 423.9 166.3H397V210.9V255.4L427.8 255.1C456.1 254.8 458.9 254.6 463.3 252.7Z" fill="#1F3368"/><path class="hub-navy" d="M418 228.7V218.2L434.4 218.5C449.3 218.8 451.1 219 453.7 220.9C457.4 223.7 459 229.5 456.9 233.1C454.1 238.3 450.1 239.3 433.3 239.3H418V228.7Z" fill="#1F3368"/><path class="hub-navy" d="M418 192.3V182.3H431C448.8 182.3 453 184.2 453 192.3C453 200.4 448.8 202.3 431 202.3H418V192.3Z" fill="#1F3368"/><path class="hub-navy" d="M81.8 549.2C80.6 548.6 80 547 80 544.9C80 541.3 81.3 540.3 85.6 540.3C90.2 540.3 90.9 548 86.4 549.7C84.3 550.5 83.8 550.4 81.8 549.2Z" fill="#1F3368"/><path class="hub-navy" d="M32.1996 536.1C30.1996 534.1 30.7996 530.5 33.4996 528.7C35.7996 527.2 36.1996 527.2 38.4996 528.7C42.8996 531.6 41.2996 537.3 35.9996 537.3C34.5996 537.3 32.8996 536.8 32.1996 536.1Z" fill="#1F3368"/><path class="hub-navy" d="M97.0004 525.3C94.5004 522.8 94.5004 521.1 96.8004 519C99.0004 517 102.1 516.8 103.8 518.5C105.7 520.4 105.3 525.1 103.1 526.3C100.3 527.7 99.3004 527.6 97.0004 525.3Z" fill="#1F3368"/><path class="hub-navy" d="M422.3 515.8C414.3 513.4 406 507.2 406 503.7C406 503.3 409 503.2 412.8 503.5C422.3 504.2 429.3 508.1 432.6 514.6L434.1 517.3L430.3 517.2C428.2 517.2 424.6 516.6 422.3 515.8Z" fill="#1F3368"/><path class="hub-navy" d="M439 515.9C439 513.2 446.4 506.7 451.5 504.9C456.7 503.2 466 502.7 466 504.2C466 504.7 464.9 506.5 463.5 508.1C458.7 513.8 439 520.1 439 515.9Z" fill="#1F3368"/><path class="hub-navy" d="M433.1 507.7C431.4 505.8 428.1 503.4 425.9 502.3L421.9 500.2L426 497.2C428.2 495.6 431.5 492.2 433.2 489.8L436.3 485.4L439.1 489.9C440.7 492.3 444 495.6 446.5 497.2L451.1 500.1L446.6 502.3C444.1 503.5 440.8 505.9 439.2 507.7L436.3 511L433.1 507.7Z" fill="#1F3368"/><path class="hub-navy" d="M406 496.9C406 496.2 407.7 493.9 409.7 491.9C413.7 488.1 420.5 485 427.8 483.8C432.1 483.1 432.2 483.1 431 485.3C428.6 489.8 421.8 495.3 416.7 496.8C410.3 498.7 406 498.7 406 496.9Z" fill="#1F3368"/><path class="hub-navy" d="M455.701 496.9C453.601 496.1 450.401 494.5 448.601 493.2C445.001 490.8 440.301 484.6 441.301 483.6C442.401 482.5 454.801 486.4 459.201 489.3C461.601 490.8 464.301 493.4 465.301 495.2L467.101 498.3H463.301C461.201 498.2 457.801 497.6 455.701 496.9Z" fill="#1F3368"/><path class="hub-navy" d="M396.5 494.4C392.2 491.7 388.3 487.4 386.5 483.1L385 479.3L404.7 479.4C422.6 479.4 424.1 479.6 420.3 480.8C411.7 483.4 402 491.1 402 495.1C402 496.8 399.9 496.6 396.5 494.4Z" fill="#1F3368"/><path class="hub-navy" d="M469.6 493.6C466.8 488.1 460.2 483.5 451.5 480.7C448 479.6 449.8 479.4 467.3 479.4C478.1 479.3 487 479.6 487 479.9C487 482.4 480.9 491 477.4 493.4C472.1 497 471.4 497 469.6 493.6Z" fill="#1F3368"/><path class="hub-navy" d="M92.399 488.4C90.099 487.4 87.099 484.9 85.599 483C82.999 479.7 80.399 472.6 81.299 471.7C81.999 470.9 88.499 473.6 91.699 475.9C95.199 478.5 98.499 483.4 99.499 487.6C100.399 490.9 98.499 491.2 92.399 488.4Z" fill="#1F3368"/><path class="hub-navy" d="M101.5 487.6C102.5 483.4 105.8 478.5 109.3 475.9C112.3 473.7 119 470.9 119.6 471.6C120.5 472.4 117.5 480.2 115.3 483.2C112.7 486.5 106.1 490.2 102.6 490.3C101.1 490.3 100.9 489.8 101.5 487.6Z" fill="#1F3368"/><path class="hub-navy" d="M17.1994 474.1C15.2994 472.2 15.6994 467.5 17.8994 466.3C18.9994 465.8 20.2994 465.3 20.8994 465.3C22.4994 465.3 25.9994 469.1 25.9994 470.7C25.9994 474.4 19.8994 476.8 17.1994 474.1Z" fill="#1F3368"/><path class="hub-navy" d="M81.6 467.7C82.7 463 84.7 459.8 88.4 456.5C91.7 453.6 98.4 451.3 99.7 452.6C100 453 99 455.7 97.5 458.8C94.6 464.8 89.9 468.8 84.2 469.9C81 470.6 80.9 470.5 81.6 467.7Z" fill="#1F3368"/><path class="hub-navy" d="M112.2 468.2C109.9 467 107.1 464.8 106 463.2C103.5 459.8 100.7 453.3 101.4 452.6C102.6 451.3 109.4 453.7 112.6 456.5C116.3 459.8 118.3 463 119.4 467.6C120.2 471 118.3 471.2 112.2 468.2Z" fill="#1F3368"/><path class="hub-navy" d="M129.799 430.2C127.699 429 127.399 424.3 129.199 422.5C129.899 421.8 131.699 421.3 133.199 421.3C138.199 421.3 139.199 428.9 134.399 430.7C132.299 431.5 131.799 431.4 129.799 430.2Z" fill="#1F3368"/><path class="hub-navy" d="M67.4994 409.3C65.0994 406.6 66.1994 402.5 69.6994 401.7C73.0994 400.8 75.3994 402.3 75.7994 405.9C76.3994 410.8 70.8994 413.1 67.4994 409.3Z" fill="#1F3368"/><path class="hub-navy" d="M21.5998 400.7C19.5998 398.8 19.4998 394.9 21.3998 393.4C23.8998 391.3 28.2998 392.5 29.3998 395.5C31.0998 400.5 25.1998 404.4 21.5998 400.7Z" fill="#1F3368"/><path class="hub-navy" d="M97.2 367.1C96.5 366.4 96 364.7 96 363.1C96 358.1 102.6 356.9 105.1 361.4C107.4 365.7 100.7 370.6 97.2 367.1Z" fill="#1F3368"/><path class="hub-crimson" d="M242.5 812.2C218.9 799.4 199.2 786.5 183.8 773.6L176 767.1V622.1V477L184 477.7C214.3 480.2 239.1 501.9 245.1 531.1L246.4 537.3H256.2C265.9 537.3 266 537.3 266 534.9C266 527.2 273.7 510.2 281.6 500.6C291.7 488.3 309.7 479.3 327.5 477.7L335 477V622.3V767.6L329.8 772.6C317.2 784.3 295.7 798.4 269.8 811.8L255.5 819.2L242.5 812.2ZM213 682.8V663.3H205.5C198.2 663.3 198 663.4 198 665.8C198 668.1 198.4 668.3 202 668.3H206V685.3V702.3H209.5H213V682.8ZM241.8 699.4C250.7 693.1 252.3 675.9 244.6 667.6C234.3 656.4 214.7 666 220.3 679.6C223.2 686.4 232.1 689.2 239.3 685.5L243 683.5V686C243 694.1 234 699.5 225.7 696.4C223.6 695.6 223.1 695.8 222.1 697.9C221.2 700.1 221.3 700.5 223.3 701.3C224.5 701.8 228.4 702.2 232 702C237 701.8 239.3 701.2 241.8 699.4ZM274.4 685.1C278.6 675.6 282 666.6 282 665.1V662.3H267.5H253V668.8V675.3H256C258.8 675.3 259 675 259 671.8V668.3H267C271.4 668.3 275 668.5 275 668.8C275 669.1 271.9 676.4 268 684.9C264.2 693.5 261 700.9 261 701.4C261 701.9 262.3 702.3 263.8 702.3C266.6 702.3 267 701.5 274.4 685.1ZM310.1 700C314.5 697 316.2 693.7 315.6 688.9C314.6 680.5 304.1 675.6 295.9 679.7C294.1 680.6 292.5 681.1 292.2 680.9C290.9 679.5 293.4 673.1 296.3 670.7C299.2 668.3 300 668.1 305.7 668.6C311.2 669 312.2 668.8 313 667.2C314.4 664.6 310.9 663 304 663C294.4 663 288 668.2 286.1 677.5C284.8 683.5 286 692.1 288.6 696C292.7 702.4 303.6 704.4 310.1 700ZM239.8 531.1C235.9 513.7 222.6 496.8 206.7 489C199.2 485.3 190.4 482.6 189.3 483.7C188.2 484.7 191.9 495.3 195.8 502.3C200.2 510.3 213.3 523.7 221.2 528.2C227.1 531.5 236.3 535.1 239.1 535.2C240.6 535.3 240.7 534.7 239.8 531.1ZM281.7 532.4C296.9 526.4 310.2 514 317.5 498.8C319.9 493.9 322.2 488.3 322.5 486.6C323.1 483.7 322.9 483.3 321.1 483.3C320 483.3 316.1 484.4 312.6 485.7C292.1 493.1 276.3 511.2 271.6 532.6C270.8 536.1 272.3 536.1 281.7 532.4Z" fill="#A71B29"/><path class="hub-crimson" d="M228.799 680.7C225.099 678.8 224.599 673.5 227.699 670.1C229.699 667.8 236.699 667.7 239.799 669.9C242.999 672.1 242.799 677.5 239.399 680.2C236.299 682.6 232.599 682.8 228.799 680.7Z" fill="#A71B29"/><path class="hub-crimson" d="M296.6 695.2C293.4 692.7 293.1 688.2 296 685.3C299.1 682.2 306.2 682.5 308.9 685.9C311.6 689.4 311.5 691.8 308.5 694.8C305.5 697.9 300.3 698.1 296.6 695.2Z" fill="#A71B29"/><path class="hub-crimson" d="M254.499 506.6C251.699 490.9 233.399 472.6 217.699 469.8C213.099 468.9 213.699 468.2 221.099 466C236.499 461.3 251.799 444.9 254.499 430.1C255.299 425.6 256.499 425.9 257.399 430.7C257.799 432.6 259.599 437.3 261.499 441.1C267.199 452.5 279.099 462.5 291.499 466.2C293.699 466.9 296.199 467.7 296.999 468C297.799 468.3 296.099 469.1 293.099 469.9C277.499 474 262.899 488 258.299 503.2C256.099 510.6 255.399 511.2 254.499 506.6Z" fill="#A71B29"/><path class="hub-crimson" d="M176 285.3V111.3H255.5H335V285.4V459.6L326.9 459C310.5 457.7 293.7 449.4 282.5 437C275.8 429.6 269.4 417.3 267 407.1L265.3 399.8H256H246.7L244.6 407.8C239.1 428.5 226.8 443.7 208.5 452.4C200.1 456.4 188.3 459.3 180.5 459.3H176V285.3ZM199.7 450.8C218.7 444 234.5 426.7 239.4 407.3C241.1 400.5 240.6 400.3 231.7 403.7C211.3 411.4 195.1 429.2 189.2 450.5C188.2 454.3 188.2 454.3 190.8 453.7C192.3 453.3 196.3 452 199.7 450.8ZM322.5 450.6C322.1 448.6 320.6 444.1 319 440.7C312.4 426.1 301.5 414.4 288 407.4C280.4 403.5 272.4 400.6 271.5 401.5C270.6 402.4 274.1 413.7 277.1 419.7C285.2 435.6 299.5 447.4 316.5 452.4C319.8 453.4 322.7 454.2 322.9 454.2C323.1 454.3 322.9 452.6 322.5 450.6ZM276.3 252.5C287.2 247.1 293.8 237.7 295.9 224.3C296.5 220.7 297 206 297 191.6V165.3H286.6H276.2L275.9 194.6C275.5 223.6 275.5 223.9 273 228.8C269.7 235 264.1 238.3 256.4 238.3C247.4 238.3 242.3 235.2 238.9 227.8C237.2 224.2 237 220.8 237 194.6V165.3H226H215V192.6C215 222.1 215.9 229.1 220.3 238C224.4 246 233.4 252.9 242.7 255.3C244.8 255.8 251.7 256.1 258.1 256C268.9 255.7 270.2 255.5 276.3 252.5Z" fill="#A71B29"/></svg></div>
       <div class="brand-meta">
         <div class="brand-name">Ngân hàng Đầu tư</div>
         <div class="brand-code">BAF736 · ĐH NGÂN HÀNG (HUB)</div>
       </div>
-      <button type="button" class="rail-close-btn" id="btnRailClose" aria-label="Đóng thanh điều hướng"></button>
+      <button type="button" class="rail-close-btn" id="btnRailClose" aria-label="Đóng danh mục"></button>
     </div>
     <div class="rail-search">
-      <button type="button" class="search-trigger" id="btnOpenSearch" data-tip="Tìm kiếm toàn cục bài giảng, câu hỏi & thuật ngữ (Ctrl + K)" data-tip-pos="bottom">
+      <button type="button" class="search-trigger" id="btnOpenSearch" data-tip="Tìm bài giảng, công thức & câu hỏi (Ctrl + K)" data-tip-pos="bottom">
         <span class="search-trigger-left">
           <span id="searchTriggerIcon"></span>
           <span class="search-rotator" id="searchPlaceholder">Tìm kiếm...</span>
@@ -4286,23 +4533,23 @@ mark.search-hl {
   <div class="stage">
     <header class="topbar">
       <div class="tb-left">
-        <button type="button" class="btn btn-ghost btn-icon" id="btnRailToggle" data-tip="Ẩn / Hiện thanh điều hướng" data-tip-pos="bottom" aria-label="Menu"></button>
+        <button type="button" class="btn btn-ghost btn-icon" id="btnRailToggle" data-tip="Ẩn / Hiện thanh điều hướng" data-tip-pos="bottom" aria-label="Danh mục"></button>
         <div class="crumb" id="tbCrumb"></div>
       </div>
       <div class="tb-right">
         <button type="button" class="btn btn-ghost btn-icon mob-only-btn" id="btnTopSearch" aria-label="Tìm kiếm"></button>
         <button type="button" class="btn btn-sm mono mob-lang-btn" id="btnMobLang" aria-label="Ngôn ngữ">VI</button>
-        <div class="seg" id="langSeg" data-tip="Chuyển ngôn ngữ hiển thị (VI / Song ngữ / EN)" data-tip-pos="bottom">
+        <div class="seg" id="langSeg" data-tip="Ngôn ngữ hiển thị (Tiếng Việt · Song ngữ · Tiếng Anh)" data-tip-pos="bottom">
           <button type="button" data-lang="vi">VI</button>
           <button type="button" data-lang="bi">VI · EN</button>
           <button type="button" data-lang="en">EN</button>
         </div>
-        <button type="button" class="btn btn-sm mono" id="btnScale" data-tip="Đổi cỡ chữ đọc bài (SM · MD · LG · XL)" data-tip-pos="bottom">Aa MD</button>
-        <button type="button" class="btn btn-ghost btn-icon" id="btnAutoScroll" data-tip="Bật / Tắt tự động cuộn êm (Phím A · Shift+Click đổi tốc độ)" data-tip-pos="bottom" aria-label="Tự động cuộn"></button>
-        <button type="button" class="btn btn-ghost btn-icon" id="btnZen" data-tip="Chế độ đọc tập trung Zen (Phím Z)" data-tip-pos="bottom" aria-label="Zen"></button>
-        <button type="button" class="btn btn-ghost btn-icon" id="btnSound" data-tip="Âm thanh phản hồi xúc giác" data-tip-pos="bottom" aria-label="Âm thanh"></button>
-        <button type="button" class="btn btn-ghost btn-icon" id="btnPalette" data-tip="Đổi tông màu (Hồng Sakura · Đặc trưng HUB · Tím Lavender · Xanh Sapphire)" data-tip-pos="bottom" aria-label="Tông màu"><span class="palette-dot"></span></button>
-        <button type="button" class="btn btn-ghost btn-icon" id="btnTheme" data-tip="Chuyển giao diện Sáng / Tối" data-tip-pos="bottom" aria-label="Giao diện Sáng / Tối"></button>
+        <button type="button" class="btn btn-sm mono" id="btnScale" data-tip="Đổi cỡ chữ đọc bài" data-tip-pos="bottom">Aa MD</button>
+        <button type="button" class="btn btn-ghost btn-icon" id="btnAutoScroll" data-tip="Tự động cuộn trang (Phím A · Giữ Shift khi bấm để đổi tốc độ)" data-tip-pos="bottom" aria-label="Tự động cuộn"></button>
+        <button type="button" class="btn btn-ghost btn-icon" id="btnZen" data-tip="Chế độ đọc tập trung (Phím Z)" data-tip-pos="bottom" aria-label="Đọc tập trung"></button>
+        <button type="button" class="btn btn-ghost btn-icon" id="btnSound" data-tip="Âm thanh thao tác" data-tip-pos="bottom" aria-label="Âm thanh"></button>
+        <button type="button" class="btn btn-ghost btn-icon" id="btnPalette" data-tip="Đổi tông màu giao diện" data-tip-pos="bottom" aria-label="Tông màu"><span class="palette-dot"></span></button>
+        <button type="button" class="btn btn-ghost btn-icon" id="btnTheme" data-tip="Giao diện Sáng / Tối" data-tip-pos="bottom" aria-label="Giao diện Sáng / Tối"></button>
       </div>
       <div class="scroll-progress" id="scrollProgress"></div>
     </header>
@@ -4343,7 +4590,7 @@ mark.search-hl {
 </nav>
 
 <!-- Floating Scroll-to-Top Progress Ring -->
-<button type="button" class="scroll-fab" id="scrollFab" data-tip="Cuộn mượt lên đầu trang" data-tip-pos="left" aria-label="Lên đầu trang">
+<button type="button" class="scroll-fab" id="scrollFab" data-tip="Lên đầu trang" data-tip-pos="left" aria-label="Lên đầu trang">
   <svg class="fab-ring" viewBox="0 0 38 38" aria-hidden="true">
     <circle cx="19" cy="19" r="17" fill="none" stroke="var(--border)" stroke-width="2.2"/>
     <circle id="scrollFabArc" cx="19" cy="19" r="17" fill="none" stroke="var(--brand)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="106.8"/>
@@ -4352,14 +4599,14 @@ mark.search-hl {
 </button>
 
 <!-- Floating Text-Selection Study Popover -->
-<div class="sel-popover" id="selPopover" role="toolbar" aria-label="Công cụ học nhanh đoạn văn bản">
-  <button type="button" class="sel-act" id="selBtnHl"><span id="selIcoHl"></span> <span>Tô sáng</span></button>
+<div class="sel-popover" id="selPopover" role="toolbar" aria-label="Công cụ thao tác đoạn văn">
+  <button type="button" class="sel-act" id="selBtnHl"><span id="selIcoHl"></span> <span id="selLblHl">Tô sáng</span></button>
   <span class="sel-sep"></span>
-  <button type="button" class="sel-act" id="selBtnFind"><span id="selIcoFind"></span> <span>Tra đề</span></button>
+  <button type="button" class="sel-act" id="selBtnFind"><span id="selIcoFind"></span> <span id="selLblFind">Tra cứu</span></button>
   <span class="sel-sep"></span>
-  <button type="button" class="sel-act" id="selBtnSpeak"><span id="selIcoSpeak"></span> <span>Đọc</span></button>
+  <button type="button" class="sel-act" id="selBtnSpeak"><span id="selIcoSpeak"></span> <span id="selLblSpeak">Đọc</span></button>
   <span class="sel-sep"></span>
-  <button type="button" class="sel-act" id="selBtnCopy"><span id="selIcoCopy"></span> <span id="selLblCopy">Chép</span></button>
+  <button type="button" class="sel-act" id="selBtnCopy"><span id="selIcoCopy"></span> <span id="selLblCopy">Sao chép</span></button>
 </div>
 
 <!-- Zero-Latency Gliding Custom Tooltip -->
@@ -4381,10 +4628,10 @@ mark.search-hl {
 
 <!-- Global Academic Search & Command Studio (Ctrl + K) -->
 <div class="overlay hidden" id="cmdOverlay">
-  <div class="cmd-dialog" role="dialog" aria-modal="true" aria-label="Tìm kiếm toàn cục học phần BAF736">
+  <div class="cmd-dialog" role="dialog" aria-modal="true" aria-label="Tìm kiếm học phần BAF736">
     <div class="cmd-bar">
       <span id="cmdBarIcon" class="muted" style="display:inline-flex"></span>
-      <input type="search" id="cmdInput" placeholder="Tìm bài giảng, công thức, câu hỏi (có dấu hoặc không dấu: dung so, WACC, LBO...)" autocomplete="off">
+      <input type="search" id="cmdInput" placeholder="Tìm bài giảng, công thức, thuật ngữ, câu hỏi..." autocomplete="off">
       <button type="button" class="cmd-clear-btn hidden" id="cmdClearBtn" aria-label="Xoá từ khoá"></button>
       <span class="kbd desk-kbd-hint">ESC</span>
       <button type="button" class="btn btn-ghost btn-sm mob-only-btn" id="cmdCloseBtn">Đóng</button>
@@ -4393,9 +4640,9 @@ mark.search-hl {
     <div class="cmd-results" id="cmdResults"></div>
     <div class="cmd-foot desk-kbd-hint" id="cmdFoot">
       <div class="cmd-foot-hints">
-        <span><span class="kbd">↑</span> <span class="kbd">↓</span> Di chuyển</span>
-        <span><span class="kbd">Tab</span> Lọc nhóm</span>
-        <span><span class="kbd">Enter</span> Mở ngay</span>
+        <span><span class="kbd">↑</span> <span class="kbd">↓</span> <span id="cmdHintNav">Di chuyển</span></span>
+        <span><span class="kbd">Tab</span> <span id="cmdHintTab">Đổi nhóm</span></span>
+        <span><span class="kbd">Enter</span> <span id="cmdHintOpen">Mở</span></span>
       </div>
       <span class="mono" id="cmdStatsTxt"></span>
     </div>
@@ -4408,7 +4655,7 @@ mark.search-hl {
     <h3 id="confirmTitle" style="font-size:1.05rem;font-weight:650;margin-bottom:8px"></h3>
     <p id="confirmDesc" class="small muted" style="line-height:1.6;margin-bottom:20px"></p>
     <div id="confirmPinZone" class="hidden" style="margin:-6px 0 16px">
-      <input type="password" inputmode="numeric" autocomplete="new-password" class="inp mono" id="confirmPinInput" placeholder="Nhập mã khoá bảo vệ..." style="width:100%;height:38px;letter-spacing:0.14em">
+      <input type="password" inputmode="numeric" autocomplete="new-password" class="inp mono" id="confirmPinInput" placeholder="Nhập mã bảo vệ..." style="width:100%;height:38px;letter-spacing:0.14em">
       <div id="confirmPinErr" class="small hidden" style="color:var(--err);margin-top:6px;font-weight:550"></div>
     </div>
     <div class="modal-actions">
@@ -4418,19 +4665,34 @@ mark.search-hl {
   </div>
 </div>
 
-<!-- SVG Diagram Zoom Lightbox -->
+<!-- Interactive Diagram Studio Lightbox -->
 <div class="overlay overlay-center hidden" id="lightboxOverlay">
-  <div class="lightbox-card">
+  <div class="lightbox-card" id="lightboxCard" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
     <div class="lightbox-head">
-      <b id="lightboxTitle" style="font-size:0.9rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></b>
-      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-        <button type="button" class="btn btn-sm btn-icon mono" id="lbZoomOut" aria-label="Thu nhỏ">-</button>
-        <button type="button" class="btn btn-sm mono" id="lbZoomReset" style="min-width:52px;padding:0 7px">100%</button>
-        <button type="button" class="btn btn-sm btn-icon mono" id="lbZoomIn" aria-label="Phóng to">+</button>
-        <button type="button" class="btn btn-sm" id="lightboxClose">Đóng</button>
+      <div class="lightbox-title-wrap">
+        <span class="lightbox-counter hidden mono" id="lbCounter"></span>
+        <b id="lightboxTitle" class="lightbox-title-txt"></b>
+      </div>
+      <div class="lightbox-head-actions">
+        <div class="lightbox-nav-grp hidden" id="lbNavGrp">
+          <button type="button" class="btn btn-sm btn-icon" id="lbPrevFig" data-tip="Sơ đồ trước (Phím ←)" data-tip-pos="bottom" aria-label="Sơ đồ trước"></button>
+          <button type="button" class="btn btn-sm btn-icon" id="lbNextFig" data-tip="Sơ đồ tiếp theo (Phím →)" data-tip-pos="bottom" aria-label="Sơ đồ tiếp theo"></button>
+        </div>
+        <button type="button" class="btn btn-sm" id="lightboxClose" data-tip="Đóng cửa sổ (Esc)" data-tip-pos="bottom">Đóng</button>
       </div>
     </div>
-    <div class="lightbox-body" id="lightboxBody"></div>
+    <div class="lightbox-viewport" id="lightboxViewport">
+      <div class="lightbox-body" id="lightboxBody"></div>
+      <div class="lightbox-hint" id="lightboxHint">Cuộn chuột để thu phóng · Kéo giữ để di chuyển · Nhấp đúp 2×</div>
+      <div class="lightbox-dock" id="lightboxDock">
+        <button type="button" class="lb-dock-btn" id="lbZoomOut" data-tip="Thu nhỏ (Phím -)" data-tip-pos="top" aria-label="Thu nhỏ"></button>
+        <input type="range" class="lb-zoom-slider" id="lbZoomSlider" min="50" max="350" step="5" value="100" aria-label="Mức thu phóng">
+        <button type="button" class="lb-dock-btn" id="lbZoomIn" data-tip="Phóng to (Phím +)" data-tip-pos="top" aria-label="Phóng to"></button>
+        <span class="lb-dock-sep"></span>
+        <button type="button" class="lb-dock-pct mono" id="lbZoomReset" data-tip="Đặt lại tỷ lệ 100% (Phím 0)" data-tip-pos="top">100%</button>
+        <button type="button" class="lb-dock-btn" id="lbFitBtn" data-tip="Canh giữa vừa khung hình" data-tip-pos="top" aria-label="Vừa khung"></button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -24960,6 +25222,10 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     lock: svgWrap(`<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`),
     unlock: svgWrap(`<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>`),
     zoom: svgWrap(`<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`, "ico-sm"),
+    zoomIn: svgWrap(`<circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.2" y2="16.2"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>`, "ico-sm"),
+    zoomOut: svgWrap(`<circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.2" y2="16.2"/><line x1="8" y1="11" x2="14" y2="11"/>`, "ico-sm"),
+    plus: svgWrap(`<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>`, "ico-sm"),
+    minus: svgWrap(`<line x1="5" y1="12" x2="19" y2="12"/>`, "ico-sm"),
     rotate: svgWrap(`<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>`, "ico-spin"),
     shuffle: svgWrap(`<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>`, "ico-pop"),
     eye: svgWrap(`<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>`),
@@ -25799,7 +26065,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     syncExamBodyClass();
     nav("home", {}, { replace: true });
     SFX.complete();
-    showToast(ui("Đã đặt lại toàn bộ dữ liệu học tập về 0% (Mới hoàn toàn)", "All study progress reset to 0% (Fresh start)"));
+    showToast(ui("Đã đặt lại toàn bộ tiến độ học tập", "All study progress has been reset"));
   }
 
   /* ---------------- Toast, Confirm Modal & Lightbox ---------------- */
@@ -25820,7 +26086,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     const okBtn = $("#confirmOkBtn");
     okBtn.textContent = opts.okLabel || ui("Xác nhận", "Confirm");
     okBtn.className = "btn " + (opts.danger ? "btn-danger" : "btn-primary");
-    $("#confirmCancelBtn").textContent = opts.cancelLabel || ui("Quay lại", "Cancel");
+    $("#confirmCancelBtn").textContent = opts.cancelLabel || ui("Huỷ", "Cancel");
 
     const pinZone = $("#confirmPinZone");
     const pinInp = $("#confirmPinInput");
@@ -25831,7 +26097,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       pinErr.textContent = "";
       pinErr.classList.add("hidden");
       if (opts.requirePin) {
-        pinInp.placeholder = opts.pinPlaceholder || ui("Nhập mã khoá quản trị...", "Enter admin PIN...");
+        pinInp.placeholder = opts.pinPlaceholder || ui("Nhập mã bảo vệ...", "Enter security PIN...");
         pinZone.classList.remove("hidden");
         pinInp.oninput = () => {
           pinInp.classList.remove("pin-shake");
@@ -25868,7 +26134,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
           void pinInp.offsetWidth;
           pinInp.classList.add("pin-shake");
           if (pinErr) {
-            pinErr.textContent = ui("Mã khoá quản trị không đúng — dữ liệu được giữ an toàn.", "Incorrect admin PIN — data kept safe.");
+            pinErr.textContent = ui("Mã bảo vệ chưa đúng. Dữ liệu vẫn được giữ nguyên.", "Incorrect security PIN. Your data remains untouched.");
             pinErr.classList.remove("hidden");
           }
           pinInp.select();
@@ -25882,35 +26148,331 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     };
   }
 
+  /* ---------------- Interactive Diagram Studio Lightbox ---------------- */
+  const LB_MIN_ZOOM = 0.5;
+  const LB_MAX_ZOOM = 3.5;
   let lbZoom = 1;
-  function applyLightboxZoom() {
-    const body = $("#lightboxBody");
-    const svgEl = body && body.querySelector("svg");
-    const lbl = $("#lbZoomReset");
-    if (lbl) lbl.textContent = Math.round(lbZoom * 100) + "%";
-    if (!svgEl) return;
-    if (lbZoom === 1) {
-      svgEl.style.cssText = "max-width:100%!important;width:100%;height:auto";
-    } else {
-      svgEl.style.cssText = `max-width:none!important;width:${Math.round(lbZoom * 100)}%;height:auto`;
-    }
+  let lbPanX = 0;
+  let lbPanY = 0;
+  let lbItems = [];
+  let lbIdx = 0;
+  let lbHintTimer = 0;
+  let lbGestureTimer = 0;
+
+  function isLightboxOpen() {
+    const ov = $("#lightboxOverlay");
+    return !!(ov && !ov.classList.contains("hidden"));
   }
 
-  function openDiagramLightbox(title, svgHtml) {
-    SFX.tap();
+  function clampLightboxPan(zx, px, py) {
+    const vp = $("#lightboxViewport");
+    const body = $("#lightboxBody");
+    if (!vp || !body || !vp.clientWidth || !body.offsetWidth) return { x: px, y: py };
+    const sw = body.offsetWidth * zx;
+    const sh = body.offsetHeight * zx;
+    const maxX = Math.max(36, (sw - vp.clientWidth) / 2 + 96);
+    const maxY = Math.max(36, (sh - vp.clientHeight) / 2 + 96);
+    return {
+      x: Math.max(-maxX, Math.min(maxX, px)),
+      y: Math.max(-maxY, Math.min(maxY, py))
+    };
+  }
+
+  function markLightboxGesture() {
+    const vp = $("#lightboxViewport");
+    const hint = $("#lightboxHint");
+    if (vp) vp.classList.add("is-gesturing");
+    if (hint && (Math.abs(lbZoom - 1) > 0.04 || Math.hypot(lbPanX, lbPanY) > 8)) {
+      hint.classList.add("is-faded");
+    }
+    clearTimeout(lbGestureTimer);
+    lbGestureTimer = setTimeout(() => {
+      if (vp) vp.classList.remove("is-gesturing");
+    }, 150);
+  }
+
+  function applyLightboxTransform(animate) {
+    const body = $("#lightboxBody");
+    const lbl = $("#lbZoomReset");
+    const slider = $("#lbZoomSlider");
+    const zOut = $("#lbZoomOut");
+    const zIn = $("#lbZoomIn");
+    const pct = Math.round(lbZoom * 100);
+    if (lbl) lbl.textContent = pct + "%";
+    if (slider) {
+      slider.value = String(pct);
+      updateRangeFill(slider);
+    }
+    if (zOut) zOut.disabled = lbZoom <= LB_MIN_ZOOM + 0.01;
+    if (zIn) zIn.disabled = lbZoom >= LB_MAX_ZOOM - 0.01;
+    if (!body) return;
+    body.classList.toggle("is-animating", !!animate);
+    body.style.transform = `translate3d(${lbPanX.toFixed(2)}px, ${lbPanY.toFixed(2)}px, 0) scale(${lbZoom.toFixed(4)})`;
+  }
+
+  function resetLightboxView(animate) {
     lbZoom = 1;
+    lbPanX = 0;
+    lbPanY = 0;
+    markLightboxGesture();
+    applyLightboxTransform(!!animate);
+  }
+
+  function zoomLightboxAt(targetZoom, clientX, clientY, animate) {
+    const vp = $("#lightboxViewport");
+    const nextZ = Math.max(LB_MIN_ZOOM, Math.min(LB_MAX_ZOOM, targetZoom));
+    if (!vp) {
+      lbZoom = nextZ;
+      applyLightboxTransform(!!animate);
+      return;
+    }
+    const r = vp.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const fx = clientX != null ? clientX : cx;
+    const fy = clientY != null ? clientY : cy;
+    const dfx = fx - cx;
+    const dfy = fy - cy;
+    const ratio = nextZ / lbZoom;
+    const rawPx = dfx - (dfx - lbPanX) * ratio;
+    const rawPy = dfy - (dfy - lbPanY) * ratio;
+    lbZoom = nextZ;
+    const cl = clampLightboxPan(lbZoom, rawPx, rawPy);
+    lbPanX = cl.x;
+    lbPanY = cl.y;
+    markLightboxGesture();
+    applyLightboxTransform(!!animate);
+  }
+
+  function mountLightboxSlide(idx) {
+    if (!lbItems.length) return;
+    lbIdx = ((idx % lbItems.length) + lbItems.length) % lbItems.length;
+    const item = lbItems[lbIdx];
+    const titleEl = $("#lightboxTitle");
+    const bodyEl = $("#lightboxBody");
+    const cntEl = $("#lbCounter");
+    const navGrp = $("#lbNavGrp");
+    if (titleEl) titleEl.textContent = item.title || "";
+    if (bodyEl) bodyEl.innerHTML = item.svgHtml || "";
+    const multi = lbItems.length > 1;
+    if (cntEl) {
+      cntEl.textContent = `${lbIdx + 1} / ${lbItems.length}`;
+      cntEl.classList.toggle("hidden", !multi);
+    }
+    if (navGrp) navGrp.classList.toggle("hidden", !multi);
+    lbZoom = 1;
+    lbPanX = 0;
+    lbPanY = 0;
+    applyLightboxTransform(false);
+  }
+
+  function closeDiagramLightbox() {
     const ov = $("#lightboxOverlay");
-    $("#lightboxTitle").textContent = title || "";
-    $("#lightboxBody").innerHTML = svgHtml || "";
-    applyLightboxZoom();
+    if (!ov || ov.classList.contains("hidden")) return;
+    clearTimeout(lbHintTimer);
+    ov.classList.add("hidden");
+    scheduleOverlayHistoryRelease();
+  }
+
+  function openDiagramLightbox(itemsOrTitle, idxOrSvgHtml) {
+    SFX.tap();
+    if (Array.isArray(itemsOrTitle)) {
+      lbItems = itemsOrTitle;
+      lbIdx = typeof idxOrSvgHtml === "number" ? idxOrSvgHtml : 0;
+    } else {
+      lbItems = [{ title: itemsOrTitle || "", svgHtml: idxOrSvgHtml || "" }];
+      lbIdx = 0;
+    }
+    const ov = $("#lightboxOverlay");
+    const hint = $("#lightboxHint");
+    if (!ov) return;
+    stopWheelInertia();
+    autoScrollVel = 0;
+    if (hint) {
+      const isTouch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+      hint.textContent = isTouch
+        ? ui("Chụm hai ngón để thu phóng · Kéo để di chuyển · Chạm đúp 2×", "Pinch to zoom · Drag to pan · Double-tap 2×")
+        : ui("Cuộn chuột để thu phóng · Kéo giữ để di chuyển · Nhấp đúp 2×", "Scroll to zoom · Drag to pan · Double-click 2×");
+      hint.classList.remove("is-faded");
+      clearTimeout(lbHintTimer);
+      lbHintTimer = setTimeout(() => hint.classList.add("is-faded"), 4200);
+    }
     ov.classList.remove("hidden");
+    mountLightboxSlide(lbIdx);
     pushOverlayHistory();
-    const closeLb = () => { ov.classList.add("hidden"); scheduleOverlayHistoryRelease(); };
-    $("#lightboxClose").onclick = closeLb;
-    if ($("#lbZoomIn")) $("#lbZoomIn").onclick = () => { SFX.tap(); lbZoom = Math.min(2.75, +(lbZoom + 0.35).toFixed(2)); applyLightboxZoom(); };
-    if ($("#lbZoomOut")) $("#lbZoomOut").onclick = () => { SFX.tap(); lbZoom = Math.max(0.75, +(lbZoom - 0.35).toFixed(2)); applyLightboxZoom(); };
-    if ($("#lbZoomReset")) $("#lbZoomReset").onclick = () => { SFX.tap(); lbZoom = 1; applyLightboxZoom(); };
-    ov.onclick = (e) => { if (e.target === ov) closeLb(); };
+  }
+
+  function bindDiagramCards(root) {
+    if (!root) return;
+    const cards = [...root.querySelectorAll(".fig-card")];
+    if (!cards.length) return;
+    const gallery = cards.map((card, idx) => {
+      const tEl = card.querySelector(".fig-title");
+      const bEl = card.querySelector(".fig-body");
+      const rawTitle = tEl && tEl.firstChild ? tEl.firstChild.textContent.trim() : `${ui("Sơ đồ", "Diagram")} ${idx + 1}`;
+      return {
+        card,
+        tEl,
+        bEl,
+        title: rawTitle,
+        svgHtml: bEl ? bEl.innerHTML : ""
+      };
+    });
+    gallery.forEach((entry, idx) => {
+      const { card, tEl, bEl } = entry;
+      if (!tEl || !bEl) return;
+      let pill = tEl.querySelector(".fig-zoom-hint");
+      if (!pill) {
+        pill = document.createElement("span");
+        pill.className = "fig-zoom-hint fig-zoom-pill";
+        tEl.appendChild(pill);
+      }
+      pill.innerHTML = `${I.zoomIn} <span>${ui("Phóng to", "Zoom")}</span>`;
+      card.style.cursor = "zoom-in";
+      card.onclick = (ev) => {
+        if (ev.target && ev.target.closest && ev.target.closest("a, button")) return;
+        openDiagramLightbox(gallery, idx);
+      };
+    });
+  }
+
+  function initLightboxEvents() {
+    const ov = $("#lightboxOverlay");
+    const vp = $("#lightboxViewport");
+    if (!ov || !vp) return;
+
+    if ($("#lbPrevFig")) $("#lbPrevFig").innerHTML = I.arrowL;
+    if ($("#lbNextFig")) $("#lbNextFig").innerHTML = I.arrowR;
+    if ($("#lbZoomOut")) $("#lbZoomOut").innerHTML = I.minus;
+    if ($("#lbZoomIn")) $("#lbZoomIn").innerHTML = I.plus;
+    if ($("#lbFitBtn")) $("#lbFitBtn").innerHTML = I.maximize;
+
+    $("#lightboxClose").onclick = () => { SFX.tap(); closeDiagramLightbox(); };
+    ov.onclick = (e) => { if (e.target === ov) closeDiagramLightbox(); };
+
+    if ($("#lbZoomIn")) $("#lbZoomIn").onclick = () => { SFX.tap(); zoomLightboxAt(lbZoom + 0.3, null, null, true); };
+    if ($("#lbZoomOut")) $("#lbZoomOut").onclick = () => { SFX.tap(); zoomLightboxAt(lbZoom - 0.3, null, null, true); };
+    if ($("#lbZoomReset")) $("#lbZoomReset").onclick = () => { SFX.tap(); resetLightboxView(true); };
+    if ($("#lbFitBtn")) $("#lbFitBtn").onclick = () => { SFX.tap(); resetLightboxView(true); };
+    if ($("#lbPrevFig")) $("#lbPrevFig").onclick = () => { SFX.tap(); mountLightboxSlide(lbIdx - 1); };
+    if ($("#lbNextFig")) $("#lbNextFig").onclick = () => { SFX.tap(); mountLightboxSlide(lbIdx + 1); };
+
+    const slider = $("#lbZoomSlider");
+    if (slider) {
+      slider.addEventListener("input", () => {
+        zoomLightboxAt(parseFloat(slider.value) / 100, null, null, false);
+      });
+    }
+
+    ov.addEventListener("wheel", (e) => {
+      if (!isLightboxOpen()) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.target === ov) return;
+      let dy = e.deltaY;
+      if (e.deltaMode === 1) dy *= 32;
+      else if (e.deltaMode === 2) dy *= 240;
+      dy = Math.max(-180, Math.min(180, dy));
+      const sens = (e.ctrlKey || e.metaKey) ? 0.0045 : 0.0019;
+      const factor = Math.exp(-dy * sens);
+      zoomLightboxAt(lbZoom * factor, e.clientX, e.clientY, false);
+    }, { passive: false });
+
+    vp.addEventListener("dblclick", (e) => {
+      if (e.target && e.target.closest && e.target.closest("#lightboxDock")) return;
+      e.preventDefault();
+      SFX.tap();
+      if (Math.abs(lbZoom - 1) > 0.08 || Math.hypot(lbPanX, lbPanY) > 12) {
+        resetLightboxView(true);
+      } else {
+        zoomLightboxAt(2.15, e.clientX, e.clientY, true);
+      }
+    });
+
+    const ptrs = new Map();
+    let dragLastX = 0;
+    let dragLastY = 0;
+    let dragMoved = 0;
+    let pinchPrevDist = 0;
+    let pinchPrevMid = null;
+    let lastTapTs = 0;
+    let lastTapX = 0;
+    let lastTapY = 0;
+
+    vp.addEventListener("pointerdown", (e) => {
+      if (e.button && e.button !== 0) return;
+      if (e.target && e.target.closest && e.target.closest("#lightboxDock")) return;
+      try { vp.setPointerCapture(e.pointerId); } catch (err) {}
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1) {
+        dragLastX = e.clientX;
+        dragLastY = e.clientY;
+        dragMoved = 0;
+      } else if (ptrs.size === 2) {
+        const arr = [...ptrs.values()];
+        pinchPrevDist = Math.hypot(arr[1].x - arr[0].x, arr[1].y - arr[0].y);
+        pinchPrevMid = { x: (arr[0].x + arr[1].x) / 2, y: (arr[0].y + arr[1].y) / 2 };
+      }
+    });
+
+    vp.addEventListener("pointermove", (e) => {
+      if (!ptrs.has(e.pointerId)) return;
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1) {
+        const dx = e.clientX - dragLastX;
+        const dy = e.clientY - dragLastY;
+        dragLastX = e.clientX;
+        dragLastY = e.clientY;
+        dragMoved += Math.hypot(dx, dy);
+        if (dragMoved > 2) {
+          vp.classList.add("is-dragging");
+          const cl = clampLightboxPan(lbZoom, lbPanX + dx, lbPanY + dy);
+          lbPanX = cl.x;
+          lbPanY = cl.y;
+          markLightboxGesture();
+          applyLightboxTransform(false);
+        }
+      } else if (ptrs.size === 2) {
+        const arr = [...ptrs.values()];
+        const dist = Math.hypot(arr[1].x - arr[0].x, arr[1].y - arr[0].y);
+        const mid = { x: (arr[0].x + arr[1].x) / 2, y: (arr[0].y + arr[1].y) / 2 };
+        if (pinchPrevDist > 8 && pinchPrevMid) {
+          lbPanX += mid.x - pinchPrevMid.x;
+          lbPanY += mid.y - pinchPrevMid.y;
+          zoomLightboxAt(lbZoom * (dist / pinchPrevDist), mid.x, mid.y, false);
+        }
+        pinchPrevDist = dist;
+        pinchPrevMid = mid;
+      }
+    });
+
+    const endPtr = (e) => {
+      if (!ptrs.has(e.pointerId)) return;
+      ptrs.delete(e.pointerId);
+      try { if (vp.hasPointerCapture(e.pointerId)) vp.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (ptrs.size === 0) {
+        vp.classList.remove("is-dragging");
+        if (e.pointerType === "touch" && dragMoved < 8) {
+          const now = performance.now();
+          if (now - lastTapTs < 300 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 28) {
+            SFX.tap();
+            if (Math.abs(lbZoom - 1) > 0.08 || Math.hypot(lbPanX, lbPanY) > 12) resetLightboxView(true);
+            else zoomLightboxAt(2.15, e.clientX, e.clientY, true);
+            lastTapTs = 0;
+          } else {
+            lastTapTs = now;
+            lastTapX = e.clientX;
+            lastTapY = e.clientY;
+          }
+        }
+      } else if (ptrs.size === 1) {
+        const rem = [...ptrs.values()][0];
+        dragLastX = rem.x;
+        dragLastY = rem.y;
+      }
+    };
+    vp.addEventListener("pointerup", endPtr);
+    vp.addEventListener("pointercancel", endPtr);
   }
 
   function wrapTablesForScroll(root) {
@@ -25931,10 +26493,10 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
   let zenMode = false;
   const SCALES = ["sm", "md", "lg", "xl"];
   const PALETTES = [
-    { id: "rose", vi: "Hồng Đào Pastel (Sakura Blush)", en: "Sakura Blush Pastel" },
-    { id: "hub", vi: "Đặc trưng HUB (Navy · Đỏ Đô · Hoàng Kim)", en: "HUB Signature (Navy · Crimson · Gold)" },
-    { id: "lavender", vi: "Tím Oải Hương (Lavender Milk)", en: "Lavender Milk Pastel" },
-    { id: "sapphire", vi: "Xanh Ngọc Bích (Sapphire Classic)", en: "Sapphire Classic" }
+    { id: "rose", vi: "Hồng Anh Đào", en: "Sakura Blush" },
+    { id: "hub", vi: "Xanh Đỏ HUB", en: "HUB Signature" },
+    { id: "lavender", vi: "Tím Oải Hương", en: "Lavender Milk" },
+    { id: "sapphire", vi: "Xanh Lam Cổ Điển", en: "Sapphire Classic" }
   ];
 
   const THEME_META_COLORS = {
@@ -26028,8 +26590,8 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       b1.setAttribute(
         "data-tip",
         autoScrollActive
-          ? ui(`Đang tự động cuộn (${sp.vi}) · Bấm hoặc lăn chuột để dừng · Shift+Click đổi tốc độ`, `Auto-scrolling (${sp.en}) · Click or scroll to pause · Shift+Click for speed`)
-          : ui("Bật tự động cuộn trang êm ái (Phím A · Shift+Click đổi tốc độ)", "Enable smooth auto-scroll (Key A · Shift+Click for speed)")
+          ? ui(`Đang tự cuộn (${sp.vi}) · Lăn chuột hoặc bấm để dừng`, `Auto-scrolling (${sp.en}) · Scroll or click to pause`)
+          : ui("Tự động cuộn trang (Phím A · Giữ Shift khi bấm để đổi tốc độ)", "Smooth auto-scroll (Key A · Shift+Click for speed)")
       );
       mutateBtn(b1, (b) => {
         b.innerHTML = autoScrollActive ? I.autoScrollOn : I.autoScrollOff;
@@ -26104,6 +26666,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     const sel = window.getSelection && window.getSelection();
     const hasTextSel = !!(($("#selPopover") && $("#selPopover").classList.contains("show")) || (sel && !sel.isCollapsed && String(sel).trim().length > 1));
     const blocked = hasOpenOverlay() || hasTextSel || (state.view === "examRun" && !autoScrollPinned);
+    if (hasOpenOverlay()) autoScrollVel = 0;
     const targetSpeed = (blocked || autoScrollSoftHold) ? 0 : (AUTO_SPEEDS[autoScrollSpeedIdx] || AUTO_SPEEDS[1]).px;
     // Smooth viscous velocity ramp (accelerates & decelerates like silk, zero sudden jerk!)
     const accelRate = 1 - Math.pow(0.02, dt);
@@ -26746,7 +27309,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         ${row("revision", I.layers, ui("Flashcards & Công thức", "Flashcards & Formulas"), ui("Thẻ lật 3D 56 thuật ngữ, 37 câu Đúng/Sai & công thức 6 chương", "3D flashcards, True/False checks & formula sheets"), "railRevBadge")}
         ${row("cases", I.briefcase, ui("Hồ sơ thương vụ", "Case Studies"), ui("8 hồ sơ thương vụ IPO, M&A, LBO kinh điển từ cáo bạch gốc", "8 transaction dossiers from prospectuses & filings"), "railCaseBadge")}
         ${row("labs", I.sliders, ui("Mô hình định giá", "Valuation Models"), ui("10 mô hình DCF, LBO, WACC, Trái phiếu & 3 tình huống tương tác", "10 interactive financial models & 3 deal simulations"), "railLabBadge")}
-        ${row("stats", I.chart, ui("Phân tích & Câu sai", "Analytics & Mistakes"), ui("Thống kê điểm theo chương & giỏ ôn lại các câu từng làm sai", "Performance diagnostics & missed-question repair queue"), "railStatBadge")}
+        ${row("stats", I.chart, ui("Phân tích & Câu sai", "Analytics & Mistakes"), ui("Thống kê điểm theo chương & danh sách câu cần ôn lại", "Performance diagnostics & missed-question review list"), "railStatBadge")}
       </div>
     </div>`;
 
@@ -26912,7 +27475,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
 
       <section class="overview-hero spot-surface stagger" style="--i:1">
         <div>
-          <div class="kicker" style="color:var(--ok)">${doneSecs < totalSecs ? ui("Đang học dở · Đề xuất tiếp theo", "Continue Learning") : ui("Đã hoàn thành toàn bộ bài giảng", "All Sections Read")}</div>
+          <div class="kicker" style="color:var(--ok)">${doneSecs < totalSecs ? ui("Tiếp tục lộ trình học", "Continue Learning") : ui("Đã hoàn thành toàn bộ bài giảng", "All Sections Read")}</div>
           <div style="font-size:1.12rem;font-weight:650;color:var(--ink);margin-bottom:6px">
             ${ui("Chương", "Chapter")} 0${next.ch.id} · ${esc(next.sec.id)} ${esc(Lp(next.sec, "title"))}
           </div>
@@ -26925,23 +27488,23 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         </div>
 
         <div class="stat-grid-inline">
-          <div class="stat-cell" id="kpiReadCell" data-tip="Bấm để đọc mục bài giảng tiếp theo">
+          <div class="stat-cell" id="kpiReadCell" data-tip="${ui("Mở mục bài giảng tiếp theo", "Open next lecture section")}">
             <div class="stat-cell-lbl">${ui("Mục bài giảng", "Sections Read")} ${I.chevR}</div>
             <div class="stat-cell-val"><span data-countup="${doneSecs}">${doneSecs}</span><span style="font-size:0.95rem;color:var(--ink-3);font-weight:500"> / ${totalSecs}</span></div>
             <div class="stat-cell-sub">${Math.round((doneSecs / Math.max(1, totalSecs)) * 100)}% ${ui("hoàn thành", "completed")}</div>
           </div>
-          <div class="stat-cell" id="kpiAccCell" data-tip="Xem phân tích điểm số theo 6 chương">
+          <div class="stat-cell" id="kpiAccCell" data-tip="${ui("Xem thống kê điểm theo 6 chương", "View accuracy across 6 chapters")}">
             <div class="stat-cell-lbl">${ui("Độ chính xác", "Quiz Accuracy")} ${I.chevR}</div>
             <div class="stat-cell-val">${avgAcc !== null ? `<span data-countup="${avgAcc}" data-suffix="%">${avgAcc}%</span>` : "—"}</div>
             <div class="stat-cell-sub">${attempts.length} ${ui("lượt làm đề", "completed attempts")}</div>
           </div>
-          <div class="stat-cell" id="kpiBankCell" data-tip="Mở kho 1.024 câu trắc nghiệm">
+          <div class="stat-cell" id="kpiBankCell" data-tip="${ui("Mở ngân hàng 1.024 câu trắc nghiệm", "Open 1,024-question bank")}">
             <div class="stat-cell-lbl">${ui("Kho đề trắc nghiệm", "MCQ Bank")} ${I.chevR}</div>
             <div class="stat-cell-val"><span data-countup="${MCQS.length}" data-locale="vi">${MCQS.length.toLocaleString("vi-VN")}</span></div>
             <div class="stat-cell-sub">+ ${ESSAYS.length} ${ui("bài tự luận & tính toán", "essays & problems")}</div>
           </div>
-          <div class="stat-cell" id="kpiQueueCell" data-tip="Mở danh sách câu sai & đã lưu">
-            <div class="stat-cell-lbl">${ui("Giỏ cần ôn lại", "Review Queue")} ${I.chevR}</div>
+          <div class="stat-cell" id="kpiQueueCell" data-tip="${ui("Xem câu làm sai & câu đã lưu", "Review missed & saved questions")}">
+            <div class="stat-cell-lbl">${ui("Câu cần ôn lại", "Review List")} ${I.chevR}</div>
             <div class="stat-cell-val"><span data-countup="${wrongCount + starCount}">${wrongCount + starCount}</span></div>
             <div class="stat-cell-sub">${wrongCount} ${ui("sai", "missed")} · ${starCount} ${ui("đã lưu", "saved")}</div>
           </div>
@@ -27032,7 +27595,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
               <span class="ico-box ico-teal">${I.sliders}</span>
             </div>
             <div style="font-weight:660;font-size:0.99rem;margin-bottom:5px;color:var(--ink)">${ui("Mô phỏng DCF · LBO · IPO · M&A", "DCF · LBO · IPO Simulators")}</div>
-            <p class="small muted">${ui("10 mô hình định giá trực quan phản hồi biến động tức thời kèm 3 tình huống thương vụ.", "10 interactive quantitative models with live delta flashes and 3 deal simulations.")}</p>
+            <p class="small muted">${ui("Thực hành 10 mô hình định giá tài chính và 3 bài toán ra quyết định thương vụ.", "Practice 10 interactive valuation models and 3 transaction simulations.")}</p>
           </div>
           <div class="small" style="font-weight:620;color:var(--teal-ink);display:flex;align-items:center;gap:5px">${ui("Mở phòng mô phỏng", "Open Modeling Studio")} <span class="card-cta-arrow">${I.arrowR}</span></div>
         </div>
@@ -27192,7 +27755,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0">
         <div>
-          <div class="kicker">${esc(META.code)} · SYLLABUS & ASSESSMENT</div>
+          <div class="kicker">${esc(META.code)} · ${ui("Đề cương & Đánh giá học phần", "Syllabus & Assessment")}</div>
           <h1 class="h1">${ui("Đề cương học phần & Ma trận đánh giá", "Course Syllabus & Assessment Blueprint")}</h1>
           <p class="lead">${L(META, "faculty")} · ${META.credits} ${ui("tín chỉ", "credits")} (${META.hours.classroom}h ${ui("lý thuyết & thảo luận", "contact")} + ${META.hours.selfStudy}h ${ui("tự học", "self-study")}) · ${ui("Tiên quyết:", "Prerequisite:")} ${L(META, "prerequisite")}</p>
         </div>
@@ -27229,7 +27792,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       </div>
 
       <div class="panel panel-pad panel-hover stagger" style="--i:2;margin-bottom:20px">
-        <div class="kicker">COURSE LEARNING OUTCOMES</div>
+        <div class="kicker">${ui("Chuẩn đầu ra học phần", "Course Learning Outcomes")}</div>
         <h3 style="font-size:1rem;margin-bottom:10px">${ui("Chuẩn đầu ra học phần (CLO)", "Learning Outcomes")}</h3>
         <table class="tbl" style="margin-bottom:0">
           <tr><th>CLO</th><th>${ui("Nội dung chuẩn đầu ra", "Description")}</th><th>Bloom</th><th>PLO</th></tr>
@@ -27238,7 +27801,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       </div>
 
       <div class="panel panel-pad panel-hover stagger" style="--i:3;margin-bottom:20px">
-        <div class="kicker">TEACHING SCHEDULE</div>
+        <div class="kicker">${ui("Kế hoạch giảng dạy", "Teaching Schedule")}</div>
         <h3 style="font-size:1rem;margin-bottom:10px">${ui("Phân bổ thời lượng & Tài liệu đọc theo chương", "Chapter Schedule & Assigned Readings")}</h3>
         <table class="tbl" style="margin-bottom:0">
           <tr><th>${ui("Giờ", "Hrs")}</th><th>${ui("Chương", "Chapter")}</th><th>CLO</th><th>${ui("Tài liệu đọc bắt buộc & tham khảo", "Assigned Readings")}</th></tr>
@@ -27457,7 +28020,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
             const anc = document.createElement("span");
             anc.className = "hd-anchor";
             anc.textContent = "#";
-            anc.setAttribute("data-tip", ui("Đầu mục neo — bấm để cuộn tới", "Section anchor"));
+            anc.setAttribute("data-tip", ui("Di chuyển tới đầu mục này", "Scroll to section"));
             anc.onclick = () => {
               SFX.tap();
               smoothScrollToY(hEl.getBoundingClientRect().top + window.scrollY - 76);
@@ -27528,23 +28091,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         box.insertBefore(cb, box.firstChild);
       });
 
-      lb.querySelectorAll(".fig-card").forEach((card) => {
-        const tEl = card.querySelector(".fig-title");
-        const bEl = card.querySelector(".fig-body");
-        if (tEl && bEl && !tEl.querySelector(".fig-zoom-hint")) {
-          const span = document.createElement("span");
-          span.className = "muted small fig-zoom-hint";
-          span.style.cssText = "font-weight:500;font-size:0.74rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;flex-shrink:0";
-          span.innerHTML = `${I.zoom} ${ui("Phóng to", "Expand")}`;
-          tEl.appendChild(span);
-          const openLb = () => openDiagramLightbox(tEl.firstChild ? tEl.firstChild.textContent : "", bEl.innerHTML);
-          card.style.cursor = "zoom-in";
-          card.onclick = (ev) => {
-            if (ev.target && ev.target.closest && ev.target.closest("a, button")) return;
-            openLb();
-          };
-        }
-      });
+      bindDiagramCards(lb);
       lb.querySelectorAll("[data-open-case]").forEach((b) => (b.onclick = () => nav("caseRead", { caseId: b.dataset.openCase })));
     };
 
@@ -27715,9 +28262,9 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0">
         <div>
-          <div class="kicker">ASSESSMENT STUDIO</div>
+          <div class="kicker">${ui("Không gian luyện thi", "Assessment Studio")}</div>
           <h1 class="h1">${ui("Phòng thi thử & Luyện đề trắc nghiệm", "Mock Exam & Practice Studio")}</h1>
-          <p class="lead"><span class="desk-kbd-hint">${ui("Môi trường làm bài tập trung hỗ trợ bàn phím (A–D chọn đáp án, phím mũi tên chuyển câu, F gắn cờ xem lại, S lưu câu hỏi).", "Keyboard-driven testing workspace: A–D to answer, arrows to navigate, F to flag, S to bookmark.")}</span><span class="touch-swipe-hint">${ui("Làm bài tập trung với đồng hồ đếm ngược, gạch loại trừ phương án nhiễu (×), gắn cờ xem lại và bảng điều hướng 40 câu nhanh.", "Focused exam studio with live countdown, distractor elimination, question flagging, and 40-Q navigator sheet.")}</span></p>
+          <p class="lead"><span class="desk-kbd-hint">${ui("Hỗ trợ thao tác nhanh bằng bàn phím: nhấn A–D để chọn đáp án, phím mũi tên để chuyển câu, F để đánh dấu xem lại và S để lưu câu hỏi.", "Keyboard-driven testing workspace: A–D to answer, arrows to navigate, F to flag, S to bookmark.")}</span><span class="touch-swipe-hint">${ui("Tích hợp đồng hồ bấm giờ, gạch loại trừ phương án nhiễu, đánh dấu câu phân vân và bảng chuyển nhanh 40 câu.", "Focused exam studio with live countdown, distractor elimination, question flagging, and 40-Q navigator sheet.")}</span></p>
         </div>
       </div>
 
@@ -27760,14 +28307,14 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
               <span class="tag ${wrongCount ? "tag-err" : ""}">${ui("Cá nhân hoá", "Personalized")}</span>
               <span class="mono small muted">${wrongCount + starCount} Qs</span>
             </div>
-            <h3 style="font-size:1.05rem;margin-bottom:6px">${ui("Khắc phục câu từng làm sai & Đánh dấu", "Mistake & Bookmark Repair")}</h3>
+            <h3 style="font-size:1.05rem;margin-bottom:6px">${ui("Ôn lại câu làm sai & câu đã lưu", "Mistake & Bookmark Repair")}</h3>
             <p class="small muted" style="margin-bottom:14px">${ui(`Tổng hợp ${wrongCount} câu bạn từng chọn sai và ${starCount} câu đã đánh dấu lưu lại.`, `Combines ${wrongCount} missed questions and ${starCount} saved questions.`)}</p>
-            <button class="btn" id="btnStartWeak" ${wrongCount + starCount === 0 ? "disabled" : ""}>${wrongCount + starCount ? ui("Luyện lại giỏ câu hỏi này", "Start Repair Session") : ui("Giỏ ôn lại đang trống", "No items yet")}</button>
+            <button class="btn" id="btnStartWeak" ${wrongCount + starCount === 0 ? "disabled" : ""}>${wrongCount + starCount ? ui("Luyện lại các câu này", "Start Repair Session") : ui("Chưa có câu cần ôn lại", "No items yet")}</button>
           </div>
         </div>
 
         <div class="panel panel-pad stagger" style="--i:2">
-          <div class="kicker">${ui("Tuỳ chỉnh thông số", "Custom Configuration")}</div>
+          <div class="kicker">${ui("Tự chọn cấu hình đề", "Custom Configuration")}</div>
           <h3 style="font-size:1.05rem;margin-bottom:16px">${ui("Tự thiết lập đề luyện tập", "Build Custom Practice Set")}</h3>
 
           <div style="margin-bottom:14px">
@@ -27804,7 +28351,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
             </div>
           </div>
 
-          <button class="btn btn-primary btn-lg" id="btnStartCustom" style="width:100%">${ui("Khởi tạo đề luyện tập", "Launch Custom Session")}</button>
+          <button class="btn btn-primary btn-lg" id="btnStartCustom" style="width:100%">${ui("Bắt đầu luyện tập", "Launch Custom Session")}</button>
         </div>
       </div>
     `;
@@ -28639,12 +29186,12 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0;margin-bottom:12px">
         <div>
-          <div class="kicker">QUESTION REPOSITORY · ${MCQS.length.toLocaleString("vi-VN")} ITEMS</div>
+          <div class="kicker">${ui(`Ngân hàng đề · ${MCQS.length.toLocaleString("vi-VN")} câu hỏi`, `Question Bank · ${MCQS.length.toLocaleString()} Items`)}</div>
           <h1 class="h1">${ui("Ngân hàng câu hỏi trắc nghiệm", "Multiple-Choice Question Bank")}</h1>
         </div>
         <div class="seg" id="bkModeSeg">
-          <button type="button" data-bmode="practice" class="${state.bankStudyMode === "practice" ? "active" : ""}">${ui("Tự kiểm tra (Ẩn đáp án)", "Self-Test")}</button>
-          <button type="button" data-bmode="read" class="${state.bankStudyMode === "read" ? "active" : ""}">${ui("Đọc đáp án", "Show Answers")}</button>
+          <button type="button" data-bmode="practice" class="${state.bankStudyMode === "practice" ? "active" : ""}">${ui("Tự làm bài", "Self-Test")}</button>
+          <button type="button" data-bmode="read" class="${state.bankStudyMode === "read" ? "active" : ""}">${ui("Xem đáp án", "Show Answers")}</button>
         </div>
       </div>
 
@@ -28678,7 +29225,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
           <span class="num" id="bankMetaText"></span>
           <span class="streak-pill hidden" id="bkScorePill"></span>
         </div>
-        <span id="bkResetWrap" class="hidden"><button class="btn btn-ghost btn-sm" id="bkReset">${I.rotate} ${ui("Xoá lựa chọn nháp", "Clear selections")}</button></span>
+        <span id="bkResetWrap" class="hidden"><button class="btn btn-ghost btn-sm" id="bkReset">${I.rotate} ${ui("Làm lại trang này", "Reset choices")}</button></span>
       </div>
 
       <div id="bankListZone"></div>
@@ -28859,7 +29406,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0;margin-bottom:12px">
         <div>
-          <div class="kicker">WRITTEN & QUANTITATIVE PROBLEMS · ${ESSAYS.length} ITEMS</div>
+          <div class="kicker">${ui(`Tự luận & Định lượng · ${ESSAYS.length} bài`, `Essays & Problems · ${ESSAYS.length} Items`)}</div>
           <h1 class="h1">${ui("Ngân hàng Tự luận, Bài tập & Tình huống", "Essay, Calculation & Problem Bank")}</h1>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -28993,8 +29540,8 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         <div class="q-prompt">${L(r, "q")}</div>
         ${r.type === "tf" && !state.qaRevealAll ? `
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm ${userPick === true ? (r.tf === true ? "btn-ok" : "btn-danger") : ""}" data-tf="${esc(r.id)}|1">${ui("Đúng (True)", "True")}</button>
-            <button class="btn btn-sm ${userPick === false ? (r.tf === false ? "btn-ok" : "btn-danger") : ""}" data-tf="${esc(r.id)}|0">${ui("Sai (False)", "False")}</button>
+            <button class="btn btn-sm ${userPick === true ? (r.tf === true ? "btn-ok" : "btn-danger") : ""}" data-tf="${esc(r.id)}|1">${ui("Đúng", "True")}</button>
+            <button class="btn btn-sm ${userPick === false ? (r.tf === false ? "btn-ok" : "btn-danger") : ""}" data-tf="${esc(r.id)}|0">${ui("Sai", "False")}</button>
           </div>` : ""}
         <div class="acc-grid ${open ? "is-open" : ""}" data-qa-acc="${esc(r.id)}">
           <div class="acc-inner">
@@ -29042,7 +29589,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0;margin-bottom:8px">
         <div>
-          <div class="kicker">CORE REVISION</div>
+          <div class="kicker">${ui("Ôn tập trọng tâm", "Core Revision")}</div>
           <h1 class="h1">${ui("Thuật ngữ, Nhận định Đúng/Sai & Sổ tay Công thức", "Terminology, Conceptual Checks & Formula Reference")}</h1>
         </div>
       </div>
@@ -29305,7 +29852,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
             const f = (lg) => (lg === "vi" && FORMULAS_VI[c.id]) || FORMULAS[c.id] || "—";
             return `
               <div class="panel panel-pad panel-hover spot-surface stagger" data-formula-ch="${c.id}" style="--i:${idx}">
-                <div class="kicker">CHƯƠNG 0${c.id}</div>
+                <div class="kicker">${ui(`Chương 0${c.id}`, `Chapter 0${c.id}`)}</div>
                 <h3 style="font-size:1rem;margin-bottom:10px">${L(c, "title")}</h3>
                 <div style="font-size:0.9rem;line-height:1.85;color:var(--ink-2)">${theoNN(f)}</div>
               </div>`;
@@ -29368,7 +29915,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0">
         <div>
-          <div class="kicker">TRANSACTION DOSSIERS · ${CASES.length} CASES</div>
+          <div class="kicker">${ui(`Hồ sơ thực tế · ${CASES.length} thương vụ`, `Transaction Dossiers · ${CASES.length} Cases`)}</div>
           <h1 class="h1">${ui("Thư viện Hồ sơ thương vụ chuyên sâu", "Transaction Case Study Library")}</h1>
           <p class="lead">${ui("Các thương vụ IPO, M&A, LBO và tái cấu trúc kinh điển dựng từ cáo bạch và báo cáo gốc. Phần bình luận của giảng viên mở bằng mã cấp tại lớp.", "In-depth transaction dossiers built from regulatory filings, prospectuses, and textbooks.")}</p>
         </div>
@@ -29431,7 +29978,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="reader-sheet stagger" style="--i:0;max-width:790px;margin:0 auto">
         <button class="btn btn-ghost btn-sm" id="btnBackCases" style="margin-bottom:16px">${I.arrowL} ${ui("Tất cả hồ sơ thương vụ", "All Case Studies")}</button>
-        <div class="kicker">CHƯƠNG 0${c.ch} · ${esc(c.nam || "")} · ~${estimateReadMins(bodyStr)} ${ui("PHÚT ĐỌC", "MIN READ")}</div>
+        <div class="kicker">${ui("Chương", "Chapter")} 0${c.ch} · ${esc(c.nam || "")} · ~${estimateReadMins(bodyStr)} ${ui("phút đọc", "min read")}</div>
         <h1 class="h1" style="margin-bottom:6px">${esc(isEn() ? c.tieuDe.en : c.tieuDe.vi)}</h1>
         <p class="lead" style="margin-bottom:22px">${esc(isEn() ? c.phu.en : c.phu.vi)}</p>
 
@@ -29471,12 +30018,13 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         `}
 
         <div class="panel panel-pad">
-          <div class="kicker">${ui("Tài liệu gốc truy xuất (APA 7th)", "Primary Sources")}</div>
+          <div class="kicker">${ui("Tài liệu tham khảo & Nguồn dữ liệu gốc", "Primary Sources")}</div>
           <ol style="margin-left:18px;font-size:0.82rem;color:var(--ink-3);line-height:1.65">${refsHtml}</ol>
         </div>
       </div>
     `;
     wrapTablesForScroll(main);
+    bindDiagramCards(main);
 
     $("#btnBackCases").onclick = () => nav("cases");
     if ($("#btnSingleUnlock")) {
@@ -29502,7 +30050,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0;margin-bottom:8px">
         <div>
-          <div class="kicker">QUANTITATIVE & DEAL SIMULATIONS</div>
+          <div class="kicker">${ui("Mô hình tài chính & Thương vụ", "Valuation & Deal Studio")}</div>
           <h1 class="h1">${ui("Phòng mô hình định giá & Tình huống ra quyết định", "Valuation Models & Deal Simulations")}</h1>
         </div>
       </div>
@@ -29661,7 +30209,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0">
         <div>
-          <div class="kicker">PERFORMANCE ANALYTICS</div>
+          <div class="kicker">${ui("Thống kê tiến độ học tập", "Study Analytics")}</div>
           <h1 class="h1">${ui("Phân tích kết quả theo chương & Lịch sử làm đề", "Chapter Diagnostics & Attempt History")}</h1>
         </div>
         <div style="display:flex;gap:8px">
@@ -29711,8 +30259,8 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     if ($("#btnClearAtt")) $("#btnClearAtt").onclick = () => {
       SFX.tap();
       openConfirmModal({
-        title: ui("Xoá lịch sử làm đề (Yêu cầu mã bảo vệ)", "Clear Attempt History (PIN Protected)"),
-        desc: ui("Nhập mã khoá quản trị để xác nhận xoá thống kê điểm số các lần thi thử trên trình duyệt này.", "Enter the admin PIN to permanently clear recorded quiz scores on this browser."),
+        title: ui("Xoá lịch sử làm đề", "Clear Attempt History"),
+        desc: ui("Nhập mã bảo vệ để xác nhận xoá thống kê điểm số các lượt làm đề trên trình duyệt này.", "Enter the security PIN to clear recorded quiz scores on this browser."),
         danger: true,
         requirePin: true,
         okLabel: ui("Xác nhận xoá", "Verify & Delete"),
@@ -30507,18 +31055,18 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       adminRows.push({
         ico: I.lock,
         badge: "ADMIN",
-        titleHtml: esc(ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Yêu cầu mã khoá)", "Factory Reset Study Progress to 0% (PIN Required)")),
-        subHtml: esc(ui("Nhập mã khoá ẩn (••••) ở bước tiếp theo để đặt lại trình duyệt này mới hoàn toàn", "Enter masked admin PIN on next step to reset all progress safely")),
+        titleHtml: esc(ui("Đặt lại toàn bộ tiến độ học tập", "Reset All Study Progress")),
+        subHtml: esc(ui("Yêu cầu nhập mã bảo vệ ở bước tiếp theo để đưa thiết bị về trạng thái mới", "Requires security PIN on the next step to restore fresh state")),
         go: () => {
           const inp = $("#cmdInput");
           if (inp) inp.value = "";
           setTimeout(() => {
             openConfirmModal({
-              title: ui("Đặt lại dữ liệu học tập về 0%", "Reset All Study Progress to 0%"),
-              desc: ui("Toàn bộ mục bài giảng đã đọc, lịch sử đề thi, câu sai, câu đã lưu và flashcards trên thiết bị này sẽ trở về trạng thái ban đầu (giữ nguyên 100% học liệu).", "All read sections, quiz attempts, mistakes, bookmarks, and flashcards on this device will be reset to 0%."),
+              title: ui("Đặt lại toàn bộ tiến độ học tập", "Reset All Study Progress"),
+              desc: ui("Toàn bộ mục bài giảng đã đọc, lịch sử làm đề, câu sai, câu đã lưu và thẻ thuật ngữ trên thiết bị này sẽ trở về trạng thái ban đầu (giữ nguyên toàn bộ học liệu).", "All read sections, quiz attempts, mistakes, bookmarks, and flashcards on this device will be reset."),
               danger: true,
               requirePin: true,
-              okLabel: ui("Xác thực & Reset 0%", "Verify & Reset 0%"),
+              okLabel: ui("Xác nhận đặt lại", "Verify & Reset"),
               onConfirm: performFullStudyReset
             });
           }, 40);
@@ -30530,17 +31078,17 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         adminRows.push({
           ico: I.unlock,
           badge: "VERIFIED",
-          titleHtml: esc(ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Mới hoàn toàn)", "Factory Reset All Study Progress to 0%")),
-          subHtml: esc(ui("Đã xác thực mã khoá · Xoá sạch tiến độ đọc, lịch sử thi thử, câu sai, câu lưu & flashcards", "Admin PIN verified · Clears all personal progress while keeping course materials intact")),
+          titleHtml: esc(ui("Đặt lại toàn bộ tiến độ học tập về ban đầu", "Reset All Study Progress")),
+          subHtml: esc(ui("Đã xác thực mã bảo vệ · Xoá tiến độ đọc, lịch sử làm đề, câu sai, câu đã lưu & thẻ thuật ngữ", "PIN verified · Clears all personal progress while keeping course materials intact")),
           go: () => {
             const inp = $("#cmdInput");
             if (inp) inp.value = "";
             setTimeout(() => {
               openConfirmModal({
-                title: ui("Xác nhận đặt lại toàn bộ về 0%?", "Confirm Full Reset to 0%?"),
-                desc: ui("Mã khoá hợp lệ. Thiết bị này sẽ trở về trạng thái 0/27 mục (0%), 0 lượt làm đề, sẵn sàng học mới từ đầu.", "PIN verified. This browser will return to 0/27 sections (0%) and 0 attempts for a fresh start."),
+                title: ui("Xác nhận đặt lại toàn bộ tiến độ?", "Confirm Full Progress Reset?"),
+                desc: ui("Mã bảo vệ hợp lệ. Thiết bị này sẽ trở về trạng thái 0/27 mục (0%) và 0 lượt làm đề để bắt đầu học mới từ đầu.", "PIN verified. This browser will return to 0/27 sections (0%) and 0 attempts for a fresh start."),
                 danger: true,
-                okLabel: ui("Đặt lại về 0% ngay", "Reset to 0% Now"),
+                okLabel: ui("Đặt lại ngay", "Reset Now"),
                 onConfirm: performFullStudyReset
               });
             }, 40);
@@ -30549,8 +31097,8 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         adminRows.push({
           ico: I.trash,
           badge: "VERIFIED",
-          titleHtml: esc(ui("Chỉ xoá lịch sử các lượt thi thử (Giữ nguyên tiến độ đọc & câu lưu)", "Clear Exam Attempt History Only")),
-          subHtml: esc(ui("Đã xác thực mã khoá · Đặt lại thống kê lượt làm đề về 0", "Admin PIN verified · Clears recorded quiz attempts only")),
+          titleHtml: esc(ui("Chỉ xoá lịch sử các lượt làm đề", "Clear Exam Attempt History Only")),
+          subHtml: esc(ui("Đã xác thực mã bảo vệ · Giữ nguyên tiến độ đọc bài và các câu đã lưu", "PIN verified · Preserves reading progress and saved questions")),
           go: () => {
             const inp = $("#cmdInput");
             if (inp) inp.value = "";
@@ -30583,15 +31131,15 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
 
     const corpus = getSearchCorpus();
 
-    // 2. Zero-State Discovery Hub (Recent Searches + High-Yield Exam Chips + Quick Actions)
+    // 2. Zero-State Discovery Hub (Recent Searches + Core Topics + Quick Actions)
     if (!rawTrim) {
       if (scopeBar) scopeBar.classList.add("hidden");
-      if (statsTxt) statsTxt.textContent = ui(`Sẵn sàng tra cứu ${corpus.length.toLocaleString("vi-VN")} mục học liệu`, `${corpus.length.toLocaleString()} items indexed`);
+      if (statsTxt) statsTxt.textContent = ui(`Tra cứu ${corpus.length.toLocaleString("vi-VN")} mục học liệu`, `Search ${corpus.length.toLocaleString()} study items`);
 
       const recents = getRecentSearches();
       const hotTopics = isEn()
         ? ["Bookbuilding IPO", "WACC", "DCF", "EPS Dilution", "LBO", "Greenshoe", "Synergy M&A", "Poison Pill", "Bond Duration", "Sabeco"]
-        : ["Dựng sổ IPO", "WACC", "DCF", "Pha loãng EPS", "LBO", "Greenshoe", "M&A cộng hưởng", "Phòng vệ thôn tính", "Trái phiếu", "Sabeco"];
+        : ["Dựng sổ IPO", "WACC", "DCF", "Pha loãng EPS", "LBO", "Greenshoe", "Cộng hưởng M&A", "Phòng vệ thôn tính", "Trái phiếu", "Sabeco"];
 
       const nextUnread = nextUnreadTarget();
       const quickItems = [
@@ -30605,22 +31153,22 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         {
           ico: I.target,
           badge: "40 câu · 60p",
-          titleHtml: esc(ui("Bắt đầu Đề thi thử Cuối kỳ chuẩn cấu trúc HUB", "Start Official 40-Q Timed Mock Final Exam")),
-          subHtml: esc(ui("Phân tầng 6 chương: Ch.03 & Ch.05 chiếm 50% tổng số câu", "Stratified across all 6 chapters matching official blueprint")),
+          titleHtml: esc(ui("Thi thử 40 câu chuẩn cấu trúc đề cuối kỳ", "Start 40-Question Timed Mock Final Exam")),
+          subHtml: esc(ui("Phân bổ theo 6 chương · Chương 03 và 05 chiếm 50% tổng điểm", "Stratified across 6 chapters matching the official blueprint")),
           go: () => startMockExam40()
         },
         {
           ico: I.sliders,
           badge: "13 mô hình",
-          titleHtml: esc(ui("Mở Phòng Mô hình Định giá DCF · LBO · WACC · M&A", "Open Interactive DCF · LBO · WACC Valuation Studio")),
-          subHtml: esc(ui("Thực hành kéo thanh trượt thông số tài chính & 3 tình huống thương vụ", "Interactive sensitivity sliders & 3 deal simulations")),
+          titleHtml: esc(ui("Thực hành Mô hình Định giá DCF · LBO · WACC · M&A", "Open Interactive DCF · LBO · WACC Valuation Models")),
+          subHtml: esc(ui("Điều chỉnh thông số tài chính trực quan & giải 3 bài toán thương vụ", "Interactive sensitivity inputs & 3 transaction scenarios")),
           go: () => nav("labs", { labGroup: "tool", labKey: "dcf" })
         },
         {
           ico: I.zap,
           badge: "6 chương",
-          titleHtml: esc(ui("Tra cứu Sổ tay Hệ thống Công thức 6 chương", "Open 6-Chapter Core Formula Reference Sheet")),
-          subHtml: esc(ui("Tổng hợp toàn bộ công thức định giá, trái phiếu, EPS, WACC, LBO", "Complete quantitative formula sheet for midterm & final exams")),
+          titleHtml: esc(ui("Xem Sổ tay Công thức 6 chương", "Open 6-Chapter Formula Reference")),
+          subHtml: esc(ui("Tổng hợp công thức định giá, trái phiếu, EPS, WACC và LBO", "Complete quantitative formula reference for midterm & final exams")),
           go: () => nav("revision", { revTab: "formula" })
         }
       ];
@@ -30637,12 +31185,12 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
             </div>
           </div>` : ""}
         <div class="cmd-zero-sec">
-          <div class="cmd-zero-lbl"><span>${ui("Chủ đề trọng tâm hay thi (gõ không dấu vẫn hiểu)", "High-Yield Exam Topics")}</span></div>
+          <div class="cmd-zero-lbl"><span>${ui("Chủ đề trọng tâm", "Core Topics")}</span></div>
           <div class="cmd-chip-wrap">
             ${hotTopics.map((t) => `<button type="button" class="cmd-chip" data-qchip="${esc(t)}">${I.search} <span>${esc(t)}</span></button>`).join("")}
           </div>
         </div>
-        <div class="cmd-group-head"><span>${ui("Lối tắt không gian học", "Quick Actions")}</span></div>
+        <div class="cmd-group-head"><span>${ui("Truy cập nhanh", "Quick Access")}</span></div>
         ${quickItems.map((r, i) => `
           <div class="cmd-row ${i === 0 ? "active" : ""}" data-ci="${i}">
             ${r.ico}
@@ -30719,16 +31267,15 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       });
     }
 
-    const elapsedMs = Math.max(1, Math.round(performance.now() - t0));
     if (statsTxt) {
-      statsTxt.textContent = ui(`${totalMatches} kết quả · ${elapsedMs}ms`, `${totalMatches} matches · ${elapsedMs}ms`);
+      statsTxt.textContent = ui(`${totalMatches.toLocaleString("vi-VN")} kết quả`, `${totalMatches.toLocaleString()} results`);
     }
 
     if (totalMatches === 0) {
       box.innerHTML = `
         <div style="padding:28px 18px;text-align:center">
-          <div style="font-weight:620;color:var(--ink);margin-bottom:6px">${ui(`Không tìm thấy kết quả cho "${rawTrim}"`, `No matches found for "${rawTrim}"`)}</div>
-          <div class="small muted" style="margin-bottom:14px">${ui("Thử gõ từ khoá ngắn hơn, viết tắt tiếng Anh (DCF, WACC, IPO, LBO) hoặc chọn gợi ý dưới đây:", "Try a shorter keyword, financial acronym, or pick a topic below:")}</div>
+          <div style="font-weight:620;color:var(--ink);margin-bottom:6px">${ui(`Không tìm thấy kết quả cho "${rawTrim}"`, `No results found for "${rawTrim}"`)}</div>
+          <div class="small muted" style="margin-bottom:14px">${ui("Thử tìm bằng từ khoá ngắn hơn, tên viết tắt (DCF, WACC, IPO, LBO) hoặc chọn chủ đề bên dưới:", "Try a shorter keyword, financial acronym, or select a topic below:")}</div>
           <div class="cmd-chip-wrap" style="justify-content:center">
             ${["WACC", "DCF", "Dựng sổ", "M&A", "LBO", "Greenshoe", "EPS"].map((t) => `<button type="button" class="cmd-chip" data-qchip="${t}">${I.search} <span>${t}</span></button>`).join("")}
           </div>
@@ -30919,9 +31466,38 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     const mobLang = $("#btnMobLang");
     if (mobLang) mutateBtn(mobLang, (b) => { b.textContent = LANG() === "bi" ? "VI·EN" : LANG().toUpperCase(); });
     const pwaBtn = $("#btnPwaInstall");
-    if (pwaBtn) mutateBtn(pwaBtn, (b) => { b.innerHTML = `${I.download} <span>${ui("Cài ứng dụng về máy (PWA)", "Install Offline App")}</span>`; });
+    if (pwaBtn) mutateBtn(pwaBtn, (b) => { b.innerHTML = `${I.download} <span>${ui("Cài đặt ứng dụng", "Install App")}</span>`; });
     const sl = $("#searchPlaceholder");
     if (sl) sl.textContent = ui("Tìm kiếm...", "Search...");
+    const cmdInpEl = $("#cmdInput");
+    if (cmdInpEl) cmdInpEl.placeholder = ui("Tìm bài giảng, công thức, thuật ngữ, câu hỏi...", "Search lectures, formulas, terms, questions...");
+    if ($("#cmdCloseBtn")) $("#cmdCloseBtn").textContent = ui("Đóng", "Close");
+    if ($("#cmdHintNav")) $("#cmdHintNav").textContent = ui("Di chuyển", "Navigate");
+    if ($("#cmdHintTab")) $("#cmdHintTab").textContent = ui("Đổi nhóm", "Switch tab");
+    if ($("#cmdHintOpen")) $("#cmdHintOpen").textContent = ui("Mở", "Open");
+    if ($("#selLblHl")) $("#selLblHl").textContent = ui("Tô sáng", "Highlight");
+    if ($("#selLblFind")) $("#selLblFind").textContent = ui("Tra cứu", "Search");
+    if ($("#selLblSpeak")) $("#selLblSpeak").textContent = ui("Đọc", "Listen");
+    if ($("#selLblCopy")) $("#selLblCopy").textContent = ui("Sao chép", "Copy");
+    if ($("#lightboxClose")) $("#lightboxClose").textContent = ui("Đóng", "Close");
+    const setTip = (id, vi, en) => { const el = $(id); if (el) el.setAttribute("data-tip", ui(vi, en)); };
+    setTip("#railHead", "Về trang Tổng quan học phần", "Back to Course Overview");
+    setTip("#btnOpenSearch", "Tìm bài giảng, công thức & câu hỏi (Ctrl + K)", "Search lectures, formulas & questions (Ctrl + K)");
+    setTip("#btnRailToggle", "Ẩn / Hiện thanh điều hướng", "Toggle navigation sidebar");
+    setTip("#langSeg", "Ngôn ngữ hiển thị (Tiếng Việt · Song ngữ · Tiếng Anh)", "Display language (Vietnamese · Bilingual · English)");
+    setTip("#btnScale", "Đổi cỡ chữ đọc bài", "Adjust reading font size");
+    setTip("#btnZen", "Chế độ đọc tập trung (Phím Z)", "Distraction-free reading mode (Key Z)");
+    setTip("#btnSound", "Âm thanh thao tác", "Interface sound feedback");
+    setTip("#btnPalette", "Đổi tông màu giao diện", "Switch color theme");
+    setTip("#btnTheme", "Giao diện Sáng / Tối", "Toggle Light / Dark appearance");
+    setTip("#scrollFab", "Lên đầu trang", "Back to top");
+    setTip("#lbPrevFig", "Sơ đồ trước (Phím ←)", "Previous diagram (←)");
+    setTip("#lbNextFig", "Sơ đồ tiếp theo (Phím →)", "Next diagram (→)");
+    setTip("#lightboxClose", "Đóng cửa sổ (Esc)", "Close viewer (Esc)");
+    setTip("#lbZoomOut", "Thu nhỏ (Phím -)", "Zoom out (-)");
+    setTip("#lbZoomIn", "Phóng to (Phím +)", "Zoom in (+)");
+    setTip("#lbZoomReset", "Đặt lại tỷ lệ 100% (Phím 0)", "Reset zoom to 100% (0)");
+    setTip("#lbFitBtn", "Canh giữa vừa khung hình", "Center & fit to screen");
 
     switch (state.view) {
       case "home": renderHome(main); break;
@@ -31063,6 +31639,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     if ($("#mtIcoBank")) $("#mtIcoBank").innerHTML = I.list;
     if ($("#mtIcoExam")) $("#mtIcoExam").innerHTML = I.target;
     if ($("#mtIcoMore")) $("#mtIcoMore").innerHTML = I.layers;
+    initLightboxEvents();
 
     // Rehydrate active quiz session across tab reloads / mobile background eviction
     restoreActiveQuiz();
@@ -31136,17 +31713,17 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
 
     // Offline / Online Connectivity Status Toasts
     window.addEventListener("offline", () => {
-      showToast(ui("Đang ở chế độ Ngoại tuyến — toàn bộ học liệu vẫn hoạt động 100%", "Offline mode — all course materials remain available"));
+      showToast(ui("Mất kết nối mạng — bạn vẫn tiếp tục học bình thường", "Offline — all study materials remain available"));
     });
     window.addEventListener("online", () => {
-      showToast(ui("Đã kết nối lại mạng Internet", "Back online"));
+      showToast(ui("Đã kết nối lại mạng", "Back online"));
     });
 
     applyThemeAndScale();
 
     // Rotating search placeholder ticker in Sidebar
-    const searchHintsVi = ["Tìm kiếm...", "Tìm WACC, DCF, LBO...", "Tìm M&A, IPO, Dựng sổ...", "Tìm câu Q3-12, E1-01...", "Tìm 56 thuật ngữ..."];
-    const searchHintsEn = ["Search...", "Find WACC, DCF, LBO...", "Find M&A, IPO, Bookbuilding...", "Find Q3-12, E1-01...", "Find 56 key terms..."];
+    const searchHintsVi = ["Tìm kiếm...", "Tìm WACC, DCF, LBO...", "Tìm M&A, IPO, Dựng sổ...", "Tìm công thức, thuật ngữ...", "Tìm câu hỏi, bài tập..."];
+    const searchHintsEn = ["Search...", "Find WACC, DCF, LBO...", "Find M&A, IPO, Bookbuilding...", "Find formulas & terms...", "Find questions & problems..."];
     let hintIdx = 0;
     setInterval(() => {
       const rot = $("#searchPlaceholder");
@@ -31351,6 +31928,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     }
 
     window.addEventListener("wheel", (e) => {
+      if (isLightboxOpen()) return;
       if (autoScrollActive || autoScrollBootTimer) stopAutoScroll(true);
       if (programmaticScrollAnim) {
         cancelAnimationFrame(programmaticScrollAnim);
@@ -31489,7 +32067,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       pop.style.left = Math.round(x) + "px";
       pop.style.top = Math.round(y) + "px";
       if ($("#selIcoCopy")) $("#selIcoCopy").innerHTML = I.copy;
-      if ($("#selLblCopy")) $("#selLblCopy").textContent = ui("Chép", "Copy");
+      if ($("#selLblCopy")) $("#selLblCopy").textContent = ui("Sao chép", "Copy");
     };
     document.addEventListener("pointerup", () => setTimeout(checkProseSelection, 15));
     document.addEventListener("keyup", (e) => { if (e.shiftKey) checkProseSelection(); });
@@ -31512,11 +32090,11 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
           currentSelectedRange.surroundContents(mark);
           SFX.correct(1);
           spawnMicroBurst(mark, "var(--warn)");
-          showToast(ui("Đã tô sáng khái niệm quan trọng", "Highlighted key phrase"));
+          showToast(ui("Đã tô sáng đoạn văn bản", "Highlighted passage"));
         } catch (err) {
           if (navigator.clipboard) navigator.clipboard.writeText(currentSelectedText).catch(() => {});
           SFX.tap();
-          showToast(ui("Đã sao chép đoạn bôi đen (đoạn trải qua nhiều thẻ)", "Copied multi-block selection"));
+          showToast(ui("Đã sao chép đoạn văn vào bộ nhớ tạm", "Copied passage to clipboard"));
         }
         window.getSelection().removeAllRanges();
         pop.classList.remove("show");
@@ -31787,7 +32365,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
       try { localStorage.setItem("ibc_sfx", soundOn ? "1" : "0"); } catch (e) {}
       applyThemeAndScale();
       if (soundOn) SFX.tap();
-      showToast(soundOn ? ui("Đã bật âm thanh phản hồi nhẹ", "Tactile sound enabled") : ui("Đã tắt âm thanh phản hồi", "Tactile sound muted"));
+      showToast(soundOn ? ui("Đã bật âm thanh thao tác", "Sound feedback enabled") : ui("Đã tắt âm thanh thao tác", "Sound feedback muted"));
     };
     if ($("#btnSound")) $("#btnSound").onclick = toggleSoundPref;
     if ($("#btnSoundMob")) $("#btnSoundMob").onclick = toggleSoundPref;
@@ -31844,16 +32422,16 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
     window.addEventListener("appinstalled", () => {
       deferredPwaPrompt = null;
       if (pwaInstallBtn) pwaInstallBtn.classList.add("hidden");
-      showToast(ui("Đã cài đặt ứng dụng BAF736 HUB thành công", "App installed successfully"));
+      showToast(ui("Đã cài đặt ứng dụng thành công", "App installed successfully"));
     });
     if (pwaInstallBtn) {
       const openIosPwaGuide = () => {
         setMobRail(false);
         openConfirmModal({
-          title: ui("Cài đặt ứng dụng BAF736 trên iPhone / iPad", "Install BAF736 App on iOS"),
+          title: ui("Cài đặt trên iPhone / iPad", "Install on iPhone / iPad"),
           desc: ui(
-            "Nhấn nút Chia sẻ (biểu tượng ô vuông có mũi tên hướng lên ở thanh Safari) -> chọn 'Thêm vào Màn hình chính' (Add to Home Screen) để mở toàn màn hình và học ngoại tuyến 100%.",
-            "Tap the Share button in Safari, then choose 'Add to Home Screen' for full-screen standalone offline access."
+            "Trên trình duyệt Safari, chạm vào biểu tượng Chia sẻ rồi chọn “Thêm vào Màn hình chính” để mở toàn màn hình và học ngay cả khi không có mạng.",
+            "In Safari, tap the Share button and choose 'Add to Home Screen' for full-screen offline access."
           ),
           okLabel: ui("Đã hiểu", "Got it"),
           cancelLabel: ui("Đóng", "Close")
@@ -31887,7 +32465,7 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         if (!pwaBadge) return;
         if (offlineReadyState) {
           pwaBadge.classList.remove("hidden");
-          pwaBadge.innerHTML = `${I.checkXs} <span>${ui("Sẵn sàng Ngoại tuyến 100%", "100% Offline Ready")}</span>`;
+          pwaBadge.innerHTML = `${I.checkXs} <span>${ui("Đã lưu sẵn để học ngoại tuyến", "Saved for offline study")}</span>`;
         }
       };
       navigator.serviceWorker.addEventListener("message", (ev) => {
@@ -31995,6 +32573,24 @@ window.IB_PHAN_TICH = {"v":1,"tao":"2026-11-19T09:26:49.317Z","ket":{"v":1,"vong
         closeAllTransientOverlays();
         scheduleOverlayHistoryRelease();
         if (pop) pop.classList.remove("show");
+        return;
+      }
+      if (!typing && isLightboxOpen()) {
+        if (e.key === "+" || e.key === "=") {
+          e.preventDefault(); SFX.tap(); zoomLightboxAt(lbZoom + 0.3, null, null, true); return;
+        }
+        if (e.key === "-" || e.key === "_") {
+          e.preventDefault(); SFX.tap(); zoomLightboxAt(lbZoom - 0.3, null, null, true); return;
+        }
+        if (e.key === "0") {
+          e.preventDefault(); SFX.tap(); resetLightboxView(true); return;
+        }
+        if (e.key === "ArrowRight" && lbItems.length > 1) {
+          e.preventDefault(); SFX.tap(); mountLightboxSlide(lbIdx + 1); return;
+        }
+        if (e.key === "ArrowLeft" && lbItems.length > 1) {
+          e.preventDefault(); SFX.tap(); mountLightboxSlide(lbIdx - 1); return;
+        }
         return;
       }
       if (activeCselSelect && activeCselBtn) {

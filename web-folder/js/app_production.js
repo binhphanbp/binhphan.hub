@@ -50,6 +50,10 @@
     lock: svgWrap(`<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`),
     unlock: svgWrap(`<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>`),
     zoom: svgWrap(`<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`, "ico-sm"),
+    zoomIn: svgWrap(`<circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.2" y2="16.2"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>`, "ico-sm"),
+    zoomOut: svgWrap(`<circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.2" y2="16.2"/><line x1="8" y1="11" x2="14" y2="11"/>`, "ico-sm"),
+    plus: svgWrap(`<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>`, "ico-sm"),
+    minus: svgWrap(`<line x1="5" y1="12" x2="19" y2="12"/>`, "ico-sm"),
     rotate: svgWrap(`<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>`, "ico-spin"),
     shuffle: svgWrap(`<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>`, "ico-pop"),
     eye: svgWrap(`<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>`),
@@ -889,7 +893,7 @@
     syncExamBodyClass();
     nav("home", {}, { replace: true });
     SFX.complete();
-    showToast(ui("Đã đặt lại toàn bộ dữ liệu học tập về 0% (Mới hoàn toàn)", "All study progress reset to 0% (Fresh start)"));
+    showToast(ui("Đã đặt lại toàn bộ tiến độ học tập", "All study progress has been reset"));
   }
 
   /* ---------------- Toast, Confirm Modal & Lightbox ---------------- */
@@ -910,7 +914,7 @@
     const okBtn = $("#confirmOkBtn");
     okBtn.textContent = opts.okLabel || ui("Xác nhận", "Confirm");
     okBtn.className = "btn " + (opts.danger ? "btn-danger" : "btn-primary");
-    $("#confirmCancelBtn").textContent = opts.cancelLabel || ui("Quay lại", "Cancel");
+    $("#confirmCancelBtn").textContent = opts.cancelLabel || ui("Huỷ", "Cancel");
 
     const pinZone = $("#confirmPinZone");
     const pinInp = $("#confirmPinInput");
@@ -921,7 +925,7 @@
       pinErr.textContent = "";
       pinErr.classList.add("hidden");
       if (opts.requirePin) {
-        pinInp.placeholder = opts.pinPlaceholder || ui("Nhập mã khoá quản trị...", "Enter admin PIN...");
+        pinInp.placeholder = opts.pinPlaceholder || ui("Nhập mã bảo vệ...", "Enter security PIN...");
         pinZone.classList.remove("hidden");
         pinInp.oninput = () => {
           pinInp.classList.remove("pin-shake");
@@ -958,7 +962,7 @@
           void pinInp.offsetWidth;
           pinInp.classList.add("pin-shake");
           if (pinErr) {
-            pinErr.textContent = ui("Mã khoá quản trị không đúng — dữ liệu được giữ an toàn.", "Incorrect admin PIN — data kept safe.");
+            pinErr.textContent = ui("Mã bảo vệ chưa đúng. Dữ liệu vẫn được giữ nguyên.", "Incorrect security PIN. Your data remains untouched.");
             pinErr.classList.remove("hidden");
           }
           pinInp.select();
@@ -972,35 +976,331 @@
     };
   }
 
+  /* ---------------- Interactive Diagram Studio Lightbox ---------------- */
+  const LB_MIN_ZOOM = 0.5;
+  const LB_MAX_ZOOM = 3.5;
   let lbZoom = 1;
-  function applyLightboxZoom() {
-    const body = $("#lightboxBody");
-    const svgEl = body && body.querySelector("svg");
-    const lbl = $("#lbZoomReset");
-    if (lbl) lbl.textContent = Math.round(lbZoom * 100) + "%";
-    if (!svgEl) return;
-    if (lbZoom === 1) {
-      svgEl.style.cssText = "max-width:100%!important;width:100%;height:auto";
-    } else {
-      svgEl.style.cssText = `max-width:none!important;width:${Math.round(lbZoom * 100)}%;height:auto`;
-    }
+  let lbPanX = 0;
+  let lbPanY = 0;
+  let lbItems = [];
+  let lbIdx = 0;
+  let lbHintTimer = 0;
+  let lbGestureTimer = 0;
+
+  function isLightboxOpen() {
+    const ov = $("#lightboxOverlay");
+    return !!(ov && !ov.classList.contains("hidden"));
   }
 
-  function openDiagramLightbox(title, svgHtml) {
-    SFX.tap();
+  function clampLightboxPan(zx, px, py) {
+    const vp = $("#lightboxViewport");
+    const body = $("#lightboxBody");
+    if (!vp || !body || !vp.clientWidth || !body.offsetWidth) return { x: px, y: py };
+    const sw = body.offsetWidth * zx;
+    const sh = body.offsetHeight * zx;
+    const maxX = Math.max(36, (sw - vp.clientWidth) / 2 + 96);
+    const maxY = Math.max(36, (sh - vp.clientHeight) / 2 + 96);
+    return {
+      x: Math.max(-maxX, Math.min(maxX, px)),
+      y: Math.max(-maxY, Math.min(maxY, py))
+    };
+  }
+
+  function markLightboxGesture() {
+    const vp = $("#lightboxViewport");
+    const hint = $("#lightboxHint");
+    if (vp) vp.classList.add("is-gesturing");
+    if (hint && (Math.abs(lbZoom - 1) > 0.04 || Math.hypot(lbPanX, lbPanY) > 8)) {
+      hint.classList.add("is-faded");
+    }
+    clearTimeout(lbGestureTimer);
+    lbGestureTimer = setTimeout(() => {
+      if (vp) vp.classList.remove("is-gesturing");
+    }, 150);
+  }
+
+  function applyLightboxTransform(animate) {
+    const body = $("#lightboxBody");
+    const lbl = $("#lbZoomReset");
+    const slider = $("#lbZoomSlider");
+    const zOut = $("#lbZoomOut");
+    const zIn = $("#lbZoomIn");
+    const pct = Math.round(lbZoom * 100);
+    if (lbl) lbl.textContent = pct + "%";
+    if (slider) {
+      slider.value = String(pct);
+      updateRangeFill(slider);
+    }
+    if (zOut) zOut.disabled = lbZoom <= LB_MIN_ZOOM + 0.01;
+    if (zIn) zIn.disabled = lbZoom >= LB_MAX_ZOOM - 0.01;
+    if (!body) return;
+    body.classList.toggle("is-animating", !!animate);
+    body.style.transform = `translate3d(${lbPanX.toFixed(2)}px, ${lbPanY.toFixed(2)}px, 0) scale(${lbZoom.toFixed(4)})`;
+  }
+
+  function resetLightboxView(animate) {
     lbZoom = 1;
+    lbPanX = 0;
+    lbPanY = 0;
+    markLightboxGesture();
+    applyLightboxTransform(!!animate);
+  }
+
+  function zoomLightboxAt(targetZoom, clientX, clientY, animate) {
+    const vp = $("#lightboxViewport");
+    const nextZ = Math.max(LB_MIN_ZOOM, Math.min(LB_MAX_ZOOM, targetZoom));
+    if (!vp) {
+      lbZoom = nextZ;
+      applyLightboxTransform(!!animate);
+      return;
+    }
+    const r = vp.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const fx = clientX != null ? clientX : cx;
+    const fy = clientY != null ? clientY : cy;
+    const dfx = fx - cx;
+    const dfy = fy - cy;
+    const ratio = nextZ / lbZoom;
+    const rawPx = dfx - (dfx - lbPanX) * ratio;
+    const rawPy = dfy - (dfy - lbPanY) * ratio;
+    lbZoom = nextZ;
+    const cl = clampLightboxPan(lbZoom, rawPx, rawPy);
+    lbPanX = cl.x;
+    lbPanY = cl.y;
+    markLightboxGesture();
+    applyLightboxTransform(!!animate);
+  }
+
+  function mountLightboxSlide(idx) {
+    if (!lbItems.length) return;
+    lbIdx = ((idx % lbItems.length) + lbItems.length) % lbItems.length;
+    const item = lbItems[lbIdx];
+    const titleEl = $("#lightboxTitle");
+    const bodyEl = $("#lightboxBody");
+    const cntEl = $("#lbCounter");
+    const navGrp = $("#lbNavGrp");
+    if (titleEl) titleEl.textContent = item.title || "";
+    if (bodyEl) bodyEl.innerHTML = item.svgHtml || "";
+    const multi = lbItems.length > 1;
+    if (cntEl) {
+      cntEl.textContent = `${lbIdx + 1} / ${lbItems.length}`;
+      cntEl.classList.toggle("hidden", !multi);
+    }
+    if (navGrp) navGrp.classList.toggle("hidden", !multi);
+    lbZoom = 1;
+    lbPanX = 0;
+    lbPanY = 0;
+    applyLightboxTransform(false);
+  }
+
+  function closeDiagramLightbox() {
     const ov = $("#lightboxOverlay");
-    $("#lightboxTitle").textContent = title || "";
-    $("#lightboxBody").innerHTML = svgHtml || "";
-    applyLightboxZoom();
+    if (!ov || ov.classList.contains("hidden")) return;
+    clearTimeout(lbHintTimer);
+    ov.classList.add("hidden");
+    scheduleOverlayHistoryRelease();
+  }
+
+  function openDiagramLightbox(itemsOrTitle, idxOrSvgHtml) {
+    SFX.tap();
+    if (Array.isArray(itemsOrTitle)) {
+      lbItems = itemsOrTitle;
+      lbIdx = typeof idxOrSvgHtml === "number" ? idxOrSvgHtml : 0;
+    } else {
+      lbItems = [{ title: itemsOrTitle || "", svgHtml: idxOrSvgHtml || "" }];
+      lbIdx = 0;
+    }
+    const ov = $("#lightboxOverlay");
+    const hint = $("#lightboxHint");
+    if (!ov) return;
+    stopWheelInertia();
+    autoScrollVel = 0;
+    if (hint) {
+      const isTouch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+      hint.textContent = isTouch
+        ? ui("Chụm hai ngón để thu phóng · Kéo để di chuyển · Chạm đúp 2×", "Pinch to zoom · Drag to pan · Double-tap 2×")
+        : ui("Cuộn chuột để thu phóng · Kéo giữ để di chuyển · Nhấp đúp 2×", "Scroll to zoom · Drag to pan · Double-click 2×");
+      hint.classList.remove("is-faded");
+      clearTimeout(lbHintTimer);
+      lbHintTimer = setTimeout(() => hint.classList.add("is-faded"), 4200);
+    }
     ov.classList.remove("hidden");
+    mountLightboxSlide(lbIdx);
     pushOverlayHistory();
-    const closeLb = () => { ov.classList.add("hidden"); scheduleOverlayHistoryRelease(); };
-    $("#lightboxClose").onclick = closeLb;
-    if ($("#lbZoomIn")) $("#lbZoomIn").onclick = () => { SFX.tap(); lbZoom = Math.min(2.75, +(lbZoom + 0.35).toFixed(2)); applyLightboxZoom(); };
-    if ($("#lbZoomOut")) $("#lbZoomOut").onclick = () => { SFX.tap(); lbZoom = Math.max(0.75, +(lbZoom - 0.35).toFixed(2)); applyLightboxZoom(); };
-    if ($("#lbZoomReset")) $("#lbZoomReset").onclick = () => { SFX.tap(); lbZoom = 1; applyLightboxZoom(); };
-    ov.onclick = (e) => { if (e.target === ov) closeLb(); };
+  }
+
+  function bindDiagramCards(root) {
+    if (!root) return;
+    const cards = [...root.querySelectorAll(".fig-card")];
+    if (!cards.length) return;
+    const gallery = cards.map((card, idx) => {
+      const tEl = card.querySelector(".fig-title");
+      const bEl = card.querySelector(".fig-body");
+      const rawTitle = tEl && tEl.firstChild ? tEl.firstChild.textContent.trim() : `${ui("Sơ đồ", "Diagram")} ${idx + 1}`;
+      return {
+        card,
+        tEl,
+        bEl,
+        title: rawTitle,
+        svgHtml: bEl ? bEl.innerHTML : ""
+      };
+    });
+    gallery.forEach((entry, idx) => {
+      const { card, tEl, bEl } = entry;
+      if (!tEl || !bEl) return;
+      let pill = tEl.querySelector(".fig-zoom-hint");
+      if (!pill) {
+        pill = document.createElement("span");
+        pill.className = "fig-zoom-hint fig-zoom-pill";
+        tEl.appendChild(pill);
+      }
+      pill.innerHTML = `${I.zoomIn} <span>${ui("Phóng to", "Zoom")}</span>`;
+      card.style.cursor = "zoom-in";
+      card.onclick = (ev) => {
+        if (ev.target && ev.target.closest && ev.target.closest("a, button")) return;
+        openDiagramLightbox(gallery, idx);
+      };
+    });
+  }
+
+  function initLightboxEvents() {
+    const ov = $("#lightboxOverlay");
+    const vp = $("#lightboxViewport");
+    if (!ov || !vp) return;
+
+    if ($("#lbPrevFig")) $("#lbPrevFig").innerHTML = I.arrowL;
+    if ($("#lbNextFig")) $("#lbNextFig").innerHTML = I.arrowR;
+    if ($("#lbZoomOut")) $("#lbZoomOut").innerHTML = I.minus;
+    if ($("#lbZoomIn")) $("#lbZoomIn").innerHTML = I.plus;
+    if ($("#lbFitBtn")) $("#lbFitBtn").innerHTML = I.maximize;
+
+    $("#lightboxClose").onclick = () => { SFX.tap(); closeDiagramLightbox(); };
+    ov.onclick = (e) => { if (e.target === ov) closeDiagramLightbox(); };
+
+    if ($("#lbZoomIn")) $("#lbZoomIn").onclick = () => { SFX.tap(); zoomLightboxAt(lbZoom + 0.3, null, null, true); };
+    if ($("#lbZoomOut")) $("#lbZoomOut").onclick = () => { SFX.tap(); zoomLightboxAt(lbZoom - 0.3, null, null, true); };
+    if ($("#lbZoomReset")) $("#lbZoomReset").onclick = () => { SFX.tap(); resetLightboxView(true); };
+    if ($("#lbFitBtn")) $("#lbFitBtn").onclick = () => { SFX.tap(); resetLightboxView(true); };
+    if ($("#lbPrevFig")) $("#lbPrevFig").onclick = () => { SFX.tap(); mountLightboxSlide(lbIdx - 1); };
+    if ($("#lbNextFig")) $("#lbNextFig").onclick = () => { SFX.tap(); mountLightboxSlide(lbIdx + 1); };
+
+    const slider = $("#lbZoomSlider");
+    if (slider) {
+      slider.addEventListener("input", () => {
+        zoomLightboxAt(parseFloat(slider.value) / 100, null, null, false);
+      });
+    }
+
+    ov.addEventListener("wheel", (e) => {
+      if (!isLightboxOpen()) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.target === ov) return;
+      let dy = e.deltaY;
+      if (e.deltaMode === 1) dy *= 32;
+      else if (e.deltaMode === 2) dy *= 240;
+      dy = Math.max(-180, Math.min(180, dy));
+      const sens = (e.ctrlKey || e.metaKey) ? 0.0045 : 0.0019;
+      const factor = Math.exp(-dy * sens);
+      zoomLightboxAt(lbZoom * factor, e.clientX, e.clientY, false);
+    }, { passive: false });
+
+    vp.addEventListener("dblclick", (e) => {
+      if (e.target && e.target.closest && e.target.closest("#lightboxDock")) return;
+      e.preventDefault();
+      SFX.tap();
+      if (Math.abs(lbZoom - 1) > 0.08 || Math.hypot(lbPanX, lbPanY) > 12) {
+        resetLightboxView(true);
+      } else {
+        zoomLightboxAt(2.15, e.clientX, e.clientY, true);
+      }
+    });
+
+    const ptrs = new Map();
+    let dragLastX = 0;
+    let dragLastY = 0;
+    let dragMoved = 0;
+    let pinchPrevDist = 0;
+    let pinchPrevMid = null;
+    let lastTapTs = 0;
+    let lastTapX = 0;
+    let lastTapY = 0;
+
+    vp.addEventListener("pointerdown", (e) => {
+      if (e.button && e.button !== 0) return;
+      if (e.target && e.target.closest && e.target.closest("#lightboxDock")) return;
+      try { vp.setPointerCapture(e.pointerId); } catch (err) {}
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1) {
+        dragLastX = e.clientX;
+        dragLastY = e.clientY;
+        dragMoved = 0;
+      } else if (ptrs.size === 2) {
+        const arr = [...ptrs.values()];
+        pinchPrevDist = Math.hypot(arr[1].x - arr[0].x, arr[1].y - arr[0].y);
+        pinchPrevMid = { x: (arr[0].x + arr[1].x) / 2, y: (arr[0].y + arr[1].y) / 2 };
+      }
+    });
+
+    vp.addEventListener("pointermove", (e) => {
+      if (!ptrs.has(e.pointerId)) return;
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1) {
+        const dx = e.clientX - dragLastX;
+        const dy = e.clientY - dragLastY;
+        dragLastX = e.clientX;
+        dragLastY = e.clientY;
+        dragMoved += Math.hypot(dx, dy);
+        if (dragMoved > 2) {
+          vp.classList.add("is-dragging");
+          const cl = clampLightboxPan(lbZoom, lbPanX + dx, lbPanY + dy);
+          lbPanX = cl.x;
+          lbPanY = cl.y;
+          markLightboxGesture();
+          applyLightboxTransform(false);
+        }
+      } else if (ptrs.size === 2) {
+        const arr = [...ptrs.values()];
+        const dist = Math.hypot(arr[1].x - arr[0].x, arr[1].y - arr[0].y);
+        const mid = { x: (arr[0].x + arr[1].x) / 2, y: (arr[0].y + arr[1].y) / 2 };
+        if (pinchPrevDist > 8 && pinchPrevMid) {
+          lbPanX += mid.x - pinchPrevMid.x;
+          lbPanY += mid.y - pinchPrevMid.y;
+          zoomLightboxAt(lbZoom * (dist / pinchPrevDist), mid.x, mid.y, false);
+        }
+        pinchPrevDist = dist;
+        pinchPrevMid = mid;
+      }
+    });
+
+    const endPtr = (e) => {
+      if (!ptrs.has(e.pointerId)) return;
+      ptrs.delete(e.pointerId);
+      try { if (vp.hasPointerCapture(e.pointerId)) vp.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (ptrs.size === 0) {
+        vp.classList.remove("is-dragging");
+        if (e.pointerType === "touch" && dragMoved < 8) {
+          const now = performance.now();
+          if (now - lastTapTs < 300 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 28) {
+            SFX.tap();
+            if (Math.abs(lbZoom - 1) > 0.08 || Math.hypot(lbPanX, lbPanY) > 12) resetLightboxView(true);
+            else zoomLightboxAt(2.15, e.clientX, e.clientY, true);
+            lastTapTs = 0;
+          } else {
+            lastTapTs = now;
+            lastTapX = e.clientX;
+            lastTapY = e.clientY;
+          }
+        }
+      } else if (ptrs.size === 1) {
+        const rem = [...ptrs.values()][0];
+        dragLastX = rem.x;
+        dragLastY = rem.y;
+      }
+    };
+    vp.addEventListener("pointerup", endPtr);
+    vp.addEventListener("pointercancel", endPtr);
   }
 
   function wrapTablesForScroll(root) {
@@ -1021,10 +1321,10 @@
   let zenMode = false;
   const SCALES = ["sm", "md", "lg", "xl"];
   const PALETTES = [
-    { id: "rose", vi: "Hồng Đào Pastel (Sakura Blush)", en: "Sakura Blush Pastel" },
-    { id: "hub", vi: "Đặc trưng HUB (Navy · Đỏ Đô · Hoàng Kim)", en: "HUB Signature (Navy · Crimson · Gold)" },
-    { id: "lavender", vi: "Tím Oải Hương (Lavender Milk)", en: "Lavender Milk Pastel" },
-    { id: "sapphire", vi: "Xanh Ngọc Bích (Sapphire Classic)", en: "Sapphire Classic" }
+    { id: "rose", vi: "Hồng Anh Đào", en: "Sakura Blush" },
+    { id: "hub", vi: "Xanh Đỏ HUB", en: "HUB Signature" },
+    { id: "lavender", vi: "Tím Oải Hương", en: "Lavender Milk" },
+    { id: "sapphire", vi: "Xanh Lam Cổ Điển", en: "Sapphire Classic" }
   ];
 
   const THEME_META_COLORS = {
@@ -1118,8 +1418,8 @@
       b1.setAttribute(
         "data-tip",
         autoScrollActive
-          ? ui(`Đang tự động cuộn (${sp.vi}) · Bấm hoặc lăn chuột để dừng · Shift+Click đổi tốc độ`, `Auto-scrolling (${sp.en}) · Click or scroll to pause · Shift+Click for speed`)
-          : ui("Bật tự động cuộn trang êm ái (Phím A · Shift+Click đổi tốc độ)", "Enable smooth auto-scroll (Key A · Shift+Click for speed)")
+          ? ui(`Đang tự cuộn (${sp.vi}) · Lăn chuột hoặc bấm để dừng`, `Auto-scrolling (${sp.en}) · Scroll or click to pause`)
+          : ui("Tự động cuộn trang (Phím A · Giữ Shift khi bấm để đổi tốc độ)", "Smooth auto-scroll (Key A · Shift+Click for speed)")
       );
       mutateBtn(b1, (b) => {
         b.innerHTML = autoScrollActive ? I.autoScrollOn : I.autoScrollOff;
@@ -1194,6 +1494,7 @@
     const sel = window.getSelection && window.getSelection();
     const hasTextSel = !!(($("#selPopover") && $("#selPopover").classList.contains("show")) || (sel && !sel.isCollapsed && String(sel).trim().length > 1));
     const blocked = hasOpenOverlay() || hasTextSel || (state.view === "examRun" && !autoScrollPinned);
+    if (hasOpenOverlay()) autoScrollVel = 0;
     const targetSpeed = (blocked || autoScrollSoftHold) ? 0 : (AUTO_SPEEDS[autoScrollSpeedIdx] || AUTO_SPEEDS[1]).px;
     // Smooth viscous velocity ramp (accelerates & decelerates like silk, zero sudden jerk!)
     const accelRate = 1 - Math.pow(0.02, dt);
@@ -1836,7 +2137,7 @@
         ${row("revision", I.layers, ui("Flashcards & Công thức", "Flashcards & Formulas"), ui("Thẻ lật 3D 56 thuật ngữ, 37 câu Đúng/Sai & công thức 6 chương", "3D flashcards, True/False checks & formula sheets"), "railRevBadge")}
         ${row("cases", I.briefcase, ui("Hồ sơ thương vụ", "Case Studies"), ui("8 hồ sơ thương vụ IPO, M&A, LBO kinh điển từ cáo bạch gốc", "8 transaction dossiers from prospectuses & filings"), "railCaseBadge")}
         ${row("labs", I.sliders, ui("Mô hình định giá", "Valuation Models"), ui("10 mô hình DCF, LBO, WACC, Trái phiếu & 3 tình huống tương tác", "10 interactive financial models & 3 deal simulations"), "railLabBadge")}
-        ${row("stats", I.chart, ui("Phân tích & Câu sai", "Analytics & Mistakes"), ui("Thống kê điểm theo chương & giỏ ôn lại các câu từng làm sai", "Performance diagnostics & missed-question repair queue"), "railStatBadge")}
+        ${row("stats", I.chart, ui("Phân tích & Câu sai", "Analytics & Mistakes"), ui("Thống kê điểm theo chương & danh sách câu cần ôn lại", "Performance diagnostics & missed-question review list"), "railStatBadge")}
       </div>
     </div>`;
 
@@ -2002,7 +2303,7 @@
 
       <section class="overview-hero spot-surface stagger" style="--i:1">
         <div>
-          <div class="kicker" style="color:var(--ok)">${doneSecs < totalSecs ? ui("Đang học dở · Đề xuất tiếp theo", "Continue Learning") : ui("Đã hoàn thành toàn bộ bài giảng", "All Sections Read")}</div>
+          <div class="kicker" style="color:var(--ok)">${doneSecs < totalSecs ? ui("Tiếp tục lộ trình học", "Continue Learning") : ui("Đã hoàn thành toàn bộ bài giảng", "All Sections Read")}</div>
           <div style="font-size:1.12rem;font-weight:650;color:var(--ink);margin-bottom:6px">
             ${ui("Chương", "Chapter")} 0${next.ch.id} · ${esc(next.sec.id)} ${esc(Lp(next.sec, "title"))}
           </div>
@@ -2015,23 +2316,23 @@
         </div>
 
         <div class="stat-grid-inline">
-          <div class="stat-cell" id="kpiReadCell" data-tip="Bấm để đọc mục bài giảng tiếp theo">
+          <div class="stat-cell" id="kpiReadCell" data-tip="${ui("Mở mục bài giảng tiếp theo", "Open next lecture section")}">
             <div class="stat-cell-lbl">${ui("Mục bài giảng", "Sections Read")} ${I.chevR}</div>
             <div class="stat-cell-val"><span data-countup="${doneSecs}">${doneSecs}</span><span style="font-size:0.95rem;color:var(--ink-3);font-weight:500"> / ${totalSecs}</span></div>
             <div class="stat-cell-sub">${Math.round((doneSecs / Math.max(1, totalSecs)) * 100)}% ${ui("hoàn thành", "completed")}</div>
           </div>
-          <div class="stat-cell" id="kpiAccCell" data-tip="Xem phân tích điểm số theo 6 chương">
+          <div class="stat-cell" id="kpiAccCell" data-tip="${ui("Xem thống kê điểm theo 6 chương", "View accuracy across 6 chapters")}">
             <div class="stat-cell-lbl">${ui("Độ chính xác", "Quiz Accuracy")} ${I.chevR}</div>
             <div class="stat-cell-val">${avgAcc !== null ? `<span data-countup="${avgAcc}" data-suffix="%">${avgAcc}%</span>` : "—"}</div>
             <div class="stat-cell-sub">${attempts.length} ${ui("lượt làm đề", "completed attempts")}</div>
           </div>
-          <div class="stat-cell" id="kpiBankCell" data-tip="Mở kho 1.024 câu trắc nghiệm">
+          <div class="stat-cell" id="kpiBankCell" data-tip="${ui("Mở ngân hàng 1.024 câu trắc nghiệm", "Open 1,024-question bank")}">
             <div class="stat-cell-lbl">${ui("Kho đề trắc nghiệm", "MCQ Bank")} ${I.chevR}</div>
             <div class="stat-cell-val"><span data-countup="${MCQS.length}" data-locale="vi">${MCQS.length.toLocaleString("vi-VN")}</span></div>
             <div class="stat-cell-sub">+ ${ESSAYS.length} ${ui("bài tự luận & tính toán", "essays & problems")}</div>
           </div>
-          <div class="stat-cell" id="kpiQueueCell" data-tip="Mở danh sách câu sai & đã lưu">
-            <div class="stat-cell-lbl">${ui("Giỏ cần ôn lại", "Review Queue")} ${I.chevR}</div>
+          <div class="stat-cell" id="kpiQueueCell" data-tip="${ui("Xem câu làm sai & câu đã lưu", "Review missed & saved questions")}">
+            <div class="stat-cell-lbl">${ui("Câu cần ôn lại", "Review List")} ${I.chevR}</div>
             <div class="stat-cell-val"><span data-countup="${wrongCount + starCount}">${wrongCount + starCount}</span></div>
             <div class="stat-cell-sub">${wrongCount} ${ui("sai", "missed")} · ${starCount} ${ui("đã lưu", "saved")}</div>
           </div>
@@ -2122,7 +2423,7 @@
               <span class="ico-box ico-teal">${I.sliders}</span>
             </div>
             <div style="font-weight:660;font-size:0.99rem;margin-bottom:5px;color:var(--ink)">${ui("Mô phỏng DCF · LBO · IPO · M&A", "DCF · LBO · IPO Simulators")}</div>
-            <p class="small muted">${ui("10 mô hình định giá trực quan phản hồi biến động tức thời kèm 3 tình huống thương vụ.", "10 interactive quantitative models with live delta flashes and 3 deal simulations.")}</p>
+            <p class="small muted">${ui("Thực hành 10 mô hình định giá tài chính và 3 bài toán ra quyết định thương vụ.", "Practice 10 interactive valuation models and 3 transaction simulations.")}</p>
           </div>
           <div class="small" style="font-weight:620;color:var(--teal-ink);display:flex;align-items:center;gap:5px">${ui("Mở phòng mô phỏng", "Open Modeling Studio")} <span class="card-cta-arrow">${I.arrowR}</span></div>
         </div>
@@ -2282,7 +2583,7 @@
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0">
         <div>
-          <div class="kicker">${esc(META.code)} · SYLLABUS & ASSESSMENT</div>
+          <div class="kicker">${esc(META.code)} · ${ui("Đề cương & Đánh giá học phần", "Syllabus & Assessment")}</div>
           <h1 class="h1">${ui("Đề cương học phần & Ma trận đánh giá", "Course Syllabus & Assessment Blueprint")}</h1>
           <p class="lead">${L(META, "faculty")} · ${META.credits} ${ui("tín chỉ", "credits")} (${META.hours.classroom}h ${ui("lý thuyết & thảo luận", "contact")} + ${META.hours.selfStudy}h ${ui("tự học", "self-study")}) · ${ui("Tiên quyết:", "Prerequisite:")} ${L(META, "prerequisite")}</p>
         </div>
@@ -2319,7 +2620,7 @@
       </div>
 
       <div class="panel panel-pad panel-hover stagger" style="--i:2;margin-bottom:20px">
-        <div class="kicker">COURSE LEARNING OUTCOMES</div>
+        <div class="kicker">${ui("Chuẩn đầu ra học phần", "Course Learning Outcomes")}</div>
         <h3 style="font-size:1rem;margin-bottom:10px">${ui("Chuẩn đầu ra học phần (CLO)", "Learning Outcomes")}</h3>
         <table class="tbl" style="margin-bottom:0">
           <tr><th>CLO</th><th>${ui("Nội dung chuẩn đầu ra", "Description")}</th><th>Bloom</th><th>PLO</th></tr>
@@ -2328,7 +2629,7 @@
       </div>
 
       <div class="panel panel-pad panel-hover stagger" style="--i:3;margin-bottom:20px">
-        <div class="kicker">TEACHING SCHEDULE</div>
+        <div class="kicker">${ui("Kế hoạch giảng dạy", "Teaching Schedule")}</div>
         <h3 style="font-size:1rem;margin-bottom:10px">${ui("Phân bổ thời lượng & Tài liệu đọc theo chương", "Chapter Schedule & Assigned Readings")}</h3>
         <table class="tbl" style="margin-bottom:0">
           <tr><th>${ui("Giờ", "Hrs")}</th><th>${ui("Chương", "Chapter")}</th><th>CLO</th><th>${ui("Tài liệu đọc bắt buộc & tham khảo", "Assigned Readings")}</th></tr>
@@ -2547,7 +2848,7 @@
             const anc = document.createElement("span");
             anc.className = "hd-anchor";
             anc.textContent = "#";
-            anc.setAttribute("data-tip", ui("Đầu mục neo — bấm để cuộn tới", "Section anchor"));
+            anc.setAttribute("data-tip", ui("Di chuyển tới đầu mục này", "Scroll to section"));
             anc.onclick = () => {
               SFX.tap();
               smoothScrollToY(hEl.getBoundingClientRect().top + window.scrollY - 76);
@@ -2618,23 +2919,7 @@
         box.insertBefore(cb, box.firstChild);
       });
 
-      lb.querySelectorAll(".fig-card").forEach((card) => {
-        const tEl = card.querySelector(".fig-title");
-        const bEl = card.querySelector(".fig-body");
-        if (tEl && bEl && !tEl.querySelector(".fig-zoom-hint")) {
-          const span = document.createElement("span");
-          span.className = "muted small fig-zoom-hint";
-          span.style.cssText = "font-weight:500;font-size:0.74rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;flex-shrink:0";
-          span.innerHTML = `${I.zoom} ${ui("Phóng to", "Expand")}`;
-          tEl.appendChild(span);
-          const openLb = () => openDiagramLightbox(tEl.firstChild ? tEl.firstChild.textContent : "", bEl.innerHTML);
-          card.style.cursor = "zoom-in";
-          card.onclick = (ev) => {
-            if (ev.target && ev.target.closest && ev.target.closest("a, button")) return;
-            openLb();
-          };
-        }
-      });
+      bindDiagramCards(lb);
       lb.querySelectorAll("[data-open-case]").forEach((b) => (b.onclick = () => nav("caseRead", { caseId: b.dataset.openCase })));
     };
 
@@ -2805,9 +3090,9 @@
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0">
         <div>
-          <div class="kicker">ASSESSMENT STUDIO</div>
+          <div class="kicker">${ui("Không gian luyện thi", "Assessment Studio")}</div>
           <h1 class="h1">${ui("Phòng thi thử & Luyện đề trắc nghiệm", "Mock Exam & Practice Studio")}</h1>
-          <p class="lead"><span class="desk-kbd-hint">${ui("Môi trường làm bài tập trung hỗ trợ bàn phím (A–D chọn đáp án, phím mũi tên chuyển câu, F gắn cờ xem lại, S lưu câu hỏi).", "Keyboard-driven testing workspace: A–D to answer, arrows to navigate, F to flag, S to bookmark.")}</span><span class="touch-swipe-hint">${ui("Làm bài tập trung với đồng hồ đếm ngược, gạch loại trừ phương án nhiễu (×), gắn cờ xem lại và bảng điều hướng 40 câu nhanh.", "Focused exam studio with live countdown, distractor elimination, question flagging, and 40-Q navigator sheet.")}</span></p>
+          <p class="lead"><span class="desk-kbd-hint">${ui("Hỗ trợ thao tác nhanh bằng bàn phím: nhấn A–D để chọn đáp án, phím mũi tên để chuyển câu, F để đánh dấu xem lại và S để lưu câu hỏi.", "Keyboard-driven testing workspace: A–D to answer, arrows to navigate, F to flag, S to bookmark.")}</span><span class="touch-swipe-hint">${ui("Tích hợp đồng hồ bấm giờ, gạch loại trừ phương án nhiễu, đánh dấu câu phân vân và bảng chuyển nhanh 40 câu.", "Focused exam studio with live countdown, distractor elimination, question flagging, and 40-Q navigator sheet.")}</span></p>
         </div>
       </div>
 
@@ -2850,14 +3135,14 @@
               <span class="tag ${wrongCount ? "tag-err" : ""}">${ui("Cá nhân hoá", "Personalized")}</span>
               <span class="mono small muted">${wrongCount + starCount} Qs</span>
             </div>
-            <h3 style="font-size:1.05rem;margin-bottom:6px">${ui("Khắc phục câu từng làm sai & Đánh dấu", "Mistake & Bookmark Repair")}</h3>
+            <h3 style="font-size:1.05rem;margin-bottom:6px">${ui("Ôn lại câu làm sai & câu đã lưu", "Mistake & Bookmark Repair")}</h3>
             <p class="small muted" style="margin-bottom:14px">${ui(`Tổng hợp ${wrongCount} câu bạn từng chọn sai và ${starCount} câu đã đánh dấu lưu lại.`, `Combines ${wrongCount} missed questions and ${starCount} saved questions.`)}</p>
-            <button class="btn" id="btnStartWeak" ${wrongCount + starCount === 0 ? "disabled" : ""}>${wrongCount + starCount ? ui("Luyện lại giỏ câu hỏi này", "Start Repair Session") : ui("Giỏ ôn lại đang trống", "No items yet")}</button>
+            <button class="btn" id="btnStartWeak" ${wrongCount + starCount === 0 ? "disabled" : ""}>${wrongCount + starCount ? ui("Luyện lại các câu này", "Start Repair Session") : ui("Chưa có câu cần ôn lại", "No items yet")}</button>
           </div>
         </div>
 
         <div class="panel panel-pad stagger" style="--i:2">
-          <div class="kicker">${ui("Tuỳ chỉnh thông số", "Custom Configuration")}</div>
+          <div class="kicker">${ui("Tự chọn cấu hình đề", "Custom Configuration")}</div>
           <h3 style="font-size:1.05rem;margin-bottom:16px">${ui("Tự thiết lập đề luyện tập", "Build Custom Practice Set")}</h3>
 
           <div style="margin-bottom:14px">
@@ -2894,7 +3179,7 @@
             </div>
           </div>
 
-          <button class="btn btn-primary btn-lg" id="btnStartCustom" style="width:100%">${ui("Khởi tạo đề luyện tập", "Launch Custom Session")}</button>
+          <button class="btn btn-primary btn-lg" id="btnStartCustom" style="width:100%">${ui("Bắt đầu luyện tập", "Launch Custom Session")}</button>
         </div>
       </div>
     `;
@@ -3729,12 +4014,12 @@
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0;margin-bottom:12px">
         <div>
-          <div class="kicker">QUESTION REPOSITORY · ${MCQS.length.toLocaleString("vi-VN")} ITEMS</div>
+          <div class="kicker">${ui(`Ngân hàng đề · ${MCQS.length.toLocaleString("vi-VN")} câu hỏi`, `Question Bank · ${MCQS.length.toLocaleString()} Items`)}</div>
           <h1 class="h1">${ui("Ngân hàng câu hỏi trắc nghiệm", "Multiple-Choice Question Bank")}</h1>
         </div>
         <div class="seg" id="bkModeSeg">
-          <button type="button" data-bmode="practice" class="${state.bankStudyMode === "practice" ? "active" : ""}">${ui("Tự kiểm tra (Ẩn đáp án)", "Self-Test")}</button>
-          <button type="button" data-bmode="read" class="${state.bankStudyMode === "read" ? "active" : ""}">${ui("Đọc đáp án", "Show Answers")}</button>
+          <button type="button" data-bmode="practice" class="${state.bankStudyMode === "practice" ? "active" : ""}">${ui("Tự làm bài", "Self-Test")}</button>
+          <button type="button" data-bmode="read" class="${state.bankStudyMode === "read" ? "active" : ""}">${ui("Xem đáp án", "Show Answers")}</button>
         </div>
       </div>
 
@@ -3768,7 +4053,7 @@
           <span class="num" id="bankMetaText"></span>
           <span class="streak-pill hidden" id="bkScorePill"></span>
         </div>
-        <span id="bkResetWrap" class="hidden"><button class="btn btn-ghost btn-sm" id="bkReset">${I.rotate} ${ui("Xoá lựa chọn nháp", "Clear selections")}</button></span>
+        <span id="bkResetWrap" class="hidden"><button class="btn btn-ghost btn-sm" id="bkReset">${I.rotate} ${ui("Làm lại trang này", "Reset choices")}</button></span>
       </div>
 
       <div id="bankListZone"></div>
@@ -3949,7 +4234,7 @@
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0;margin-bottom:12px">
         <div>
-          <div class="kicker">WRITTEN & QUANTITATIVE PROBLEMS · ${ESSAYS.length} ITEMS</div>
+          <div class="kicker">${ui(`Tự luận & Định lượng · ${ESSAYS.length} bài`, `Essays & Problems · ${ESSAYS.length} Items`)}</div>
           <h1 class="h1">${ui("Ngân hàng Tự luận, Bài tập & Tình huống", "Essay, Calculation & Problem Bank")}</h1>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -4083,8 +4368,8 @@
         <div class="q-prompt">${L(r, "q")}</div>
         ${r.type === "tf" && !state.qaRevealAll ? `
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm ${userPick === true ? (r.tf === true ? "btn-ok" : "btn-danger") : ""}" data-tf="${esc(r.id)}|1">${ui("Đúng (True)", "True")}</button>
-            <button class="btn btn-sm ${userPick === false ? (r.tf === false ? "btn-ok" : "btn-danger") : ""}" data-tf="${esc(r.id)}|0">${ui("Sai (False)", "False")}</button>
+            <button class="btn btn-sm ${userPick === true ? (r.tf === true ? "btn-ok" : "btn-danger") : ""}" data-tf="${esc(r.id)}|1">${ui("Đúng", "True")}</button>
+            <button class="btn btn-sm ${userPick === false ? (r.tf === false ? "btn-ok" : "btn-danger") : ""}" data-tf="${esc(r.id)}|0">${ui("Sai", "False")}</button>
           </div>` : ""}
         <div class="acc-grid ${open ? "is-open" : ""}" data-qa-acc="${esc(r.id)}">
           <div class="acc-inner">
@@ -4132,7 +4417,7 @@
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0;margin-bottom:8px">
         <div>
-          <div class="kicker">CORE REVISION</div>
+          <div class="kicker">${ui("Ôn tập trọng tâm", "Core Revision")}</div>
           <h1 class="h1">${ui("Thuật ngữ, Nhận định Đúng/Sai & Sổ tay Công thức", "Terminology, Conceptual Checks & Formula Reference")}</h1>
         </div>
       </div>
@@ -4395,7 +4680,7 @@
             const f = (lg) => (lg === "vi" && FORMULAS_VI[c.id]) || FORMULAS[c.id] || "—";
             return `
               <div class="panel panel-pad panel-hover spot-surface stagger" data-formula-ch="${c.id}" style="--i:${idx}">
-                <div class="kicker">CHƯƠNG 0${c.id}</div>
+                <div class="kicker">${ui(`Chương 0${c.id}`, `Chapter 0${c.id}`)}</div>
                 <h3 style="font-size:1rem;margin-bottom:10px">${L(c, "title")}</h3>
                 <div style="font-size:0.9rem;line-height:1.85;color:var(--ink-2)">${theoNN(f)}</div>
               </div>`;
@@ -4458,7 +4743,7 @@
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0">
         <div>
-          <div class="kicker">TRANSACTION DOSSIERS · ${CASES.length} CASES</div>
+          <div class="kicker">${ui(`Hồ sơ thực tế · ${CASES.length} thương vụ`, `Transaction Dossiers · ${CASES.length} Cases`)}</div>
           <h1 class="h1">${ui("Thư viện Hồ sơ thương vụ chuyên sâu", "Transaction Case Study Library")}</h1>
           <p class="lead">${ui("Các thương vụ IPO, M&A, LBO và tái cấu trúc kinh điển dựng từ cáo bạch và báo cáo gốc. Phần bình luận của giảng viên mở bằng mã cấp tại lớp.", "In-depth transaction dossiers built from regulatory filings, prospectuses, and textbooks.")}</p>
         </div>
@@ -4521,7 +4806,7 @@
     main.innerHTML = `
       <div class="reader-sheet stagger" style="--i:0;max-width:790px;margin:0 auto">
         <button class="btn btn-ghost btn-sm" id="btnBackCases" style="margin-bottom:16px">${I.arrowL} ${ui("Tất cả hồ sơ thương vụ", "All Case Studies")}</button>
-        <div class="kicker">CHƯƠNG 0${c.ch} · ${esc(c.nam || "")} · ~${estimateReadMins(bodyStr)} ${ui("PHÚT ĐỌC", "MIN READ")}</div>
+        <div class="kicker">${ui("Chương", "Chapter")} 0${c.ch} · ${esc(c.nam || "")} · ~${estimateReadMins(bodyStr)} ${ui("phút đọc", "min read")}</div>
         <h1 class="h1" style="margin-bottom:6px">${esc(isEn() ? c.tieuDe.en : c.tieuDe.vi)}</h1>
         <p class="lead" style="margin-bottom:22px">${esc(isEn() ? c.phu.en : c.phu.vi)}</p>
 
@@ -4561,12 +4846,13 @@
         `}
 
         <div class="panel panel-pad">
-          <div class="kicker">${ui("Tài liệu gốc truy xuất (APA 7th)", "Primary Sources")}</div>
+          <div class="kicker">${ui("Tài liệu tham khảo & Nguồn dữ liệu gốc", "Primary Sources")}</div>
           <ol style="margin-left:18px;font-size:0.82rem;color:var(--ink-3);line-height:1.65">${refsHtml}</ol>
         </div>
       </div>
     `;
     wrapTablesForScroll(main);
+    bindDiagramCards(main);
 
     $("#btnBackCases").onclick = () => nav("cases");
     if ($("#btnSingleUnlock")) {
@@ -4592,7 +4878,7 @@
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0;margin-bottom:8px">
         <div>
-          <div class="kicker">QUANTITATIVE & DEAL SIMULATIONS</div>
+          <div class="kicker">${ui("Mô hình tài chính & Thương vụ", "Valuation & Deal Studio")}</div>
           <h1 class="h1">${ui("Phòng mô hình định giá & Tình huống ra quyết định", "Valuation Models & Deal Simulations")}</h1>
         </div>
       </div>
@@ -4751,7 +5037,7 @@
     main.innerHTML = `
       <div class="page-header stagger" style="--i:0">
         <div>
-          <div class="kicker">PERFORMANCE ANALYTICS</div>
+          <div class="kicker">${ui("Thống kê tiến độ học tập", "Study Analytics")}</div>
           <h1 class="h1">${ui("Phân tích kết quả theo chương & Lịch sử làm đề", "Chapter Diagnostics & Attempt History")}</h1>
         </div>
         <div style="display:flex;gap:8px">
@@ -4801,8 +5087,8 @@
     if ($("#btnClearAtt")) $("#btnClearAtt").onclick = () => {
       SFX.tap();
       openConfirmModal({
-        title: ui("Xoá lịch sử làm đề (Yêu cầu mã bảo vệ)", "Clear Attempt History (PIN Protected)"),
-        desc: ui("Nhập mã khoá quản trị để xác nhận xoá thống kê điểm số các lần thi thử trên trình duyệt này.", "Enter the admin PIN to permanently clear recorded quiz scores on this browser."),
+        title: ui("Xoá lịch sử làm đề", "Clear Attempt History"),
+        desc: ui("Nhập mã bảo vệ để xác nhận xoá thống kê điểm số các lượt làm đề trên trình duyệt này.", "Enter the security PIN to clear recorded quiz scores on this browser."),
         danger: true,
         requirePin: true,
         okLabel: ui("Xác nhận xoá", "Verify & Delete"),
@@ -5597,18 +5883,18 @@
       adminRows.push({
         ico: I.lock,
         badge: "ADMIN",
-        titleHtml: esc(ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Yêu cầu mã khoá)", "Factory Reset Study Progress to 0% (PIN Required)")),
-        subHtml: esc(ui("Nhập mã khoá ẩn (••••) ở bước tiếp theo để đặt lại trình duyệt này mới hoàn toàn", "Enter masked admin PIN on next step to reset all progress safely")),
+        titleHtml: esc(ui("Đặt lại toàn bộ tiến độ học tập", "Reset All Study Progress")),
+        subHtml: esc(ui("Yêu cầu nhập mã bảo vệ ở bước tiếp theo để đưa thiết bị về trạng thái mới", "Requires security PIN on the next step to restore fresh state")),
         go: () => {
           const inp = $("#cmdInput");
           if (inp) inp.value = "";
           setTimeout(() => {
             openConfirmModal({
-              title: ui("Đặt lại dữ liệu học tập về 0%", "Reset All Study Progress to 0%"),
-              desc: ui("Toàn bộ mục bài giảng đã đọc, lịch sử đề thi, câu sai, câu đã lưu và flashcards trên thiết bị này sẽ trở về trạng thái ban đầu (giữ nguyên 100% học liệu).", "All read sections, quiz attempts, mistakes, bookmarks, and flashcards on this device will be reset to 0%."),
+              title: ui("Đặt lại toàn bộ tiến độ học tập", "Reset All Study Progress"),
+              desc: ui("Toàn bộ mục bài giảng đã đọc, lịch sử làm đề, câu sai, câu đã lưu và thẻ thuật ngữ trên thiết bị này sẽ trở về trạng thái ban đầu (giữ nguyên toàn bộ học liệu).", "All read sections, quiz attempts, mistakes, bookmarks, and flashcards on this device will be reset."),
               danger: true,
               requirePin: true,
-              okLabel: ui("Xác thực & Reset 0%", "Verify & Reset 0%"),
+              okLabel: ui("Xác nhận đặt lại", "Verify & Reset"),
               onConfirm: performFullStudyReset
             });
           }, 40);
@@ -5620,17 +5906,17 @@
         adminRows.push({
           ico: I.unlock,
           badge: "VERIFIED",
-          titleHtml: esc(ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Mới hoàn toàn)", "Factory Reset All Study Progress to 0%")),
-          subHtml: esc(ui("Đã xác thực mã khoá · Xoá sạch tiến độ đọc, lịch sử thi thử, câu sai, câu lưu & flashcards", "Admin PIN verified · Clears all personal progress while keeping course materials intact")),
+          titleHtml: esc(ui("Đặt lại toàn bộ tiến độ học tập về ban đầu", "Reset All Study Progress")),
+          subHtml: esc(ui("Đã xác thực mã bảo vệ · Xoá tiến độ đọc, lịch sử làm đề, câu sai, câu đã lưu & thẻ thuật ngữ", "PIN verified · Clears all personal progress while keeping course materials intact")),
           go: () => {
             const inp = $("#cmdInput");
             if (inp) inp.value = "";
             setTimeout(() => {
               openConfirmModal({
-                title: ui("Xác nhận đặt lại toàn bộ về 0%?", "Confirm Full Reset to 0%?"),
-                desc: ui("Mã khoá hợp lệ. Thiết bị này sẽ trở về trạng thái 0/27 mục (0%), 0 lượt làm đề, sẵn sàng học mới từ đầu.", "PIN verified. This browser will return to 0/27 sections (0%) and 0 attempts for a fresh start."),
+                title: ui("Xác nhận đặt lại toàn bộ tiến độ?", "Confirm Full Progress Reset?"),
+                desc: ui("Mã bảo vệ hợp lệ. Thiết bị này sẽ trở về trạng thái 0/27 mục (0%) và 0 lượt làm đề để bắt đầu học mới từ đầu.", "PIN verified. This browser will return to 0/27 sections (0%) and 0 attempts for a fresh start."),
                 danger: true,
-                okLabel: ui("Đặt lại về 0% ngay", "Reset to 0% Now"),
+                okLabel: ui("Đặt lại ngay", "Reset Now"),
                 onConfirm: performFullStudyReset
               });
             }, 40);
@@ -5639,8 +5925,8 @@
         adminRows.push({
           ico: I.trash,
           badge: "VERIFIED",
-          titleHtml: esc(ui("Chỉ xoá lịch sử các lượt thi thử (Giữ nguyên tiến độ đọc & câu lưu)", "Clear Exam Attempt History Only")),
-          subHtml: esc(ui("Đã xác thực mã khoá · Đặt lại thống kê lượt làm đề về 0", "Admin PIN verified · Clears recorded quiz attempts only")),
+          titleHtml: esc(ui("Chỉ xoá lịch sử các lượt làm đề", "Clear Exam Attempt History Only")),
+          subHtml: esc(ui("Đã xác thực mã bảo vệ · Giữ nguyên tiến độ đọc bài và các câu đã lưu", "PIN verified · Preserves reading progress and saved questions")),
           go: () => {
             const inp = $("#cmdInput");
             if (inp) inp.value = "";
@@ -5673,15 +5959,15 @@
 
     const corpus = getSearchCorpus();
 
-    // 2. Zero-State Discovery Hub (Recent Searches + High-Yield Exam Chips + Quick Actions)
+    // 2. Zero-State Discovery Hub (Recent Searches + Core Topics + Quick Actions)
     if (!rawTrim) {
       if (scopeBar) scopeBar.classList.add("hidden");
-      if (statsTxt) statsTxt.textContent = ui(`Sẵn sàng tra cứu ${corpus.length.toLocaleString("vi-VN")} mục học liệu`, `${corpus.length.toLocaleString()} items indexed`);
+      if (statsTxt) statsTxt.textContent = ui(`Tra cứu ${corpus.length.toLocaleString("vi-VN")} mục học liệu`, `Search ${corpus.length.toLocaleString()} study items`);
 
       const recents = getRecentSearches();
       const hotTopics = isEn()
         ? ["Bookbuilding IPO", "WACC", "DCF", "EPS Dilution", "LBO", "Greenshoe", "Synergy M&A", "Poison Pill", "Bond Duration", "Sabeco"]
-        : ["Dựng sổ IPO", "WACC", "DCF", "Pha loãng EPS", "LBO", "Greenshoe", "M&A cộng hưởng", "Phòng vệ thôn tính", "Trái phiếu", "Sabeco"];
+        : ["Dựng sổ IPO", "WACC", "DCF", "Pha loãng EPS", "LBO", "Greenshoe", "Cộng hưởng M&A", "Phòng vệ thôn tính", "Trái phiếu", "Sabeco"];
 
       const nextUnread = nextUnreadTarget();
       const quickItems = [
@@ -5695,22 +5981,22 @@
         {
           ico: I.target,
           badge: "40 câu · 60p",
-          titleHtml: esc(ui("Bắt đầu Đề thi thử Cuối kỳ chuẩn cấu trúc HUB", "Start Official 40-Q Timed Mock Final Exam")),
-          subHtml: esc(ui("Phân tầng 6 chương: Ch.03 & Ch.05 chiếm 50% tổng số câu", "Stratified across all 6 chapters matching official blueprint")),
+          titleHtml: esc(ui("Thi thử 40 câu chuẩn cấu trúc đề cuối kỳ", "Start 40-Question Timed Mock Final Exam")),
+          subHtml: esc(ui("Phân bổ theo 6 chương · Chương 03 và 05 chiếm 50% tổng điểm", "Stratified across 6 chapters matching the official blueprint")),
           go: () => startMockExam40()
         },
         {
           ico: I.sliders,
           badge: "13 mô hình",
-          titleHtml: esc(ui("Mở Phòng Mô hình Định giá DCF · LBO · WACC · M&A", "Open Interactive DCF · LBO · WACC Valuation Studio")),
-          subHtml: esc(ui("Thực hành kéo thanh trượt thông số tài chính & 3 tình huống thương vụ", "Interactive sensitivity sliders & 3 deal simulations")),
+          titleHtml: esc(ui("Thực hành Mô hình Định giá DCF · LBO · WACC · M&A", "Open Interactive DCF · LBO · WACC Valuation Models")),
+          subHtml: esc(ui("Điều chỉnh thông số tài chính trực quan & giải 3 bài toán thương vụ", "Interactive sensitivity inputs & 3 transaction scenarios")),
           go: () => nav("labs", { labGroup: "tool", labKey: "dcf" })
         },
         {
           ico: I.zap,
           badge: "6 chương",
-          titleHtml: esc(ui("Tra cứu Sổ tay Hệ thống Công thức 6 chương", "Open 6-Chapter Core Formula Reference Sheet")),
-          subHtml: esc(ui("Tổng hợp toàn bộ công thức định giá, trái phiếu, EPS, WACC, LBO", "Complete quantitative formula sheet for midterm & final exams")),
+          titleHtml: esc(ui("Xem Sổ tay Công thức 6 chương", "Open 6-Chapter Formula Reference")),
+          subHtml: esc(ui("Tổng hợp công thức định giá, trái phiếu, EPS, WACC và LBO", "Complete quantitative formula reference for midterm & final exams")),
           go: () => nav("revision", { revTab: "formula" })
         }
       ];
@@ -5727,12 +6013,12 @@
             </div>
           </div>` : ""}
         <div class="cmd-zero-sec">
-          <div class="cmd-zero-lbl"><span>${ui("Chủ đề trọng tâm hay thi (gõ không dấu vẫn hiểu)", "High-Yield Exam Topics")}</span></div>
+          <div class="cmd-zero-lbl"><span>${ui("Chủ đề trọng tâm", "Core Topics")}</span></div>
           <div class="cmd-chip-wrap">
             ${hotTopics.map((t) => `<button type="button" class="cmd-chip" data-qchip="${esc(t)}">${I.search} <span>${esc(t)}</span></button>`).join("")}
           </div>
         </div>
-        <div class="cmd-group-head"><span>${ui("Lối tắt không gian học", "Quick Actions")}</span></div>
+        <div class="cmd-group-head"><span>${ui("Truy cập nhanh", "Quick Access")}</span></div>
         ${quickItems.map((r, i) => `
           <div class="cmd-row ${i === 0 ? "active" : ""}" data-ci="${i}">
             ${r.ico}
@@ -5809,16 +6095,15 @@
       });
     }
 
-    const elapsedMs = Math.max(1, Math.round(performance.now() - t0));
     if (statsTxt) {
-      statsTxt.textContent = ui(`${totalMatches} kết quả · ${elapsedMs}ms`, `${totalMatches} matches · ${elapsedMs}ms`);
+      statsTxt.textContent = ui(`${totalMatches.toLocaleString("vi-VN")} kết quả`, `${totalMatches.toLocaleString()} results`);
     }
 
     if (totalMatches === 0) {
       box.innerHTML = `
         <div style="padding:28px 18px;text-align:center">
-          <div style="font-weight:620;color:var(--ink);margin-bottom:6px">${ui(`Không tìm thấy kết quả cho "${rawTrim}"`, `No matches found for "${rawTrim}"`)}</div>
-          <div class="small muted" style="margin-bottom:14px">${ui("Thử gõ từ khoá ngắn hơn, viết tắt tiếng Anh (DCF, WACC, IPO, LBO) hoặc chọn gợi ý dưới đây:", "Try a shorter keyword, financial acronym, or pick a topic below:")}</div>
+          <div style="font-weight:620;color:var(--ink);margin-bottom:6px">${ui(`Không tìm thấy kết quả cho "${rawTrim}"`, `No results found for "${rawTrim}"`)}</div>
+          <div class="small muted" style="margin-bottom:14px">${ui("Thử tìm bằng từ khoá ngắn hơn, tên viết tắt (DCF, WACC, IPO, LBO) hoặc chọn chủ đề bên dưới:", "Try a shorter keyword, financial acronym, or select a topic below:")}</div>
           <div class="cmd-chip-wrap" style="justify-content:center">
             ${["WACC", "DCF", "Dựng sổ", "M&A", "LBO", "Greenshoe", "EPS"].map((t) => `<button type="button" class="cmd-chip" data-qchip="${t}">${I.search} <span>${t}</span></button>`).join("")}
           </div>
@@ -6009,9 +6294,38 @@
     const mobLang = $("#btnMobLang");
     if (mobLang) mutateBtn(mobLang, (b) => { b.textContent = LANG() === "bi" ? "VI·EN" : LANG().toUpperCase(); });
     const pwaBtn = $("#btnPwaInstall");
-    if (pwaBtn) mutateBtn(pwaBtn, (b) => { b.innerHTML = `${I.download} <span>${ui("Cài ứng dụng về máy (PWA)", "Install Offline App")}</span>`; });
+    if (pwaBtn) mutateBtn(pwaBtn, (b) => { b.innerHTML = `${I.download} <span>${ui("Cài đặt ứng dụng", "Install App")}</span>`; });
     const sl = $("#searchPlaceholder");
     if (sl) sl.textContent = ui("Tìm kiếm...", "Search...");
+    const cmdInpEl = $("#cmdInput");
+    if (cmdInpEl) cmdInpEl.placeholder = ui("Tìm bài giảng, công thức, thuật ngữ, câu hỏi...", "Search lectures, formulas, terms, questions...");
+    if ($("#cmdCloseBtn")) $("#cmdCloseBtn").textContent = ui("Đóng", "Close");
+    if ($("#cmdHintNav")) $("#cmdHintNav").textContent = ui("Di chuyển", "Navigate");
+    if ($("#cmdHintTab")) $("#cmdHintTab").textContent = ui("Đổi nhóm", "Switch tab");
+    if ($("#cmdHintOpen")) $("#cmdHintOpen").textContent = ui("Mở", "Open");
+    if ($("#selLblHl")) $("#selLblHl").textContent = ui("Tô sáng", "Highlight");
+    if ($("#selLblFind")) $("#selLblFind").textContent = ui("Tra cứu", "Search");
+    if ($("#selLblSpeak")) $("#selLblSpeak").textContent = ui("Đọc", "Listen");
+    if ($("#selLblCopy")) $("#selLblCopy").textContent = ui("Sao chép", "Copy");
+    if ($("#lightboxClose")) $("#lightboxClose").textContent = ui("Đóng", "Close");
+    const setTip = (id, vi, en) => { const el = $(id); if (el) el.setAttribute("data-tip", ui(vi, en)); };
+    setTip("#railHead", "Về trang Tổng quan học phần", "Back to Course Overview");
+    setTip("#btnOpenSearch", "Tìm bài giảng, công thức & câu hỏi (Ctrl + K)", "Search lectures, formulas & questions (Ctrl + K)");
+    setTip("#btnRailToggle", "Ẩn / Hiện thanh điều hướng", "Toggle navigation sidebar");
+    setTip("#langSeg", "Ngôn ngữ hiển thị (Tiếng Việt · Song ngữ · Tiếng Anh)", "Display language (Vietnamese · Bilingual · English)");
+    setTip("#btnScale", "Đổi cỡ chữ đọc bài", "Adjust reading font size");
+    setTip("#btnZen", "Chế độ đọc tập trung (Phím Z)", "Distraction-free reading mode (Key Z)");
+    setTip("#btnSound", "Âm thanh thao tác", "Interface sound feedback");
+    setTip("#btnPalette", "Đổi tông màu giao diện", "Switch color theme");
+    setTip("#btnTheme", "Giao diện Sáng / Tối", "Toggle Light / Dark appearance");
+    setTip("#scrollFab", "Lên đầu trang", "Back to top");
+    setTip("#lbPrevFig", "Sơ đồ trước (Phím ←)", "Previous diagram (←)");
+    setTip("#lbNextFig", "Sơ đồ tiếp theo (Phím →)", "Next diagram (→)");
+    setTip("#lightboxClose", "Đóng cửa sổ (Esc)", "Close viewer (Esc)");
+    setTip("#lbZoomOut", "Thu nhỏ (Phím -)", "Zoom out (-)");
+    setTip("#lbZoomIn", "Phóng to (Phím +)", "Zoom in (+)");
+    setTip("#lbZoomReset", "Đặt lại tỷ lệ 100% (Phím 0)", "Reset zoom to 100% (0)");
+    setTip("#lbFitBtn", "Canh giữa vừa khung hình", "Center & fit to screen");
 
     switch (state.view) {
       case "home": renderHome(main); break;
@@ -6153,6 +6467,7 @@
     if ($("#mtIcoBank")) $("#mtIcoBank").innerHTML = I.list;
     if ($("#mtIcoExam")) $("#mtIcoExam").innerHTML = I.target;
     if ($("#mtIcoMore")) $("#mtIcoMore").innerHTML = I.layers;
+    initLightboxEvents();
 
     // Rehydrate active quiz session across tab reloads / mobile background eviction
     restoreActiveQuiz();
@@ -6226,17 +6541,17 @@
 
     // Offline / Online Connectivity Status Toasts
     window.addEventListener("offline", () => {
-      showToast(ui("Đang ở chế độ Ngoại tuyến — toàn bộ học liệu vẫn hoạt động 100%", "Offline mode — all course materials remain available"));
+      showToast(ui("Mất kết nối mạng — bạn vẫn tiếp tục học bình thường", "Offline — all study materials remain available"));
     });
     window.addEventListener("online", () => {
-      showToast(ui("Đã kết nối lại mạng Internet", "Back online"));
+      showToast(ui("Đã kết nối lại mạng", "Back online"));
     });
 
     applyThemeAndScale();
 
     // Rotating search placeholder ticker in Sidebar
-    const searchHintsVi = ["Tìm kiếm...", "Tìm WACC, DCF, LBO...", "Tìm M&A, IPO, Dựng sổ...", "Tìm câu Q3-12, E1-01...", "Tìm 56 thuật ngữ..."];
-    const searchHintsEn = ["Search...", "Find WACC, DCF, LBO...", "Find M&A, IPO, Bookbuilding...", "Find Q3-12, E1-01...", "Find 56 key terms..."];
+    const searchHintsVi = ["Tìm kiếm...", "Tìm WACC, DCF, LBO...", "Tìm M&A, IPO, Dựng sổ...", "Tìm công thức, thuật ngữ...", "Tìm câu hỏi, bài tập..."];
+    const searchHintsEn = ["Search...", "Find WACC, DCF, LBO...", "Find M&A, IPO, Bookbuilding...", "Find formulas & terms...", "Find questions & problems..."];
     let hintIdx = 0;
     setInterval(() => {
       const rot = $("#searchPlaceholder");
@@ -6441,6 +6756,7 @@
     }
 
     window.addEventListener("wheel", (e) => {
+      if (isLightboxOpen()) return;
       if (autoScrollActive || autoScrollBootTimer) stopAutoScroll(true);
       if (programmaticScrollAnim) {
         cancelAnimationFrame(programmaticScrollAnim);
@@ -6579,7 +6895,7 @@
       pop.style.left = Math.round(x) + "px";
       pop.style.top = Math.round(y) + "px";
       if ($("#selIcoCopy")) $("#selIcoCopy").innerHTML = I.copy;
-      if ($("#selLblCopy")) $("#selLblCopy").textContent = ui("Chép", "Copy");
+      if ($("#selLblCopy")) $("#selLblCopy").textContent = ui("Sao chép", "Copy");
     };
     document.addEventListener("pointerup", () => setTimeout(checkProseSelection, 15));
     document.addEventListener("keyup", (e) => { if (e.shiftKey) checkProseSelection(); });
@@ -6602,11 +6918,11 @@
           currentSelectedRange.surroundContents(mark);
           SFX.correct(1);
           spawnMicroBurst(mark, "var(--warn)");
-          showToast(ui("Đã tô sáng khái niệm quan trọng", "Highlighted key phrase"));
+          showToast(ui("Đã tô sáng đoạn văn bản", "Highlighted passage"));
         } catch (err) {
           if (navigator.clipboard) navigator.clipboard.writeText(currentSelectedText).catch(() => {});
           SFX.tap();
-          showToast(ui("Đã sao chép đoạn bôi đen (đoạn trải qua nhiều thẻ)", "Copied multi-block selection"));
+          showToast(ui("Đã sao chép đoạn văn vào bộ nhớ tạm", "Copied passage to clipboard"));
         }
         window.getSelection().removeAllRanges();
         pop.classList.remove("show");
@@ -6877,7 +7193,7 @@
       try { localStorage.setItem("ibc_sfx", soundOn ? "1" : "0"); } catch (e) {}
       applyThemeAndScale();
       if (soundOn) SFX.tap();
-      showToast(soundOn ? ui("Đã bật âm thanh phản hồi nhẹ", "Tactile sound enabled") : ui("Đã tắt âm thanh phản hồi", "Tactile sound muted"));
+      showToast(soundOn ? ui("Đã bật âm thanh thao tác", "Sound feedback enabled") : ui("Đã tắt âm thanh thao tác", "Sound feedback muted"));
     };
     if ($("#btnSound")) $("#btnSound").onclick = toggleSoundPref;
     if ($("#btnSoundMob")) $("#btnSoundMob").onclick = toggleSoundPref;
@@ -6934,16 +7250,16 @@
     window.addEventListener("appinstalled", () => {
       deferredPwaPrompt = null;
       if (pwaInstallBtn) pwaInstallBtn.classList.add("hidden");
-      showToast(ui("Đã cài đặt ứng dụng BAF736 HUB thành công", "App installed successfully"));
+      showToast(ui("Đã cài đặt ứng dụng thành công", "App installed successfully"));
     });
     if (pwaInstallBtn) {
       const openIosPwaGuide = () => {
         setMobRail(false);
         openConfirmModal({
-          title: ui("Cài đặt ứng dụng BAF736 trên iPhone / iPad", "Install BAF736 App on iOS"),
+          title: ui("Cài đặt trên iPhone / iPad", "Install on iPhone / iPad"),
           desc: ui(
-            "Nhấn nút Chia sẻ (biểu tượng ô vuông có mũi tên hướng lên ở thanh Safari) -> chọn 'Thêm vào Màn hình chính' (Add to Home Screen) để mở toàn màn hình và học ngoại tuyến 100%.",
-            "Tap the Share button in Safari, then choose 'Add to Home Screen' for full-screen standalone offline access."
+            "Trên trình duyệt Safari, chạm vào biểu tượng Chia sẻ rồi chọn “Thêm vào Màn hình chính” để mở toàn màn hình và học ngay cả khi không có mạng.",
+            "In Safari, tap the Share button and choose 'Add to Home Screen' for full-screen offline access."
           ),
           okLabel: ui("Đã hiểu", "Got it"),
           cancelLabel: ui("Đóng", "Close")
@@ -6977,7 +7293,7 @@
         if (!pwaBadge) return;
         if (offlineReadyState) {
           pwaBadge.classList.remove("hidden");
-          pwaBadge.innerHTML = `${I.checkXs} <span>${ui("Sẵn sàng Ngoại tuyến 100%", "100% Offline Ready")}</span>`;
+          pwaBadge.innerHTML = `${I.checkXs} <span>${ui("Đã lưu sẵn để học ngoại tuyến", "Saved for offline study")}</span>`;
         }
       };
       navigator.serviceWorker.addEventListener("message", (ev) => {
@@ -7085,6 +7401,24 @@
         closeAllTransientOverlays();
         scheduleOverlayHistoryRelease();
         if (pop) pop.classList.remove("show");
+        return;
+      }
+      if (!typing && isLightboxOpen()) {
+        if (e.key === "+" || e.key === "=") {
+          e.preventDefault(); SFX.tap(); zoomLightboxAt(lbZoom + 0.3, null, null, true); return;
+        }
+        if (e.key === "-" || e.key === "_") {
+          e.preventDefault(); SFX.tap(); zoomLightboxAt(lbZoom - 0.3, null, null, true); return;
+        }
+        if (e.key === "0") {
+          e.preventDefault(); SFX.tap(); resetLightboxView(true); return;
+        }
+        if (e.key === "ArrowRight" && lbItems.length > 1) {
+          e.preventDefault(); SFX.tap(); mountLightboxSlide(lbIdx + 1); return;
+        }
+        if (e.key === "ArrowLeft" && lbItems.length > 1) {
+          e.preventDefault(); SFX.tap(); mountLightboxSlide(lbIdx - 1); return;
+        }
         return;
       }
       if (activeCselSelect && activeCselBtn) {
