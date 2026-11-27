@@ -164,6 +164,10 @@
   <div class="modal-card">
     <h3 id="confirmTitle" style="font-size:1.05rem;font-weight:650;margin-bottom:8px"></h3>
     <p id="confirmDesc" class="small muted" style="line-height:1.6;margin-bottom:20px"></p>
+    <div id="confirmPinZone" class="hidden" style="margin:-6px 0 16px">
+      <input type="password" inputmode="numeric" autocomplete="new-password" class="inp mono" id="confirmPinInput" placeholder="Nhập mã khoá bảo vệ..." style="width:100%;height:38px;letter-spacing:0.14em">
+      <div id="confirmPinErr" class="small hidden" style="color:var(--err);margin-top:6px;font-weight:550"></div>
+    </div>
     <div class="modal-actions">
       <button type="button" class="btn" id="confirmCancelBtn">Huỷ</button>
       <button type="button" class="btn btn-primary" id="confirmOkBtn">Xác nhận</button>

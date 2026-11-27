@@ -789,6 +789,108 @@
     return !!k[idx];
   }
 
+  /* ---------------- Admin PIN Verification (PBKDF2-HMAC-SHA-256 · Zero Plaintext) ---------------- */
+  const ADMIN_PIN_SALT = "BAF736-HUB-ADMIN-RESET-SALT-v1";
+  const ADMIN_PIN_ITER = 2500;
+  const ADMIN_PIN_HASH = "78a986c8a7f75c55deb0f9acce417c275ef4a444113a2c1c76f8d51a33923278";
+
+  function verifyAdminPin(candidate) {
+    const clean = String(candidate || "").trim();
+    if (!clean || clean.length < 4 || clean.length > 32 || !window.IBKhoa) return false;
+    try {
+      const derived = window.IBKhoa.hexRa(
+        window.IBKhoa.pbkdf2(
+          window.IBKhoa.utf8(clean),
+          window.IBKhoa.utf8(ADMIN_PIN_SALT),
+          ADMIN_PIN_ITER
+        )
+      );
+      if (derived.length !== ADMIN_PIN_HASH.length) return false;
+      let diff = 0;
+      for (let i = 0; i < derived.length; i++) diff |= derived.charCodeAt(i) ^ ADMIN_PIN_HASH.charCodeAt(i);
+      return diff === 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function performFullStudyReset() {
+    clearInterval(examTimer);
+    stopTTS();
+    const STUDY_KEYS = [
+      "ibc_progress",
+      "ibc_attempts",
+      "ibc_wrong_mcq",
+      "ibc_stars_mcq",
+      "ibc_stars_essay",
+      "ibc_fc_known",
+      "ibc_active_quiz",
+      "ibc_ma_mo"
+    ];
+    try {
+      STUDY_KEYS.forEach((k) => localStorage.removeItem(k));
+    } catch (e) {}
+    try {
+      sessionStorage.removeItem("ibc_autoscroll_off");
+    } catch (e) {}
+
+    unlockedCases.clear();
+    streak = 0;
+    const sp = $("#streakPill");
+    if (sp) sp.classList.add("hidden");
+
+    Object.assign(state, {
+      view: "home",
+      ch: 1,
+      sec: 0,
+      expandedCh: 1,
+      chTab: "all",
+      bankCh: 0,
+      bankLv: 0,
+      bankFilter: "all",
+      bankSearch: "",
+      bankPicked: {},
+      bankPage: 0,
+      quiz: null,
+      essayCh: 0,
+      essayType: "",
+      essayExam: "",
+      essayStarOnly: false,
+      essaySearch: "",
+      essayRevealAll: false,
+      essayOpen: {},
+      midPaper: null,
+      fcCh: 0,
+      fcFilter: "all",
+      fcIdx: 0,
+      fcBack: false,
+      fcOrder: null,
+      qaCh: 0,
+      qaType: "",
+      qaRevealAll: false,
+      qaPicked: {},
+      qaOpen: {},
+      warmupQid: null,
+      warmupPick: null,
+      warmupElim: {},
+      elimExam: {},
+      elimBank: {}
+    });
+
+    document.querySelectorAll("mark.user-hl").forEach((m) => {
+      const p = m.parentNode;
+      if (p) {
+        while (m.firstChild) p.insertBefore(m.firstChild, m);
+        p.removeChild(m);
+      }
+    });
+
+    syncExamBodyClass();
+    nav("home", {}, { replace: true });
+    SFX.complete();
+    showToast(ui("Đã đặt lại toàn bộ dữ liệu học tập về 0% (Mới hoàn toàn)", "All study progress reset to 0% (Fresh start)"));
+  }
+
   /* ---------------- Toast, Confirm Modal & Lightbox ---------------- */
   let toastTimer = null;
   function showToast(msg) {
@@ -808,12 +910,65 @@
     okBtn.textContent = opts.okLabel || ui("Xác nhận", "Confirm");
     okBtn.className = "btn " + (opts.danger ? "btn-danger" : "btn-primary");
     $("#confirmCancelBtn").textContent = opts.cancelLabel || ui("Quay lại", "Cancel");
+
+    const pinZone = $("#confirmPinZone");
+    const pinInp = $("#confirmPinInput");
+    const pinErr = $("#confirmPinErr");
+    if (pinZone && pinInp && pinErr) {
+      pinInp.value = "";
+      pinInp.classList.remove("pin-shake");
+      pinErr.textContent = "";
+      pinErr.classList.add("hidden");
+      if (opts.requirePin) {
+        pinInp.placeholder = opts.pinPlaceholder || ui("Nhập mã khoá quản trị...", "Enter admin PIN...");
+        pinZone.classList.remove("hidden");
+        pinInp.oninput = () => {
+          pinInp.classList.remove("pin-shake");
+          pinErr.classList.add("hidden");
+        };
+        pinInp.onkeydown = (ev) => {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            okBtn.click();
+          }
+        };
+        setTimeout(() => pinInp.focus(), 35);
+      } else {
+        pinZone.classList.add("hidden");
+        pinInp.oninput = null;
+        pinInp.onkeydown = null;
+      }
+    }
+
     ov.classList.remove("hidden");
     pushOverlayHistory();
-    const close = () => { ov.classList.add("hidden"); scheduleOverlayHistoryRelease(); };
+    const close = () => {
+      if (pinInp) pinInp.value = "";
+      ov.classList.add("hidden");
+      scheduleOverlayHistoryRelease();
+    };
     $("#confirmCancelBtn").onclick = close;
     ov.onclick = (e) => { if (e.target === ov) close(); };
-    okBtn.onclick = () => { ov.classList.add("hidden"); if (opts.onConfirm) opts.onConfirm(); scheduleOverlayHistoryRelease(); };
+    okBtn.onclick = () => {
+      if (opts.requirePin && pinInp) {
+        if (!verifyAdminPin(pinInp.value)) {
+          SFX.wrong();
+          pinInp.classList.remove("pin-shake");
+          void pinInp.offsetWidth;
+          pinInp.classList.add("pin-shake");
+          if (pinErr) {
+            pinErr.textContent = ui("Mã khoá quản trị không đúng — dữ liệu được giữ an toàn.", "Incorrect admin PIN — data kept safe.");
+            pinErr.classList.remove("hidden");
+          }
+          pinInp.select();
+          return;
+        }
+        pinInp.value = "";
+      }
+      ov.classList.add("hidden");
+      if (opts.onConfirm) opts.onConfirm();
+      scheduleOverlayHistoryRelease();
+    };
   }
 
   let lbZoom = 1;
@@ -4596,11 +4751,17 @@
     if ($("#btnClearAtt")) $("#btnClearAtt").onclick = () => {
       SFX.tap();
       openConfirmModal({
-        title: ui("Xoá lịch sử làm đề", "Clear Attempt History"),
-        desc: ui("Toàn bộ thống kê điểm số các lần thi thử trước trên trình duyệt này sẽ bị xoá.", "All recorded quiz scores on this browser will be permanently removed."),
+        title: ui("Xoá lịch sử làm đề (Yêu cầu mã bảo vệ)", "Clear Attempt History (PIN Protected)"),
+        desc: ui("Nhập mã khoá quản trị để xác nhận xoá thống kê điểm số các lần thi thử trên trình duyệt này.", "Enter the admin PIN to permanently clear recorded quiz scores on this browser."),
         danger: true,
-        okLabel: ui("Xoá lịch sử", "Delete"),
-        onConfirm: () => { store.set("attempts", []); render(false); }
+        requirePin: true,
+        okLabel: ui("Xác nhận xoá", "Verify & Delete"),
+        onConfirm: () => {
+          store.set("attempts", []);
+          SFX.complete();
+          showToast(ui("Đã xoá lịch sử các phiên làm đề", "Attempt history cleared"));
+          render(false);
+        }
       });
     };
     main.querySelectorAll("[data-pch]").forEach((b) => (b.onclick = () => startQuickPractice(+b.dataset.pch)));
@@ -4636,8 +4797,69 @@
   }
 
   function renderCmdList(q) {
-    const kw = q.trim().toLowerCase();
+    const rawTrim = q.trim();
+    const kw = rawTrim.toLowerCase();
     const res = [];
+
+    // Stealth Admin Reset Trigger:
+    // 1) Typing "!reset" opens a masked PIN dialog (safe against shoulder-surfing on mobile/desktop)
+    // 2) Typing the exact PIN (or "!reset <PIN>" / "reset <PIN>") unlocks immediate admin actions
+    if (kw === "!reset") {
+      res.push({
+        ico: I.lock,
+        title: ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Yêu cầu mã khoá)", "Factory Reset Study Progress to 0% (PIN Required)"),
+        sub: ui("Nhập mã khoá ẩn (••••) ở bước tiếp theo để đặt lại trình duyệt này mới hoàn toàn", "Enter masked admin PIN on next step to reset all progress safely"),
+        go: () => {
+          const inp = $("#cmdInput");
+          if (inp) inp.value = "";
+          setTimeout(() => {
+            openConfirmModal({
+              title: ui("Đặt lại dữ liệu học tập về 0%", "Reset All Study Progress to 0%"),
+              desc: ui("Toàn bộ mục bài giảng đã đọc, lịch sử đề thi, câu sai, câu đã lưu và flashcards trên thiết bị này sẽ trở về trạng thái ban đầu (giữ nguyên 100% học liệu).", "All read sections, quiz attempts, mistakes, bookmarks, and flashcards on this device will be reset to 0%."),
+              danger: true,
+              requirePin: true,
+              okLabel: ui("Xác thực & Reset 0%", "Verify & Reset 0%"),
+              onConfirm: performFullStudyReset
+            });
+          }, 40);
+        }
+      });
+    } else if (/^(?:!?reset\s+)?\d{6,16}$/i.test(rawTrim)) {
+      const pinCandidate = rawTrim.replace(/^!?reset\s+/i, "");
+      if (verifyAdminPin(pinCandidate)) {
+        res.push({
+          ico: I.unlock,
+          title: ui("Khôi phục toàn bộ dữ liệu học tập về 0% (Mới hoàn toàn)", "Factory Reset All Study Progress to 0%"),
+          sub: ui("Đã xác thực mã khoá · Xoá sạch tiến độ đọc, lịch sử thi thử, câu sai, câu lưu & flashcards", "Admin PIN verified · Clears all personal progress while keeping course materials intact"),
+          go: () => {
+            const inp = $("#cmdInput");
+            if (inp) inp.value = "";
+            setTimeout(() => {
+              openConfirmModal({
+                title: ui("Xác nhận đặt lại toàn bộ về 0%?", "Confirm Full Reset to 0%?"),
+                desc: ui("Mã khoá hợp lệ. Thiết bị này sẽ trở về trạng thái 0/27 mục (0%), 0 lượt làm đề, sẵn sàng học mới từ đầu.", "PIN verified. This browser will return to 0/27 sections (0%) and 0 attempts for a fresh start."),
+                danger: true,
+                okLabel: ui("Đặt lại về 0% ngay", "Reset to 0% Now"),
+                onConfirm: performFullStudyReset
+              });
+            }, 40);
+          }
+        });
+        res.push({
+          ico: I.trash,
+          title: ui("Chỉ xoá lịch sử các lượt thi thử (Giữ nguyên tiến độ đọc & câu lưu)", "Clear Exam Attempt History Only"),
+          sub: ui("Đã xác thực mã khoá · Đặt lại thống kê lượt làm đề về 0", "Admin PIN verified · Clears recorded quiz attempts only"),
+          go: () => {
+            const inp = $("#cmdInput");
+            if (inp) inp.value = "";
+            store.set("attempts", []);
+            SFX.complete();
+            showToast(ui("Đã xoá lịch sử các phiên làm đề", "Attempt history cleared"));
+            render(false);
+          }
+        });
+      }
+    }
 
     CHAPTERS.forEach((ch) => {
       ch.sections.forEach((s, idx) => {

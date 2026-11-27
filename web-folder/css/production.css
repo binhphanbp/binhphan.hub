@@ -2866,6 +2866,11 @@ div.bi-alt { margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--b
 
 .opt-row.anim-ok .opt-cap { animation: capSpring 0.36s var(--ease-spring) both; }
 .opt-row.anim-bad { animation: wrongShake 0.34s ease both; }
+.inp.pin-shake {
+  animation: wrongShake 0.34s ease both;
+  border-color: var(--err) !important;
+  box-shadow: 0 0 0 3px var(--err-soft) !important;
+}
 
 .expl-panel {
   padding: 14px 16px;
