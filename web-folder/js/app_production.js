@@ -2940,6 +2940,8 @@
     };
 
     mountLectureTab(state.chTab, false);
+    wrapTablesForScroll(main);
+    upgradeNativeTitles(main);
     syncSlidingControls(main);
 
     const tabBar = $("#chTabBar");
@@ -4921,14 +4923,14 @@
 
         <div class="panel panel-pad" style="background:var(--bg-subtle);margin-bottom:26px">
           <div class="kicker">${ui("Trọng tâm phân tích", "Analytical Objectives")}</div>
-          <ul style="margin-left:18px;font-size:0.9rem;color:var(--ink-2)">${mucTieu.map((x) => `<li style="margin-bottom:4px">${x}</li>`).join("")}</ul>
+          <ul style="padding-left:22px;margin:8px 0 0;font-size:0.9rem;color:var(--ink-2);line-height:1.68">${mucTieu.map((x) => `<li style="margin-bottom:5px">${x}</li>`).join("")}</ul>
         </div>
 
         <article class="prose">${cleanEmoji(bodyStr)}</article>
 
         <div class="panel panel-pad" style="margin:28px 0;background:var(--bg-subtle)">
           <div class="kicker">${ui("Câu hỏi thảo luận", "Discussion Prompts")}</div>
-          <ol style="margin-left:18px;line-height:1.75;font-size:0.94rem">${cq.map((q) => `<li style="margin-bottom:8px">${q}</li>`).join("")}</ol>
+          <ol style="padding-left:22px;margin:8px 0 0;line-height:1.75;font-size:0.94rem">${cq.map((q) => `<li style="margin-bottom:8px">${q}</li>`).join("")}</ol>
         </div>
 
         ${unlocked ? `
@@ -4951,7 +4953,7 @@
 
         <div class="panel panel-pad">
           <div class="kicker">${ui("Tài liệu tham khảo & Nguồn dữ liệu gốc", "Primary Sources")}</div>
-          <ol style="margin-left:18px;font-size:0.82rem;color:var(--ink-3);line-height:1.65">${refsHtml}</ol>
+          <ol class="ib-ref">${refsHtml}</ol>
         </div>
       </div>
     `;
